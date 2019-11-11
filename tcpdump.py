@@ -11,7 +11,7 @@ import numpy as np
 
 import sys
 import time
-import signal
+# import signal
 import subprocess
 import argparse
 from os.path import join
@@ -36,11 +36,11 @@ def init_directories():
     makedirs(output_dir)
 
     return output_dir
-class TimeoutError(Exception):
-	pass
+# class TimeoutError(Exception):
+# 	pass
 
-def _sig_alarm(sig, tb):
-	raise TimeoutError("timeout")
+# def _sig_alarm(sig, tb):
+# 	raise TimeoutError("timeout")
 
 
 def parse_arguments():
@@ -66,7 +66,7 @@ def page_has_loaded(driver):
 	page_state = driver.execute_script('return document.readyState;')
 	return page_state == 'complete'
 
-def crawl(url,  timeout = 120):
+def crawl(url,  timeout = 100):
 	profile = webdriver.FirefoxProfile()
 	profile.set_preference("network.proxy.type", 1)
 	profile.set_preference("network.proxy.socks", "127.0.0.1")
@@ -74,26 +74,23 @@ def crawl(url,  timeout = 120):
 	profile.set_preference("network.proxy.socks_version", 5)
 	profile.update_preferences()
 	driver = webdriver.Firefox(firefox_profile=profile)
-
-#     e = driver.find_element_by_tag_name('html')
+	driver.set_page_load_timeout(timeout)
    
-	signal.signal(signal.SIGALRM, _sig_alarm)
 	try:
-		signal.alarm(timeout)   
-		now = time.time()
 		driver.get(url)
-		while True:
-			if page_has_loaded(driver):
-				err = 0
-				break
-			else:
-				continue 
-	except TimeoutError:
+		driver.quit()
+		return 0
+		# while True:
+		# 	if page_has_loaded(driver):
+		# 		driver.quit()
+		# 		return 0
+		# 	else:
+		# 		continue 
+	except:
 		print("timeout")
-		err = 1
-		pass
-	driver.quit()
-	return err
+		driver.quit()
+		return 1
+	return 1
 
 
 
@@ -107,7 +104,7 @@ if __name__ == "__main__":
 
 	batch_dump_dir = init_directories()
 
-	cumu_err = 0
+
 
 	for i in range(m):
 		for wid,website in enumerate(websites):
@@ -116,12 +113,13 @@ if __name__ == "__main__":
 			cmd = "sudo tcpdump host "+ src_ip+ " and \(13.75.95.89\) and tcp and greater 67 -w " + filename
 			#start tcpdump
 			pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+			time.sleep(2)
 			#begin to crawl
 			now = time.time()
 			err = crawl(website)
 			print(time.time()-now)
 			#wait for padding traffic
-			time.sleep(2)
+			time.sleep(5)
 			#stop tcpdump
 			subprocess.call("sudo killall tcpdump",shell=True)
 			
@@ -129,8 +127,5 @@ if __name__ == "__main__":
 				log = open(join(batch_dump_dir,'timeouts.txt'),'a+')
 				log.write(filename+'\n')
 				log.close()
-				cumu_err += 1
-			if cumu_err >= 10:
-				print("Network error, exit")
-				exit(1)
+
 
