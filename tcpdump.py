@@ -68,6 +68,7 @@ def page_has_loaded(driver):
 
 def crawl(url,  timeout = 100):
 	profile = webdriver.FirefoxProfile()
+	profile.DEFAULT_PREFERENCES['frozen']['javascript.enabled'] = False
 	profile.set_preference("network.proxy.type", 1)
 	profile.set_preference("network.proxy.socks", "127.0.0.1")
 	profile.set_preference("network.proxy.socks_port", 9050)
