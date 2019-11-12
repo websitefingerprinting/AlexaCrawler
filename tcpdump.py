@@ -1,29 +1,36 @@
 import subprocess
-from os.path import join
+import os
+from os import makedirs
+from os.path import join, abspath, dirname, pardir
 import time
 import logging
-import os
+import sys
+import argparse
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 import numpy as np
 
-import sys
-import time
-# import signal
-import subprocess
-import argparse
-from os.path import join
-from os import makedirs
 
-logging.getLogger("urllib3").setLevel(logging.WARNING)
-
+DumpDir = join(abspath(join(dirname(__file__), pardir)) , "AlexaCrawler/dump")
+logger = logging.getLogger("tcpdump")
 
 WebListDir = './global_top_500.txt'
 src_ip = "10.79.119.9"
-DumpDir = "./dump/"
 
+def config_logger():
+    # Set file
+    log_file = sys.stdout
+    ch = logging.StreamHandler(log_file)
+
+    # Set logging format
+    LOG_FORMAT = "%(asctime)s %(name)-12s %(levelname)-8s %(message)s"
+    ch.setFormatter(logging.Formatter(LOG_FORMAT))
+    logger.addHandler(ch)
+
+    # Set level format
+    logger.setLevel(logging.INFO)
 
 def init_directories():
     # Create a results dir if it doesn't exist yet
@@ -81,14 +88,8 @@ def crawl(url,  timeout = 100):
 		driver.get(url)
 		driver.quit()
 		return 0
-		# while True:
-		# 	if page_has_loaded(driver):
-		# 		driver.quit()
-		# 		return 0
-		# 	else:
-		# 		continue 
 	except:
-		print("timeout")
+		logger.warning("{} got timeout".format(url))
 		driver.quit()
 		return 1
 	return 1
@@ -98,6 +99,7 @@ def crawl(url,  timeout = 100):
 
 if __name__ == "__main__":
 	args = parse_arguments()
+	config_logger()
 	n, m = args.n, args.m
 	with open(WebListDir,'r') as f:
 		wlist = f.readlines()[:n]
@@ -109,8 +111,8 @@ if __name__ == "__main__":
 
 	for i in range(m):
 		for wid,website in enumerate(websites):
-			print(i,website)
 			filename = join(batch_dump_dir, str(wid)+'-' + str(i) + '.pcap')
+			logger.info("{:d}-{:d}: {}".format(wid,i,website))
 			cmd = "sudo tcpdump host "+ src_ip+ " and \(13.75.95.89\) and tcp and greater 67 -w " + filename
 			#start tcpdump
 			pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -118,7 +120,7 @@ if __name__ == "__main__":
 			#begin to crawl
 			now = time.time()
 			err = crawl(website)
-			print(time.time()-now)
+			logger.info("Load {:.4f}s".format(time.time()-now))
 			#wait for padding traffic
 			time.sleep(5)
 			#stop tcpdump
