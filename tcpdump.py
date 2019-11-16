@@ -12,6 +12,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 import numpy as np
 
+from pyvirtualdisplay import Display
+
+
+
 
 DumpDir = join(abspath(join(dirname(__file__), pardir)) , "AlexaCrawler/dump")
 logger = logging.getLogger("tcpdump")
@@ -98,6 +102,10 @@ def crawl(url,  timeout = 100):
 
 
 if __name__ == "__main__":
+
+	display = Display(visible=0, size=(800, 600))
+	display.start()
+	
 	args = parse_arguments()
 	config_logger()
 	n, m = args.n, args.m
