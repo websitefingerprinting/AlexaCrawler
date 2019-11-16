@@ -16,8 +16,8 @@ from pyvirtualdisplay import Display
 
 
 
-
-DumpDir = join(abspath(join(dirname(__file__), pardir)) , "AlexaCrawler/dump")
+Pardir = abspath(join(dirname(__file__), pardir))
+DumpDir = join( Pardir , "AlexaCrawler/dump")
 logger = logging.getLogger("tcpdump")
 
 WebListDir = './global_top_500.txt'
@@ -105,7 +105,7 @@ if __name__ == "__main__":
 
 	display = Display(visible=0, size=(800, 600))
 	display.start()
-	
+
 	args = parse_arguments()
 	config_logger()
 	n, m = args.n, args.m
@@ -118,8 +118,8 @@ if __name__ == "__main__":
 
 
 	for i in range(m):
-		subprocess.call("tor -f obfs4-client",shell=True)
-		time.sleep(40)
+		subprocess.call("tor -f "+ join(Pardir, 'tor-config', "obfs4-client"),shell=True)
+		time.sleep(30)
 		loger.info("Tor client opened!")
 		for wid,website in enumerate(websites):
 			filename = join(batch_dump_dir, str(wid)+'-' + str(i) + '.pcap')
