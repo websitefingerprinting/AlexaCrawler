@@ -110,6 +110,9 @@ if __name__ == "__main__":
 
 
 	for i in range(m):
+		subprocess.call("tor -f obfs4-client",shell=True)
+		time.sleep(40)
+		loger.info("Tor client opened!")
 		for wid,website in enumerate(websites):
 			filename = join(batch_dump_dir, str(wid)+'-' + str(i) + '.pcap')
 			logger.info("{:d}-{:d}: {}".format(wid,i,website))
@@ -131,4 +134,7 @@ if __name__ == "__main__":
 				log.write(filename+'\n')
 				log.close()
 
+		subprocess.call("sudo killall tor",shell=True)
+		time.sleep(10)	
+		logger.info("Tor killed!")
 
