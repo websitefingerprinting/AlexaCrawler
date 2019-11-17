@@ -21,7 +21,7 @@ DumpDir = join( Pardir , "AlexaCrawler/dump")
 logger = logging.getLogger("tcpdump")
 
 WebListDir = './global_top_500.txt'
-src_ip = "10.79.119.9"
+# src_ip = "10.79.119.9"
 
 def config_logger():
     # Set file
@@ -116,24 +116,25 @@ if __name__ == "__main__":
 	batch_dump_dir = init_directories()
 
 
+	# tor_proc = subprocess.Popen("tor -f "+ join(Pardir, 'tor-config', "obfs4-client"), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)		
+	# time.sleep(20)
 
 	for i in range(m):
-		subprocess.call("tor -f "+ join(Pardir, 'tor-config', "obfs4-client"),shell=True)
-		time.sleep(30)
-		loger.info("Tor client opened!")
 		for wid,website in enumerate(websites):
 			filename = join(batch_dump_dir, str(wid)+'-' + str(i) + '.pcap')
 			logger.info("{:d}-{:d}: {}".format(wid,i,website))
-			cmd = "sudo tcpdump host "+ src_ip+ " and \(13.75.95.89\) and tcp and greater 67 -w " + filename
+			# cmd = "sudo tcpdump host "+ src_ip+ " and \(13.75.95.89\) and tcp and greater 67 -w " + filename
+			cmd = "sudo tcpdump host \(13.75.95.89\) and tcp and greater 67 -w " + filename
 			#start tcpdump
 			pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 			time.sleep(2)
 			#begin to crawl
 			now = time.time()
 			err = crawl(website)
-			logger.info("Load {:.4f}s".format(time.time()-now))
 			#wait for padding traffic
-			time.sleep(5)
+			padding_time = 5
+			time.sleep(padding_time)
+			logger.info("Load {:.4f} + {:.4f}s".format(time.time()-now, padding_time))
 			#stop tcpdump
 			subprocess.call("sudo killall tcpdump",shell=True)
 			
@@ -142,7 +143,6 @@ if __name__ == "__main__":
 				log.write(filename+'\n')
 				log.close()
 
-		subprocess.call("sudo killall tor",shell=True)
-		time.sleep(10)	
-		logger.info("Tor killed!")
+	# subprocess.call("sudo killall tor",shell=True)
+	# logger.info("Tor killed!")
 
