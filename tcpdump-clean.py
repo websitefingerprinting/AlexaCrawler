@@ -12,7 +12,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 import numpy as np
 
-from pyvirtualdisplay import Display
+# from pyvirtualdisplay import Display
 
 
 
@@ -43,7 +43,7 @@ def init_directories():
 
     # Define output directory
     timestamp = time.strftime('%m%d_%H%M')
-    output_dir = join(DumpDir, 'batch_'+timestamp)
+    output_dir = join(DumpDir, 'clean_'+timestamp)
     makedirs(output_dir)
 
     return output_dir
@@ -61,7 +61,7 @@ def parse_arguments():
 	parser.add_argument('-n',
 						type=int,
 						metavar='<Top N websites>',
-						default=50,
+						default=100,
 						help='Top N websites to be crawled.')
 	parser.add_argument('-m',
 						type=int,
@@ -77,7 +77,7 @@ def page_has_loaded(driver):
 	page_state = driver.execute_script('return document.readyState;')
 	return page_state == 'complete'
 
-def crawl(url,  timeout = 100):
+def crawl(url,  timeout = 60):
 	profile = webdriver.FirefoxProfile()
 	profile.DEFAULT_PREFERENCES['frozen']['javascript.enabled'] = False
 	profile.set_preference("network.proxy.type", 1)
@@ -103,8 +103,8 @@ def crawl(url,  timeout = 100):
 
 if __name__ == "__main__":
 
-	display = Display(visible=0, size=(800, 600))
-	display.start()
+	# display = Display(visible=0, size=(800, 600))
+	# display.start()
 
 	args = parse_arguments()
 	config_logger()
