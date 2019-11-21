@@ -63,6 +63,11 @@ def parse_arguments():
 						metavar='<Top N websites>',
 						default=50,
 						help='Top N websites to be crawled.')
+	parser.add_argument('-n0',
+						type=int,
+						metavar='<start page>',
+						default=0,
+						help='Crawl n0 to n0+n-1 webpages')
 	parser.add_argument('-m',
 						type=int,
 						metavar='<Num of instances>',
@@ -108,9 +113,9 @@ if __name__ == "__main__":
 
 	args = parse_arguments()
 	config_logger()
-	n, m = args.n, args.m
+	n0, n, m = args.n0, args.n, args.m
 	with open(WebListDir,'r') as f:
-		wlist = f.readlines()[:n]
+		wlist = f.readlines()[n0:n0+n]
 	websites = ["https://www."+w[:-1] for w in wlist]
 
 	batch_dump_dir = init_directories()
@@ -121,6 +126,7 @@ if __name__ == "__main__":
 
 	for i in range(m):
 		for wid,website in enumerate(websites):
+			wid = wid + n0
 			filename = join(batch_dump_dir, str(wid)+'-' + str(i) + '.pcap')
 			logger.info("{:d}-{:d}: {}".format(wid,i,website))
 			# cmd = "sudo tcpdump host "+ src_ip+ " and \(13.75.95.89\) and tcp and greater 67 -w " + filename
