@@ -32,7 +32,7 @@ def parse_arguments():
 	args = parser.parse_args()
 	return args
 
-def init_directories(n):
+def init_directories(n,n0):
     # Create a results dir if it doesn't exist yet
     if not os.path.exists(DumpDir):
         makedirs(DumpDir)
@@ -49,7 +49,7 @@ if __name__ == '__main__':
 	folders = args.dir
 	raw = glob.glob(join(folders +"*", "*.pcap"))
 	print("Total:{}".format(len(raw)))
-	output_dir = init_directories(args.n)
+	output_dir = init_directories(args.n,args.n0)
 	counter = [-1]*(args.n+args.n0)
 	# print(raw)
 	for r in raw:
