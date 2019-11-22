@@ -22,6 +22,11 @@ def parse_arguments():
 						metavar='<num of web>',
 						default =50,
 						help='num of web')
+	parser.add_argument('-n0',
+						type=int,
+						metavar='<start page>',
+						default=0,
+						help='Crawl n0 to n0+n-1 webpages')
 
 	# Parse arguments
 	args = parser.parse_args()
@@ -34,7 +39,7 @@ def init_directories(n):
 
     # Define output directory
     timestamp = time.strftime('%m%d_%H%M')
-    output_dir = join(DumpDir, 'dataset'+str(n)+'_'+timestamp)
+    output_dir = join(DumpDir, 'dataset'+str(n0)+'_'+str(n+n0-1)+'_'+timestamp)
     makedirs(output_dir)
 
     return output_dir
@@ -45,7 +50,7 @@ if __name__ == '__main__':
 	raw = glob.glob(join(folders +"*", "*.pcap"))
 	print("Total:{}".format(len(raw)))
 	output_dir = init_directories(args.n)
-	counter = [-1]*args.n
+	counter = [-1]*(args.n+args.n0)
 	# print(raw)
 	for r in raw:
 		filename = r.split("/")[-1].split(".pcap")[0]
@@ -53,7 +58,7 @@ if __name__ == '__main__':
 		counter[int(web_id)] += 1
 		new_inst_id = str(counter[int(web_id)])
 		newfilename = web_id + "-" + new_inst_id + ".pcap"
-		cmd = "cp " + r + " " +join(output_dir, newfilename)
+		cmd = "mv " + r + " " +join(output_dir, newfilename)
 		subprocess.call(cmd, shell=True)
 
 
