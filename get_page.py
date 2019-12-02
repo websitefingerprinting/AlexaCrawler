@@ -81,15 +81,19 @@ def crawl(url,  timeout = 100):
 	driver.set_page_load_timeout(timeout)
    
 	try:
+		logger.info("Start!")
+		lasttime = time.time()
 		driver.get(url)
-		t = time.time()
+		logger.info("Finish!")
+		logger.info("Internal: {:2f}".format(time.time()- lasttime))
 		driver.quit()
-		return t
+		return 0
 	except:
 		logger.warning("{} got timeout".format(url))
+		logger.info("Finish with error!")
 		driver.quit()
-		return -1
-	return -1
+		return 1
+	return 1
 
 
 
@@ -121,12 +125,8 @@ if __name__ == "__main__":
 	time.sleep(1)
 	#begin to crawl
 	now = time.time()
-	logger.info("Start {:.4f}".format(now))
-	t = crawl(website)
-	if t > 0:
-		finish = t
-	else:
-		finish = now
+	crawl(website)
+	finish = time.time()
 	#wait for padding traffic
 	padding_time = 10
 	time.sleep(padding_time)
