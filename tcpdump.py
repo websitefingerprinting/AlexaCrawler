@@ -20,7 +20,7 @@ Pardir = abspath(join(dirname(__file__), pardir))
 DumpDir = join( Pardir , "AlexaCrawler/dump")
 logger = logging.getLogger("tcpdump")
 
-WebListDir = './global_top_500.txt'
+WebListDir = './web100_without_timeout.txt'
 # src_ip = "10.79.119.9"
 
 def config_logger():
@@ -133,12 +133,12 @@ if __name__ == "__main__":
 			cmd = "sudo tcpdump host \(13.75.95.89\) and tcp and greater 67 -w " + filename
 			#start tcpdump
 			pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-			time.sleep(2)
+			time.sleep(1)
 			#begin to crawl
 			now = time.time()
 			err = crawl(website)
 			#wait for padding traffic
-			padding_time = 5
+			padding_time = 10
 			time.sleep(padding_time)
 			logger.info("Load {:.4f} + {:.4f}s".format(time.time()-now, padding_time))
 			#stop tcpdump

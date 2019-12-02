@@ -27,6 +27,11 @@ def parse_arguments():
 						metavar='<start page>',
 						default=0,
 						help='Crawl n0 to n0+n-1 webpages')
+	parser.add_argument('-suffix',
+						type=str,
+						metavar='<suffix>',
+						default='.pcap',
+						help='suffix of the file')
 
 	# Parse arguments
 	args = parser.parse_args()
@@ -47,17 +52,17 @@ def init_directories(n,n0):
 if __name__ == '__main__':
 	args = parse_arguments()
 	folders = args.dir
-	raw = glob.glob(join(folders +"*", "*.pcap"))
+	raw = glob.glob(join(folders +"*", "*"+args.suffix))
 	print("Total:{}".format(len(raw)))
 	output_dir = init_directories(args.n,args.n0)
 	counter = [-1]*(args.n+args.n0)
 	# print(raw)
 	for r in raw:
-		filename = r.split("/")[-1].split(".pcap")[0]
+		filename = r.split("/")[-1].split(args.suffix)[0]
 		web_id,inst_id = filename.split("-")
 		counter[int(web_id)] += 1
 		new_inst_id = str(counter[int(web_id)])
-		newfilename = web_id + "-" + new_inst_id + ".pcap"
+		newfilename = web_id + "-" + new_inst_id + args.suffix
 		cmd = "mv " + r + " " +join(output_dir, newfilename)
 		subprocess.call(cmd, shell=True)
 

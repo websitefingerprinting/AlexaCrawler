@@ -29,8 +29,12 @@ def getPktType(pkt):
 	return isDummy if pkt.load[0] else isReal
 
 def getDirection(pkt):
-	return 1 if pkt.payload.src == src else -1
-
+	if pkt.payload.src == src:
+		return 1
+	elif pkt.payload.src == dst:
+		return -1 
+	else:
+		raise ValueError("Wrong IP address!")
 
 
 def parse_arguments():
@@ -80,7 +84,7 @@ if __name__ == "__main__":
 	args = parse_arguments()
 	suffix = args.suffix
 	filelist = glob.glob(join(args.dir, '*.pcap'))
-	filename = args.dir.split("/")[-1]
+	filename = args.dir.split("/")[-2]
 	savedir = join(ParsedDir, filename)
 	init_directories(savedir)
 
