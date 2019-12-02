@@ -69,7 +69,7 @@ def page_has_loaded(driver):
 	page_state = driver.execute_script('return document.readyState;')
 	return page_state == 'complete'
 
-def crawl(url,  timeout = 100):
+def crawl(url, file_name, timeout = 100):
 	profile = webdriver.FirefoxProfile()
 	profile.DEFAULT_PREFERENCES['frozen']['javascript.enabled'] = False
 	profile.set_preference("network.proxy.type", 1)
@@ -83,6 +83,10 @@ def crawl(url,  timeout = 100):
 	try:
 		logger.info("Start!")
 		lasttime = time.time()
+		cmd = "sudo tcpdump host \(13.75.95.89\) and tcp and greater 67 -w " + filename
+		#start tcpdump
+		pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+		time.sleep(1)
 		driver.get(url)
 		logger.info("Finish!")
 		logger.info("Internal: {:2f}".format(time.time()- lasttime))
@@ -115,26 +119,21 @@ if __name__ == "__main__":
 	# tor_proc = subprocess.Popen("tor -f "+ join(Pardir, 'tor-config', "obfs4-client"), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)		
 	# time.sleep(20)
 
-	tag = time.strftime('%H%M%S')
+	tag = time.strftime('%H-%M-%S')
 	filename = join(batch_dump_dir, str(args.i)+'-' +tag+ '.pcap')
 	logger.info("{:d}-{}: {}".format(args.i, tag ,website))
-	# cmd = "sudo tcpdump host "+ src_ip+ " and \(13.75.95.89\) and tcp and greater 67 -w " + filename
-	cmd = "sudo tcpdump host \(13.75.95.89\) and tcp and greater 67 -w " + filename
-	#start tcpdump
-	pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	time.sleep(1)
 	#begin to crawl
 	now = time.time()
-	crawl(website)
+	crawl(website,filename)
 	finish = time.time()
 	#wait for padding traffic
 	padding_time = 10
-	time.sleep(padding_time)
 	logger.info("Load {:.4f} + {:.4f}s".format(finish-now, padding_time))
+	time.sleep(padding_time)
+	logger.info("Sleep ends")
 	#stop tcpdump
 	subprocess.call("sudo killall tcpdump",shell=True)
 			
 
-	subprocess.call("sudo killall tor",shell=True)
-	logger.info("Tor killed!")
+	
 
