@@ -77,8 +77,11 @@ def crawl(url, file_name, timeout = 100):
 	profile.set_preference("network.proxy.socks_port", 9050)
 	profile.set_preference("network.proxy.socks_version", 5)
 	profile.update_preferences()
+	logger.info("1")
 	driver = webdriver.Firefox(firefox_profile=profile)
+	logger.info("2")
 	driver.set_page_load_timeout(timeout)
+	logger.info("3")
    
 	try:
 		logger.info("Start!")
