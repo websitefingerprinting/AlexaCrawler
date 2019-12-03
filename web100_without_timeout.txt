@@ -2,7 +2,6 @@ google.com
 youtube.com
 baidu.com
 qq.com
-sohu.com
 facebook.com
 taobao.com
 wikipedia.org
