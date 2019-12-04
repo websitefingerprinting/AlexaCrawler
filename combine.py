@@ -13,9 +13,12 @@ def parse_arguments():
 
 	parser = argparse.ArgumentParser(description='Crawl Alexa top websites and capture the traffic')
 
-	parser.add_argument('dir',
+	parser.add_argument('-dir',
+						nargs='+',
 						type=str,
 						metavar='<batch dir>',
+						dest = 'dirlist',
+						default = [],
 						help='bacth folders')
 	parser.add_argument('-n',
 						type=int,
@@ -51,8 +54,10 @@ def init_directories(n,n0):
 
 if __name__ == '__main__':
 	args = parse_arguments()
-	folders = args.dir
-	raw = glob.glob(join(folders +"*", "*"+args.suffix))
+	folders = args.dirlist
+	raw = []
+	for folder in folders:
+		raw += glob.glob(join(folder, "*"+args.suffix))
 	print("Total:{}".format(len(raw)))
 	output_dir = init_directories(args.n,args.n0)
 	counter = [-1]*(args.n+args.n0)
