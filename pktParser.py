@@ -1,4 +1,4 @@
-
+import multiprocessing as mp 
 import logging
 import os
 from os import makedirs
@@ -62,6 +62,7 @@ def parse(fdir):
 	packets = rdpcap(fdir)
 	t0 = packets[0].time
 	print(savefiledir)
+	cnt = {1:0,-1:0}
 	with open(savefiledir, 'w') as f:
 		for i,pkt in enumerate(packets):    
 			#retransmission
@@ -71,13 +72,17 @@ def parse(fdir):
 				num_pkt = np.math.ceil( len(pkt)/pktSize )
 				timestamp = getTimestamp(pkt,t0)
 				direction = getDirection(pkt)
+				cnt[direction] += 1
 				for _ in range(num_pkt):
 					f.write("{:4f}\t{:d}\n".format(timestamp, isReal * direction))
 			else:
 				timestamp = getTimestamp(pkt,t0)
 				pkttype = getPktType(pkt)
 				direction = getDirection(pkt)
+				cnt[direction] += 1
 				f.write( "{:4f}\t{:d}\n".format(timestamp, pkttype * direction))
+	if cnt[1] < 1 or cnt[-1]<1:
+		print("{} has too few packets:+{},-{}".format(savefiledir, cnt[1],cnt[-1]))
 
 if __name__ == "__main__":
 	global savedir, suffix
@@ -88,9 +93,11 @@ if __name__ == "__main__":
 	savedir = join(ParsedDir, filename)
 	init_directories(savedir)
 
-	for f in filelist:
-		parse(f)
+	# for f in filelist:
+	# 	parse(f)
 
+	pool = mp.Pool(-1)
+	pool.map(parse, filelist)
 
 
 
