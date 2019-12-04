@@ -81,7 +81,7 @@ def parse(fdir):
 				direction = getDirection(pkt)
 				cnt[direction] += 1
 				f.write( "{:4f}\t{:d}\n".format(timestamp, pkttype * direction))
-	if cnt[1] < 1 or cnt[-1]<1:
+	if cnt[1] < 10 or cnt[-1]<10:
 		print("{} has too few packets:+{},-{}".format(savefiledir, cnt[1],cnt[-1]))
 
 if __name__ == "__main__":
