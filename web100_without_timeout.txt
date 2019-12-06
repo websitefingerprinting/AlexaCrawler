@@ -63,12 +63,10 @@ fandom.com
 pixnet.net
 sogou.com
 imgur.com
-cnn.com
 canva.com
 whatsapp.com
 onlinesbi.com
 soundcloud.com
-rakuten.co.jp
 indeed.com
 nytimes.com
 instructure.com
@@ -78,8 +76,6 @@ stackexchange.com
 chase.com
 paypal.com
 aparat.com
-ettoday.net
-huanqiu.com
 bbc.co.uk
 nih.gov
 zhihu.com
@@ -91,7 +87,6 @@ theguardian.com
 walmart.com
 douyu.com
 slideshare.net
-freepik.com
 globo.com
 pinterest.com
 cnblogs.com
