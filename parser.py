@@ -81,13 +81,13 @@ def parse(fdir):
 				direction = getDirection(pkt)
 				cnt[direction] += 1
 				for _ in range(num_pkt):
-					f.write("{:4f}\t{:d}\n".format(timestamp, isReal * direction))
+					f.write("{:.4f}\t{:d}\n".format(timestamp, isReal * direction))
 			else:
 				timestamp = getTimestamp(pkt,t0)
 				pkttype = getPktType(pkt)
 				direction = getDirection(pkt)
 				cnt[direction] += 1
-				f.write( "{:4f}\t{:d}\n".format(timestamp, pkttype * direction))
+				f.write( "{:.4f}\t{:d}\n".format(timestamp, pkttype * direction))
 	if cnt[1] < 5 and cnt[-1]< 5:
 		print("{} has too few packets:+{},-{}".format(savefiledir, cnt[1],cnt[-1]))
 
