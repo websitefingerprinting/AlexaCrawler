@@ -60,11 +60,18 @@ def parse(fdir):
 	global savedir, suffix
 	savefiledir = join(savedir, fdir.split('/')[-1].split('.pcap')[0]+suffix) 
 	packets = rdpcap(fdir)
-	t0 = packets[0].time
 	print(savefiledir)
 	cnt = {1:0,-1:0}
 	with open(savefiledir, 'w') as f:
-		for i,pkt in enumerate(packets):    
+		for i, pkt in enumerate(packets):
+			#skip the first few noise packets
+			if ( getPktType(pkt) == isReal ) and getDirection(pkt)>0 :
+				start = i
+				t0 = pkt.time
+				print("Start from pkt no. {}".format(start))
+				break
+
+		for i,pkt in enumerate(packets[start:]):
 			#retransmission
 			if len(pkt) < pktSize:
 				continue
@@ -81,7 +88,7 @@ def parse(fdir):
 				direction = getDirection(pkt)
 				cnt[direction] += 1
 				f.write( "{:4f}\t{:d}\n".format(timestamp, pkttype * direction))
-	if cnt[1] < 10 or cnt[-1]<10:
+	if cnt[1] < 5 and cnt[-1]< 5:
 		print("{} has too few packets:+{},-{}".format(savefiledir, cnt[1],cnt[-1]))
 
 if __name__ == "__main__":
@@ -96,7 +103,7 @@ if __name__ == "__main__":
 	# for f in filelist:
 	# 	parse(f)
 
-	pool = mp.Pool(processes=5)
+	pool = mp.Pool(processes=15)
 	pool.map(parse, filelist)
 
 

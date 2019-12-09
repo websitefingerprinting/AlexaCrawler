@@ -8,12 +8,15 @@ import sys
 import argparse
 import time
 from selenium import webdriver
-from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 import numpy as np
 
 from pyvirtualdisplay import Display
 
+
+timeout = 100
 
 
 Pardir = abspath(join(dirname(__file__), pardir))
@@ -24,34 +27,30 @@ WebListDir = './web100_without_timeout.txt'
 # src_ip = "10.79.119.9"
 
 def config_logger():
-    # Set file
-    log_file = sys.stdout
-    ch = logging.StreamHandler(log_file)
+	# Set file
+	log_file = sys.stdout
+	ch = logging.StreamHandler(log_file)
 
-    # Set logging format
-    LOG_FORMAT = "%(asctime)s %(name)-12s %(levelname)-8s %(message)s"
-    ch.setFormatter(logging.Formatter(LOG_FORMAT))
-    logger.addHandler(ch)
+	# Set logging format
+	LOG_FORMAT = "%(asctime)s %(name)-12s %(levelname)-8s %(message)s"
+	ch.setFormatter(logging.Formatter(LOG_FORMAT))
+	logger.addHandler(ch)
 
-    # Set level format
-    logger.setLevel(logging.INFO)
+	# Set level format
+	logger.setLevel(logging.INFO)
 
 def init_directories():
-    # Create a results dir if it doesn't exist yet
-    if not os.path.exists(DumpDir):
-        makedirs(DumpDir)
+	# Create a results dir if it doesn't exist yet
+	if not os.path.exists(DumpDir):
+		makedirs(DumpDir)
 
-    # Define output directory
-    timestamp = time.strftime('%m%d_%H%M')
-    output_dir = join(DumpDir, 'batch_'+timestamp)
-    makedirs(output_dir)
+	# Define output directory
+	timestamp = time.strftime('%m%d_%H%M')
+	output_dir = join(DumpDir, 'batch_'+timestamp)
+	makedirs(output_dir)
 
-    return output_dir
-# class TimeoutError(Exception):
-# 	pass
+	return output_dir
 
-# def _sig_alarm(sig, tb):
-# 	raise TimeoutError("timeout")
 
 
 def parse_arguments():
@@ -78,29 +77,58 @@ def parse_arguments():
 	args = parser.parse_args()
 	return args
 
-def page_has_loaded(driver):
-	page_state = driver.execute_script('return document.readyState;')
-	return page_state == 'complete'
+# def page_has_loaded(driver):
+# 	page_state = driver.execute_script('return document.readyState;')
+# 	return page_state == 'complete'
+# def find_element_by(self, selector, timeout=100,
+# 					find_by=By.CSS_SELECTOR):
+# 	"""Wait until the element matching the selector appears or timeout."""
+# 	return WebDriverWait(self, timeout).until(
+# 		EC.presence_of_element_located((find_by, selector)))
 
-def crawl(url,  timeout = 100):
+
+def get_driver():
+	start = time.time()
 	profile = webdriver.FirefoxProfile()
 	profile.set_preference("network.proxy.type", 1)
 	profile.set_preference("network.proxy.socks", "127.0.0.1")
 	profile.set_preference("network.proxy.socks_port", 9050)
 	profile.set_preference("network.proxy.socks_version", 5)
+	profile.set_preference("browser.cache.disk.enable", False)
+	profile.set_preference("browser.cache.memory.enable", False)
+	profile.set_preference("browser.cache.offline.enable", False)
+	profile.set_preference("network.http.use-cache", False)
 	profile.update_preferences()
 	driver = webdriver.Firefox(firefox_profile=profile)
 	driver.set_page_load_timeout(timeout)
-   
+	logger.info("Firefox launch for {:.2f}s".format(time.time()-start))
+	return driver
+
+def crawl(url):
+	driver = get_driver()
 	try:
+		#start tcpdump
+		cmd = "sudo tcpdump host \(13.75.95.89\) and tcp and greater 67 -w " + filename
+		pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+		start = time.time()
 		driver.get(url)
-		driver.quit()
-		return 0
+		err = 0
 	except:
 		logger.warning("{} got timeout".format(url))
+		err = 1
+	finally:
+		finish = time.time()
 		driver.quit()
-		return 1
-	return 1
+
+
+		#wait for padding traffic
+		padding_time = 5
+		logger.info("Load {:.2f} + {:.2f}s".format(finish-start, padding_time))
+		time.sleep(padding_time)
+
+		#stop tcpdump
+		subprocess.call("sudo killall tcpdump",shell=True)
+		return err
 
 
 
@@ -120,29 +148,13 @@ if __name__ == "__main__":
 	batch_dump_dir = init_directories()
 
 
-	# tor_proc = subprocess.Popen("tor -f "+ join(Pardir, 'tor-config', "obfs4-client"), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)		
-	# time.sleep(20)
-
 	for i in range(m):
 		for wid,website in enumerate(websites):
 			wid = wid + n0
 			filename = join(batch_dump_dir, str(wid)+'-' + str(i) + '.pcap')
 			logger.info("{:d}-{:d}: {}".format(wid,i,website))
-			# cmd = "sudo tcpdump host "+ src_ip+ " and \(13.75.95.89\) and tcp and greater 67 -w " + filename
-			cmd = "sudo tcpdump host \(13.75.95.89\) and tcp and greater 67 -w " + filename
-			#start tcpdump
-			pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-			time.sleep(1)
 			#begin to crawl
-			now = time.time()
 			err = crawl(website)
-			#wait for padding traffic
-			padding_time = 10
-			time.sleep(padding_time)
-			logger.info("Load {:.4f} + {:.4f}s".format(time.time()-now, padding_time))
-			#stop tcpdump
-			subprocess.call("sudo killall tcpdump",shell=True)
-			
 			if err:
 				log = open(join(batch_dump_dir,'timeouts.txt'),'a+')
 				log.write(filename+'\n')
