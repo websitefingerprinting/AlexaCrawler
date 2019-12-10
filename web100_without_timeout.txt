@@ -7,9 +7,6 @@ wikipedia.org
 yahoo.com
 amazon.com
 jd.com
-live.com
-weibo.com
-reddit.com
 vk.com
 netflix.com
 blogspot.com
@@ -22,10 +19,8 @@ stackoverflow.com
 naver.com
 ebay.com
 apple.com
-aliexpress.com
 twitter.com
 twitch.tv
-tribunnews.com
 pornhub.com
 soso.com
 msn.com
