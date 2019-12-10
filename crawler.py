@@ -104,7 +104,7 @@ def get_driver():
 	logger.info("Firefox launch for {:.2f}s".format(time.time()-start))
 	return driver
 
-def crawl(url):
+def crawl(url, filename):
 	driver = get_driver()
 	try:
 		#start tcpdump
@@ -154,10 +154,10 @@ if __name__ == "__main__":
 			filename = join(batch_dump_dir, str(wid)+'-' + str(i) + '.pcap')
 			logger.info("{:d}-{:d}: {}".format(wid,i,website))
 			#begin to crawl
-			err = crawl(website)
+			err = crawl(website, filename)
 			if err:
 				log = open(join(batch_dump_dir,'timeouts.txt'),'a+')
-				log.write(filename+'\n')
+				log.write(website+': '+str(wid)+'-' + str(i)+'\n')
 				log.close()
 
 	subprocess.call("sudo killall tor",shell=True)
