@@ -1,8 +1,6 @@
 google.com
 youtube.com
-baidu.com
 facebook.com
-taobao.com
 wikipedia.org
 yahoo.com
 amazon.com

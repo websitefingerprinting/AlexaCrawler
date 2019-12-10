@@ -16,7 +16,7 @@ import numpy as np
 from pyvirtualdisplay import Display
 
 
-timeout = 100
+timeout = 105
 
 
 Pardir = abspath(join(dirname(__file__), pardir))
@@ -101,10 +101,13 @@ def get_driver():
 	profile.update_preferences()
 	driver = webdriver.Firefox(firefox_profile=profile)
 	driver.set_page_load_timeout(timeout)
-	logger.info("Firefox launch for {:.2f}s".format(time.time()-start))
+	# logger.info("Firefox launch for {:.2f}s".format(time.time()-start))
 	return driver
 
 def crawl(url, filename):
+
+	display = Display(visible=0, size=(1000, 800))
+	display.start()
 	driver = get_driver()
 	try:
 		#start tcpdump
@@ -112,6 +115,7 @@ def crawl(url, filename):
 		pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 		start = time.time()
 		driver.get(url)
+		# driver.get_screenshot_as_file(filename.split('.')[0]+'.png')
 		err = 0
 	except:
 		logger.warning("{} got timeout".format(url))
@@ -119,7 +123,7 @@ def crawl(url, filename):
 	finally:
 		finish = time.time()
 		driver.quit()
-
+		display.stop()
 
 		#wait for padding traffic
 		padding_time = 5
@@ -135,8 +139,6 @@ def crawl(url, filename):
 
 if __name__ == "__main__":
 
-	display = Display(visible=0, size=(800, 600))
-	display.start()
 
 	args = parse_arguments()
 	config_logger()
