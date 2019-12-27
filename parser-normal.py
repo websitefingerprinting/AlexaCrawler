@@ -93,7 +93,7 @@ if __name__ == "__main__":
 	# for f in filelist:
 	# 	parse(f)
 
-	pool = mp.Pool(processes=1)
+	pool = mp.Pool(processes=15)
 	pool.map(parse, filelist)
 
 
