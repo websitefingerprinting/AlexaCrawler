@@ -16,15 +16,15 @@ import numpy as np
 from pyvirtualdisplay import Display
 
 
-timeout = 105
-
+timeout = 100
+padding_time = 1
 
 Pardir = abspath(join(dirname(__file__), pardir))
 DumpDir = join( Pardir , "AlexaCrawler/dump")
 logger = logging.getLogger("tcpdump")
 
-WebListDir = './web100_without_timeout.txt'
-# src_ip = "10.79.119.9"
+WebListDir = './global_top_500_without_timeout_in_first_200.txt'
+src = 13.75.95.89
 
 def config_logger():
 	# Set file
@@ -111,7 +111,7 @@ def crawl(url, filename):
 	driver = get_driver()
 	try:
 		#start tcpdump
-		cmd = "sudo tcpdump host \(13.75.95.89\) and tcp and greater 67 -w " + filename
+		cmd = "sudo tcpdump host \("+src+"\) and tcp and greater 67 -w " + filename
 		pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 		start = time.time()
 		driver.get(url)
@@ -126,7 +126,6 @@ def crawl(url, filename):
 		display.stop()
 
 		#wait for padding traffic
-		padding_time = 5
 		logger.info("Load {:.2f} + {:.2f}s".format(finish-start, padding_time))
 		time.sleep(padding_time)
 
