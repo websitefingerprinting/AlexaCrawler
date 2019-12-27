@@ -24,7 +24,7 @@ DumpDir = join( Pardir , "AlexaCrawler/dump")
 logger = logging.getLogger("tcpdump")
 
 WebListDir = './global_top_500_without_timeout_in_first_200.txt'
-src = 13.75.95.89
+src = "13.75.95.89"
 
 def config_logger():
 	# Set file
