@@ -17,7 +17,7 @@ from pyvirtualdisplay import Display
 
 
 timeout = 100
-padding_time = 1
+padding_time = 5
 
 Pardir = abspath(join(dirname(__file__), pardir))
 DumpDir = join( Pardir , "AlexaCrawler/dump")
@@ -122,16 +122,17 @@ def crawl(url, filename):
 		err = 1
 	finally:
 		finish = time.time()
+		t = finish-start
 		driver.quit()
 		display.stop()
 
 		#wait for padding traffic
-		logger.info("Load {:.2f} + {:.2f}s".format(finish-start, padding_time))
+		logger.info("Load {:.2f} + {:.2f}s".format(t, padding_time))
 		time.sleep(padding_time)
 
 		#stop tcpdump
 		subprocess.call("sudo killall tcpdump",shell=True)
-		return err
+		return err, t
 
 
 
@@ -155,11 +156,14 @@ if __name__ == "__main__":
 			filename = join(batch_dump_dir, str(wid)+'-' + str(i) + '.pcap')
 			logger.info("{:d}-{:d}: {}".format(wid,i,website))
 			#begin to crawl
-			err = crawl(website, filename)
+			err, loading_time = crawl(website, filename)
 			if err:
 				log = open(join(batch_dump_dir,'timeouts.txt'),'a+')
 				log.write(website+': '+str(wid)+'-' + str(i)+'\n')
 				log.close()
+			f = open(join(batch_dump_dir,'loading_times.txt'),'a+')
+			f.write("{}:{:.2f}\n".format(wid,loading_time))
+			f.close()
 
 	subprocess.call("sudo killall tor",shell=True)
 	logger.info("Tor killed!")
