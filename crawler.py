@@ -17,7 +17,7 @@ from pyvirtualdisplay import Display
 
 
 timeout = 100
-padding_time = 5
+padding_time = 4
 
 Pardir = abspath(join(dirname(__file__), pardir))
 DumpDir = join( Pardir , "AlexaCrawler/dump")
@@ -109,7 +109,6 @@ def crawl(url, filename):
 	display = Display(visible=0, size=(1000, 800))
 	display.start()
 	driver = get_driver()
-	time.sleep(1)
 	try:
 		#start tcpdump
 		cmd = "sudo tcpdump host \("+src+"\) and tcp and greater 67 -w " + filename
