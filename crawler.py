@@ -122,17 +122,15 @@ def crawl(url, filename):
 		logger.warning("{} got timeout".format(url))
 		err = 1
 	finally:
+		driver.quit()
+		display.stop()
 		finish = time.time()
 		t = finish-start
 		#wait for padding traffic
 		logger.info("Load {:.2f} + {:.2f}s".format(t, padding_time))
 		time.sleep(padding_time)
-
 		#stop tcpdump
 		subprocess.call("sudo killall tcpdump",shell=True)
-
-		driver.quit()
-		display.stop()
 		return err, t
 
 
