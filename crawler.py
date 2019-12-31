@@ -109,6 +109,7 @@ def crawl(url, filename):
 	display = Display(visible=0, size=(1000, 800))
 	display.start()
 	driver = get_driver()
+	time.sleep(1)
 	try:
 		#start tcpdump
 		cmd = "sudo tcpdump host \("+src+"\) and tcp and greater 67 -w " + filename
@@ -123,15 +124,15 @@ def crawl(url, filename):
 	finally:
 		finish = time.time()
 		t = finish-start
-		driver.quit()
-		display.stop()
-
 		#wait for padding traffic
 		logger.info("Load {:.2f} + {:.2f}s".format(t, padding_time))
 		time.sleep(padding_time)
 
 		#stop tcpdump
 		subprocess.call("sudo killall tcpdump",shell=True)
+
+		driver.quit()
+		display.stop()
 		return err, t
 
 
