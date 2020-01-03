@@ -10,7 +10,9 @@ from scapy.all import *
 import glob
 
 src = '10.0.0.4'
-dst = '13.75.95.89'
+dst1 = '13.75.95.89'
+dst2 = '13.94.61.159'
+dst3 = '52.175.53.148'
 isDummy = 888
 isReal = 1
 pktSize = 612
@@ -33,7 +35,7 @@ def getPktType(pkt):
 def getDirection(pkt):
 	if pkt.payload.src == src:
 		return 1
-	elif pkt.payload.src == dst:
+	elif (pkt.payload.src == dst1) or (pkt.payload.src == dst2) or (pkt.payload.src == dst3):
 		return -1 
 	else:
 		raise ValueError("Wrong IP address!")
