@@ -67,7 +67,7 @@ def parse(fdir):
 	with open(savefiledir, 'w') as f:
 		for i, pkt in enumerate(packets):
 			#skip the first few noise packets
-			if  len(pkt) >= pktSize and getDirection(pkt)>0 and ( getPktType(pkt) == isReal ) :
+			if  len(pkt) >= pktSize and getDirection(pkt)>0:
 				start = i
 				t0 = pkt.time
 				print("Start from pkt no. {}".format(start))
