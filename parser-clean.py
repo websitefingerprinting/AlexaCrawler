@@ -11,7 +11,7 @@ import glob
 
 src = '10.0.0.4'
 dst = '13.94.61.159'
-cellSize = 512
+cell_size = 512
 ParsedDir = join(abspath(join(dirname(__file__), pardir)) , "AlexaCrawler/parsed")
 
 def init_directories(path):
@@ -68,12 +68,23 @@ def parse(fdir):
 				print("Start from pkt no. {}".format(start))
 				break
 		for i, pkt in enumerate(packets[start:]):
-			num_pkt = int(np.round( len(pkt)/cellSize ))
+			ind = 0
+			cell_num = 0			
 			timestamp = getTimestamp(pkt,t0)
 			direction = getDirection(pkt)
-			cnt[direction] += 1
-			for _ in range(num_pkt):
+			b = pkt.load
+			while ind < len(b):
+		        if b[ind:ind+1] == b'\x17' and b[ind+1:ind+3] == b'\x03\x03':
+		            message_len = int.from_bytes(b[ind+3:ind+5], 'big')
+		            cell_num += message_len
+		            ind += message_len + 5
+		        else:
+		            break				
+			cell_num = cell_num // cell_size 
+			cnt[direction] += cell_num       
+			for _ in range(cell_num):
 				f.write("{:.4f}\t{:d}\n".format(timestamp, direction))
+
 	if cnt[1] < 5 and cnt[-1]< 5:
 		print("{} has too few packets:+{},-{}".format(savefiledir, cnt[1],cnt[-1]))
 
