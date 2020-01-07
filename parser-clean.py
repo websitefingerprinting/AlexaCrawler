@@ -74,12 +74,12 @@ def parse(fdir):
 			direction = getDirection(pkt)
 			b = pkt.load
 			while ind < len(b):
-		        if b[ind:ind+1] == b'\x17' and b[ind+1:ind+3] == b'\x03\x03':
-		            message_len = int.from_bytes(b[ind+3:ind+5], 'big')
-		            cell_num += message_len
-		            ind += message_len + 5
-		        else:
-		            break				
+				if b[ind:ind+1] == b'\x17' and b[ind+1:ind+3] == b'\x03\x03':
+					message_len = int.from_bytes(b[ind+3:ind+5], 'big')
+					cell_num += message_len
+					ind += message_len + 5
+				else:
+					break				
 			cell_num = cell_num // cell_size 
 			cnt[direction] += cell_num       
 			for _ in range(cell_num):
