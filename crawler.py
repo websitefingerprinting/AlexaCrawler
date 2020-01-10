@@ -17,7 +17,7 @@ from pyvirtualdisplay import Display
 
 
 timeout = 100
-padding_time = 4
+padding_time = 10
 
 Pardir = abspath(join(dirname(__file__), pardir))
 DumpDir = join( Pardir , "AlexaCrawler/dump")
