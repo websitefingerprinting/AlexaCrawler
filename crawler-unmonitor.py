@@ -154,9 +154,9 @@ if __name__ == "__main__":
 
 	for i in range(m):
 		for wid,website in enumerate(websites):
-			wid = wid + n0
-			filename = join(batch_dump_dir, str(wid)+'-' + str(i) + '.pcap')
-			logger.info("{:d}-{:d}: {}".format(wid,i,website))
+			wid = wid + 10000
+			filename = join(batch_dump_dir, str(wid) + '.pcap')
+			logger.info("{:d}: {}".format(wid+n0,website))
 			#begin to crawl
 			err, loading_time = crawl(website, filename)
 			if err:
