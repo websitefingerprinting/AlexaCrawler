@@ -149,18 +149,18 @@ if __name__ == "__main__":
 	print("total: {} webs".format(len(wlist)))
 	batch_dump_dir = init_directories()
 
-	timeouts = dict.fromkeys(websites, 0)
+	timeouts = dict.fromkeys(wlist, 0)
 
 	for i in range(m):
-		for webid,website in enumerate(wlist):
-			website = "https://www."+website
+		for webid,w in enumerate(wlist):
+			website = "https://www."+w
 			wid = webid + 10000
 			filename = join(batch_dump_dir, str(wid) + '.pcap')
 			logger.info("{:d}: {}".format(webid+n0,website))
 			#begin to crawl
 			err, loading_time = crawl(website, filename)
 			if err:
-				timeouts[website] += 1 
+				timeouts[w] += 1 
 
 
 			f = open(join(batch_dump_dir,'loading_times.txt'),'a+')
