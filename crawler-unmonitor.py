@@ -171,7 +171,7 @@ if __name__ == "__main__":
 		for item in timeouts.items():
 			if item[1] > 0:
 				log.write("{}:{}\n".format(item[0],item[1]))
-				log.close()
+		log.close()
 
 	subprocess.call("sudo killall tor",shell=True)
 	logger.info("Tor killed!")
