@@ -9,9 +9,9 @@ import argparse
 from scapy.all import *
 import glob
 
-src = '10.0.0.4'
-dst = '13.94.61.159'
-cell_size = 512
+src = '192.168.0.151'
+dst = '65.49.20.10'
+CELL_SIZE = 512
 ParsedDir = join(abspath(join(dirname(__file__), pardir)) , "AlexaCrawler/parsed")
 
 def init_directories(path):
@@ -57,36 +57,40 @@ def parse(fdir):
 	global savedir, suffix
 	savefiledir = join(savedir, fdir.split('/')[-1].split('.pcap')[0]+suffix) 
 	packets = rdpcap(fdir)
-	print(savefiledir)
-	cnt = {1:0,-1:0}
-	with open(savefiledir, 'w') as f:
-		for i, pkt in enumerate(packets):
-			#skip the first few noise packets
-			if getDirection(pkt)>0 :
-				start = i
-				t0 = pkt.time
-				print("Start from pkt no. {}".format(start))
-				break
-		for i, pkt in enumerate(packets[start:]):
-			ind = 0
-			cell_num = 0			
-			timestamp = getTimestamp(pkt,t0)
-			direction = getDirection(pkt)
-			b = pkt.load
-			while ind < len(b):
-				if b[ind:ind+1] == b'\x17' and b[ind+1:ind+3] == b'\x03\x03':
-					message_len = int.from_bytes(b[ind+3:ind+5], 'big')
-					cell_num += message_len
-					ind += message_len + 5
-				else:
-					break				
-			cell_num = cell_num // cell_size 
-			cnt[direction] += cell_num       
-			for _ in range(cell_num):
-				f.write("{:.4f}\t{:d}\n".format(timestamp, direction))
+	try:
+		with open(savefiledir, 'w') as f:
+			for i, pkt in enumerate(packets):
+				#skip the first few noise packets
+				if getDirection(pkt)>0 :
+					start = i
+					t0 = pkt.time
+					print("Start from pkt no. {}".format(start))
+					break
 
-	if cnt[1] < 5 and cnt[-1]< 5:
-		print("{} has too few packets:+{},-{}".format(savefiledir, cnt[1],cnt[-1]))
+			for i, pkt in enumerate(packets[start:]):
+				b = raw(pkt.payload.payload.payload)
+				byte_ind = b.find(b'\x17\x03\x03')
+				while byte_ind != -1 and byte_ind < len(b):
+					if b[byte_ind:byte_ind + 3] == b'\x17\x03\x03':
+						TLS_LEN = int.from_bytes(b[byte_ind+3:byte_ind+5], 'big')
+						cur_time = getTimestamp(pkt,t0)
+						cur_dir = getDirection(pkt)
+						#complete TLS record
+						cell_num = TLS_LEN /CELL_SIZE
+						cell_num = int(np.round(cell_num))
+					 
+						for i in range(cell_num):
+							f.write("{:.4f}\t{:d}\n".format(cur_time, cur_dir))
+						byte_ind += TLS_LEN + 5
+					else:
+						#What happened here?
+						break
+	except:
+		print("Error in {}".format(fdir.split('/')[-1]))
+
+
+
+
 
 if __name__ == "__main__":
 	global savedir, suffix
