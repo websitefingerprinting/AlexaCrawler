@@ -147,16 +147,16 @@ if __name__ == "__main__":
 	df = pd.read_csv(WebListDir, names = ['num','name'])
 	wlist = list(df.iloc[n0:n0+n,1])
 	print("total: {} webs".format(len(wlist)))
-	websites = ["https://www."+w[:-1] for w in wlist]
 	batch_dump_dir = init_directories()
 
 	timeouts = dict.fromkeys(websites, 0)
 
 	for i in range(m):
-		for wid,website in enumerate(websites):
-			wid = wid + 10000
+		for webid,website in enumerate(wlist):
+			website = "https://www."+website
+			wid = webid + 10000
 			filename = join(batch_dump_dir, str(wid) + '.pcap')
-			logger.info("{:d}: {}".format(wid+n0,website))
+			logger.info("{:d}: {}".format(webid+n0,website))
 			#begin to crawl
 			err, loading_time = crawl(website, filename)
 			if err:
