@@ -80,7 +80,7 @@ def parse(fdir):
 						cell_num = int(np.round(cell_num))
 					 
 						for i in range(cell_num):
-							f.write("{:.4f}\t{:d}\n".format(cur_time, cur_dir))
+							f.write("{:.6f}\t{:d}\n".format(cur_time, cur_dir))
 						byte_ind += TLS_LEN + 5
 					else:
 						#What happened here?
