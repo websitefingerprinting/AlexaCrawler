@@ -80,7 +80,7 @@ def parse(fdir):
 		if  len(pkt) >= pktSize and getDirection(pkt)>0:
 			start = i
 			t0 = pkt.time
-			print("Start from pkt no. {}".format(start))
+			# print("Start from pkt no. {}".format(start))
 			break
 
 	for i,pkt in enumerate(packets[start:]):
@@ -130,7 +130,11 @@ def parse(fdir):
 	pkts_array1 = np.array(pkts)
 	pkts_array2 = pkts_array1[1:]
 	time_diffs = pkts_array2[:,0] - pkts_array1[:-1,0]
-	cut_off_ind = np.where(time_diffs > 1)[0][-1]+1
+	tmp = np.where(time_diffs > 1)[0]
+	if len(tmp) == 0:
+		cut_off_ind = len(pkts)
+	else:
+		cut_off_ind = tmp[-1]
 	print("{}: cut off at {}/{}".format(id_, cut_off_ind,len(pkts)))
 	with open(savefiledir, 'w') as f:
 		for pkt in pkts[:cut_off_ind]:
