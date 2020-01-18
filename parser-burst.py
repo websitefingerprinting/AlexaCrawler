@@ -29,8 +29,6 @@ def init_directories(path):
 def getTimestamp(pkt, t0):
 	return float(pkt.time - t0)
 
-def getPktType(pkt):
-	return isDummy if pkt.load[0] else isReal
 
 def getDirection(pkt):
 	if pkt.payload.src == src:
@@ -71,74 +69,79 @@ def parse(fdir):
 	global savedir, suffix
 	id_ = fdir.split('/')[-1].split('.pcap')[0]
 	savefiledir = join(savedir, id_+suffix) 
+
+	# #remove acks and retransmissions
+	# cmd = 'tshark -r '+ fdir+ ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w '+ fdir
+	# subprocess.call(cmd, shell=True)
 	packets = rdpcap(fdir)
 	# print(savefiledir)
-	cnt = {1:0,-1:0}
-	pkts = []
+
 	for i, pkt in enumerate(packets):
 		#skip the first few noise packets
-		if  len(pkt) >= pktSize and getDirection(pkt)>0:
+		if  getDirection(pkt)>0:
 			start = i
 			t0 = pkt.time
-			# print("Start from pkt no. {}".format(start))
+			print("Start from pkt no. {}".format(start))
 			break
 
+	
+
+	in_pkts_raw = []
+	in_pkts = []
+	out_pkts = []
 	for i,pkt in enumerate(packets[start:]):
-		#retransmission
-		if len(pkt) < pktSize:
-			print("{}: SKIP Pkt {}".format(id_,start+i))
-			continue
-		elif len(pkt) == pktSize:
-			#one cell 
-			timestamp = getTimestamp(pkt,t0)
-			pkttype = getPktType(pkt)
-			direction = getDirection(pkt)
-			cnt[direction] += 1
-			# f.write( "{:.4f}\t{:d}\n".format(timestamp, pkttype * direction))		
-			pkts.append([timestamp,pkttype * direction ])			
-		else:
-			#len(pkt) > pktSize
-			if getDirection(pkt) > 0 :
-				#This can be very rare to happen, several outgoing packets got retransmitted
-				#Treat them as all real packets
-				num_pkt = np.math.ceil( len(pkt)/pktSize )
-				timestamp = getTimestamp(pkt,t0)
-				direction = getDirection(pkt)
-				cnt[direction] += 1
-				for _ in range(num_pkt):
-					pkts.append([timestamp,isReal * direction])
-					# f.write("{:.4f}\t{:d}\n".format(timestamp, isReal * direction))
+		payload = pkt.load
+		dire = getDirection(pkt)
+		t = getTimestamp(pkt, t0)
+		if dire == 1:
+			#outgoing packet, only one case: 612 bytes (546 payload)
+			if len(payload) == cellSize:
+				if payload[0] == 0:
+					out_pkts.append([t, isReal])
+				elif payload[0] == 1:
+					out_pkts.append([t, isDummy])
+				else:
+					raise ValueError("FORMAT ERROR: {},{} pkt ,payload:{}".format(id_, start+i,payload))
 			else:
-				#multiple incoming cells
-				payload = pkt.load
-				timestamp = getTimestamp(pkt,t0)
-				if correct_format(payload, 0) and len(payload)%cellSize != 0:
-					raise ValueError("BUG: {}: pkt {}".format(id_,i+start))
-				for b in range(0, len(payload), cellSize):
-					if not correct_format(payload, b):
-						print("{}: SKIP Pkt {}".format(id_, start+i))
-						break
-					pkttype = isDummy if payload[b] else isReal
-					cnt[-1] += 1
-					# f.write("{:.4f}\t{:d}\n".format(timestamp, pkttype * (-1))) 
-					pkts.append([timestamp, pkttype * (-1)])
+				raise ValueError("Size ERROR: {},{} pkt ,len of payload:{}".format(id_,start+i, len(payload)))
+		else:
+			#incoming ones are more complicated, first collect raw packets
+			in_pkts_raw.append([t, payload])
 
+	#process incoming ones 
+	ind = 0
+	while ind < len(in_pkts_raw):
+		base_pkt = in_pkts_raw[ind]
+		base_time = base_pkt[0]
+		base_payload = base_pkt[1]
+		while ind < len(in_pkts_raw)-1 and len(base_payload) % cellSize != 0:
+			#fragment
+			ind += 1
+			tmp_pkt = in_pkts_raw[ind]
+			base_payload += tmp_pkt[1]
 
-	if cnt[1] < 5 and cnt[-1]< 5:
-		print("{} has too few packets:+{},-{}".format(savefiledir, cnt[1],cnt[-1]))
+		for b in range(0, len(base_payload), cellSize):
+			pkttype = isDummy if base_payload[b] else isReal
+			in_pkts.append([base_time, pkttype * (-1)])			
+		ind += 1
 
-	pkts_array1 = np.array(pkts)
-	pkts_array2 = pkts_array1[1:]
-	time_diffs = pkts_array2[:,0] - pkts_array1[:-1,0]
+	#sort packets
+	total_pkts_unsorted = np.array(in_pkts + out_pkts)
+	total_pkts0 = total_pkts_unsorted[total_pkts_unsorted[:,0].argsort(kind = "mergesort")]
+
+	#Cut off last few packets (1s away from their predecessor)
+	total_pkts1 = total_pkts0[1:]
+	time_diffs = total_pkts1[:,0] - total_pkts0[:-1,0]
 	tmp = np.where(time_diffs > 1)[0]
 	if len(tmp) == 0:
 		cut_off_ind = len(pkts)
 	else:
 		cut_off_ind = tmp[-1]
-	print("{}: cut off at {}/{}".format(id_, cut_off_ind,len(pkts)))
+		print("{}: cut off at {}/{}".format(id_, cut_off_ind,len(total_pkts0)))
 	with open(savefiledir, 'w') as f:
-		for pkt in pkts[:cut_off_ind]:
-			f.write("{:.6f}\t{:d}\n".format(pkt[0],pkt[1])) 
+		for pkt in total_pkts0[:cut_off_ind]:
+			f.write("{:.6f}\t{:.0f}\n".format(pkt[0],pkt[1])) 	
+
 
 
 
