@@ -40,7 +40,12 @@ if __name__ == "__main__":
 	pardir = args.dir
 	filelist = glob.glob(join(args.dir, '*.pcap'))
 	pool = mp.Pool(processes=15)
+	print("Filter..")
 	pool.map(clean, filelist)
+	print("Zip..")
+	filename = pardir.rstrip('/')+'.zip'
+	zipcmd = "zip -rq "+ filename + " " + pardir
+	subprocess.call(zipcmd, shell=True)
 
 
 
