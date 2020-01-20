@@ -103,7 +103,11 @@ def parse(fdir):
 				else:
 					raise ValueError("FORMAT ERROR: {},{} pkt ,payload:{}".format(id_, start+i,payload))
 			else:
-				raise ValueError("Size ERROR: {},{} pkt ,len of payload:{}".format(id_,start+i, len(payload)))
+				# rarely happen, several outgoing together, probably congestion?
+				for b in range(0, len(payload), cellSize):
+					pkttype = isDummy if payload[b] else isReal
+					out_pkts.append([t, pkttype])	
+				print("[WARN] Several outgoing: {},{} pkt ,len of payload:{}".format(id_,start+i, len(payload)))
 		else:
 			#incoming ones are more complicated, first collect raw packets
 			in_pkts_raw.append([t, payload])
