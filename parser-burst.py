@@ -10,7 +10,7 @@ from scapy.all import *
 import glob
 
 src = '10.0.0.4'
-dst1 = '13.75.95.89'
+dst1 = '52.175.52.248'
 dst2 = '13.94.61.159'
 dst3 = '52.175.53.148'
 isDummy = 888
