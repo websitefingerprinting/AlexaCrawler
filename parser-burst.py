@@ -9,7 +9,9 @@ import argparse
 from scapy.all import *
 import glob
 
-src = '10.0.0.4'
+src1 = '10.0.0.4'
+src2 = '10.0.0.5'
+src3 = '10.0.0.6'
 dst1 = '52.175.52.248'
 dst2 = '13.94.61.159'
 dst3 = '52.175.53.148'
@@ -31,12 +33,12 @@ def getTimestamp(pkt, t0):
 
 
 def getDirection(pkt):
-	if pkt.payload.src == src:
+	if (pkt.payload.src == src1) or (pkt.payload.src == src2) or (pkt.payload.src == src3):
 		return 1
-	elif (pkt.payload.src == dst1) or (pkt.payload.src == dst2) or (pkt.payload.src == dst3):
-		return -1 
 	else:
-		raise ValueError("Wrong IP address!")
+		return -1 
+	# else:
+	# 	raise ValueError("Wrong IP address!")
 
 def correct_format(payload, b):
 	if len(payload[b:]) <= 3:
