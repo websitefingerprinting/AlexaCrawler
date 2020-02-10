@@ -70,5 +70,6 @@ if __name__ == '__main__':
 		newfilename = web_id + "-" + new_inst_id + args.suffix
 		cmd = "mv " + r + " " +join(output_dir, newfilename)
 		subprocess.call(cmd, shell=True)
+	print("Merged to {}".format(output_dir))
 
 
