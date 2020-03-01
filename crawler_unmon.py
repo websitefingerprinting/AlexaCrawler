@@ -25,7 +25,7 @@ DumpDir = join( Pardir , "AlexaCrawler/dump")
 logger = logging.getLogger("tcpdump")
 
 WebListDir = './top-1m.csv'
-src = "13.75.95.89"
+src = "13.75.78.82"
 
 def config_logger():
 	# Set file
@@ -72,15 +72,6 @@ def parse_arguments():
 	# Parse arguments
 	args = parser.parse_args()
 	return args
-
-# def page_has_loaded(driver):
-# 	page_state = driver.execute_script('return document.readyState;')
-# 	return page_state == 'complete'
-# def find_element_by(self, selector, timeout=100,
-# 					find_by=By.CSS_SELECTOR):
-# 	"""Wait until the element matching the selector appears or timeout."""
-# 	return WebDriverWait(self, timeout).until(
-# 		EC.presence_of_element_located((find_by, selector)))
 
 
 def get_driver():
@@ -136,21 +127,19 @@ if __name__ == "__main__":
 
 	args = parse_arguments()
 	config_logger()
-	n0, n =  args.n0, args.n
+	n0, n = args.n0, args.n
 	df = pd.read_csv(WebListDir, names = ['num','name'])
 	wlist = list(df.iloc[n0:n0+n,1])
 	print("total: {} webs".format(len(wlist)))
-	websites = ["https://www."+w[:-1] for w in wlist]
-
 	batch_dump_dir = init_directories()
 
 
-	for wid,website in enumerate(websites):
+
+	for wid,w in enumerate(wlist):
 		wid = wid + n0
-		'''Note that we crawl websites starting from 1000,
-		So the filenames should deduct 1000 so that they start from 0.pcap
-		'''
-		filename = join(batch_dump_dir, str(wid-1000)+'.pcap')
+		website = "https://www."+w
+		'''Collect starts from 1000, but filename start from 0'''
+		filename = join(batch_dump_dir, str(wid-1000) + '.pcap')
 		logger.info("{:d}: {}".format(wid,website))
 		#begin to crawl
 		err, loading_time = crawl(website, filename)
