@@ -12,6 +12,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 import numpy as np
+import pandas as pd
 
 from pyvirtualdisplay import Display
 
@@ -136,8 +137,9 @@ if __name__ == "__main__":
 	args = parse_arguments()
 	config_logger()
 	n0, n =  args.n0, args.n
-	with open(WebListDir,'r') as f:
-		wlist = f.readlines()[n0:n0+n]
+	df = pd.read_csv(WebListDir, names = ['num','name'])
+	wlist = list(df.iloc[n0:n0+n,1])
+	print("total: {} webs".format(len(wlist)))
 	websites = ["https://www."+w[:-1] for w in wlist]
 
 	batch_dump_dir = init_directories()
