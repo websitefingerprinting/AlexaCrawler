@@ -46,7 +46,7 @@ def init_directories():
 
 	# Define output directory
 	timestamp = time.strftime('%m%d_%H%M')
-	output_dir = join(DumpDir, 'batch_'+timestamp)
+	output_dir = join(DumpDir, 'Unmon_'+timestamp)
 	makedirs(output_dir)
 
 	return output_dir
