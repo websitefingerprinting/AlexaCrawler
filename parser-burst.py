@@ -35,7 +35,7 @@ def getTimestamp(pkt, t0):
 
 
 def getDirection(pkt):
-	if (pkt.payload.src == src1) or (pkt.payload.src == src2) or (pkt.payload.src == src3):
+	if (pkt.payload.src == src1) or (pkt.payload.src == src2) or (pkt.payload.src == src3) or (pkt.payload.src == src4):
 		return 1
 	else:
 		return -1 
