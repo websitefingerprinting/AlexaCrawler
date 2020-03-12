@@ -16,7 +16,7 @@ import numpy as np
 from pyvirtualdisplay import Display
 
 
-timeout = 60
+timeout = 70
 padding_time = 2
 
 Pardir = abspath(join(dirname(__file__), pardir))
