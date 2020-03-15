@@ -47,7 +47,7 @@ d100 = [
 d150 = [
 "dataset100_149_0216_1150/",
 "dataset100_149_0216_1133/",
-"None/",
+"dataset100_149_0313_1121/",
 "dataset100_149_0218_1422/",
 "dataset100_149_0218_1940/",
 "dataset100_149_0220_1412/",
@@ -58,7 +58,7 @@ d150 = [
 ]
 
 for param, d1,d2,d3 in zip(params, d50,d100,d150):
-	if d3 == "None/":
+	if d3 != "dataset100_149_0313_1121/":
 		continue
 	t, l , e, w = param[0],param[1],param[2],param[3]
 	d1,d2,d3 = join(pdir, d1),join(pdir, d2), join(pdir, d3)
