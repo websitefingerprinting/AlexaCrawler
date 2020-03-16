@@ -9,8 +9,8 @@ import argparse
 from scapy.all import *
 import glob
 
-src = '192.168.0.151'
-dst = '65.49.20.10'
+src = '10.0.0.4'
+dst = '144.202.49.171'
 CELL_SIZE = 512
 ParsedDir = join(abspath(join(dirname(__file__), pardir)) , "AlexaCrawler/parsed")
 
