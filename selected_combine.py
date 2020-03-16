@@ -30,6 +30,11 @@ def parse_arguments():
 						metavar='<mode>',
 						default='mon',
 						help='monitor or unmonitor:mon, unmon')	
+	parser.add_argument('-dataset',
+						type=str,
+						metavar='<dataset type>',
+						default='dp',
+						help='clean or defended?:clean, dp, tamaraw')	
 	parser.add_argument('-t',
 						type=str,
 						metavar='<T>',
@@ -68,7 +73,14 @@ def init_directories(mode, t, l, e, w):
 
     # Define output directory
     # timestamp = time.strftime('%m%d_%H%M')
-    output_dir = join(DumpDir, mode+"_T"+t+"_L"+l+"_E"+e+"_W"+w)
+    if args.dataset == 'clean':
+    	output_dir = join(DumpDir, mode+"_clean")
+    elif args.dataset == 'tamaraw':
+    	output_dir = join(DumpDir, mode+"_tamaraw")
+    elif args.dataset == 'dp':
+    	output_dir = join(DumpDir, mode+"_T"+t+"_L"+l+"_E"+e+"_W"+w)
+    else:
+    	raise ValueError("Wrong dataset type!")
     makedirs(output_dir)
 
     return output_dir
