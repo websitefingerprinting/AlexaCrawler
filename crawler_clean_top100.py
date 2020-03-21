@@ -142,8 +142,8 @@ if __name__ == "__main__":
        111, 112, 113, 114, 115, 116, 118, 119, 120, 121, 123, 126, 130,
        131, 132, 134, 135, 136, 137, 138, 141, 142]
     websites = []
-
-    for ind in mylist:
+    n0 = 70
+    for ind in mylist[n0:]:
         websites.append("https://www."+wlist[ind][:-1])
 
     batch_dump_dir = init_directories()
@@ -151,6 +151,7 @@ if __name__ == "__main__":
 
     for i in range(m):
         for wid,website in enumerate(websites):
+            wid = wid + n0
             filename = join(batch_dump_dir, str(wid)+'-' + str(i) + '.pcap')
             logger.info("{:d}-{:d}: {}".format(wid,i,website))
             #begin to crawl
