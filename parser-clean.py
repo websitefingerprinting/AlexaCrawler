@@ -9,8 +9,11 @@ import argparse
 from scapy.all import *
 import glob
 
-src = '10.0.0.4'
-dst = '144.202.49.171'
+src1 = '10.0.0.4'
+src2 = '10.0.0.5'
+src3 = '10.0.0.6'
+src4 = '10.0.0.7'
+# dst = '144.202.49.171'
 CELL_SIZE = 512
 ParsedDir = join(abspath(join(dirname(__file__), pardir)) , "AlexaCrawler/parsed")
 
@@ -25,14 +28,19 @@ def getTimestamp(pkt, t0):
 
 
 
-def getDirection(pkt):
-	if pkt.payload.src == src:
-		return 1
-	elif pkt.payload.src == dst:
-		return -1 
-	else:
-		raise ValueError("Wrong IP address!")
+# def getDirection(pkt):
+# 	if pkt.payload.src == src:
+# 		return 1
+# 	elif pkt.payload.src == dst:
+# 		return -1 
+# 	else:
+# 		raise ValueError("Wrong IP address!")
 
+def getDirection(pkt):
+	if (pkt.payload.src == src1) or (pkt.payload.src == src2) or (pkt.payload.src == src3) or (pkt.payload.src == src4):
+		return 1
+	else:
+		return -1 
 
 def parse_arguments():
 
