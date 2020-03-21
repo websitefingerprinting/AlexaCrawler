@@ -149,9 +149,8 @@ def parse(fdir):
 		with open(savefiledir, 'w') as f:
 			for pkt in total_pkts0[:cut_off_ind]:
 				f.write("{:.6f}\t{:.0f}\n".format(pkt[0],pkt[1])) 	
-	except:
-		print("Error in {}".format(fdir.split('/')[-1]))
-
+	except Exception as e:
+		print("Error in {}, {} ".format(fdir.split('/')[-1], e))
 
 
 if __name__ == "__main__":
