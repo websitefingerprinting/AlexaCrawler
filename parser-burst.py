@@ -73,83 +73,84 @@ def parse(fdir):
 	global savedir, suffix
 	id_ = fdir.split('/')[-1].split('.pcap')[0]
 	savefiledir = join(savedir, id_+suffix) 
+	try:
+		# #remove acks and retransmissions
+		# cmd = 'tshark -r '+ fdir+ ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w '+ fdir
+		# subprocess.call(cmd, shell=True)
+		packets = rdpcap(fdir)
+		# print(savefiledir)
 
-	# #remove acks and retransmissions
-	# cmd = 'tshark -r '+ fdir+ ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w '+ fdir
-	# subprocess.call(cmd, shell=True)
-	packets = rdpcap(fdir)
-	# print(savefiledir)
+		for i, pkt in enumerate(packets):
+			#skip the first few noise packets
+			if  getDirection(pkt)>0:
+				start = i
+				t0 = pkt.time
+				# print("Start from pkt no. {}".format(start))
+				break
 
-	for i, pkt in enumerate(packets):
-		#skip the first few noise packets
-		if  getDirection(pkt)>0:
-			start = i
-			t0 = pkt.time
-			# print("Start from pkt no. {}".format(start))
-			break
+		
 
-	
-
-	in_pkts_raw = []
-	in_pkts = []
-	out_pkts = []
-	for i,pkt in enumerate(packets[start:]):
-		payload = pkt.load
-		dire = getDirection(pkt)
-		t = getTimestamp(pkt, t0)
-		if dire == 1:
-			#outgoing packet, only one case: 612 bytes (546 payload)
-			if len(payload) == cellSize:
-				if payload[0] == 0:
-					out_pkts.append([t, isReal])
-				elif payload[0] == 1:
-					out_pkts.append([t, isDummy])
+		in_pkts_raw = []
+		in_pkts = []
+		out_pkts = []
+		for i,pkt in enumerate(packets[start:]):
+			payload = pkt.load
+			dire = getDirection(pkt)
+			t = getTimestamp(pkt, t0)
+			if dire == 1:
+				#outgoing packet, only one case: 612 bytes (546 payload)
+				if len(payload) == cellSize:
+					if payload[0] == 0:
+						out_pkts.append([t, isReal])
+					elif payload[0] == 1:
+						out_pkts.append([t, isDummy])
+					else:
+						raise ValueError("FORMAT ERROR: {},{} pkt ,payload:{}".format(id_, start+i,payload))
 				else:
-					raise ValueError("FORMAT ERROR: {},{} pkt ,payload:{}".format(id_, start+i,payload))
+					# rarely happen, several outgoing together, probably congestion?
+					for b in range(0, len(payload), cellSize):
+						pkttype = isDummy if payload[b] else isReal
+						out_pkts.append([t, pkttype])	
+					print("[WARN] Several outgoing: {},{} pkt ,len of payload:{}".format(id_,start+i, len(payload)))
 			else:
-				# rarely happen, several outgoing together, probably congestion?
-				for b in range(0, len(payload), cellSize):
-					pkttype = isDummy if payload[b] else isReal
-					out_pkts.append([t, pkttype])	
-				print("[WARN] Several outgoing: {},{} pkt ,len of payload:{}".format(id_,start+i, len(payload)))
-		else:
-			#incoming ones are more complicated, first collect raw packets
-			in_pkts_raw.append([t, payload])
+				#incoming ones are more complicated, first collect raw packets
+				in_pkts_raw.append([t, payload])
 
-	#process incoming ones 
-	ind = 0
-	while ind < len(in_pkts_raw):
-		base_pkt = in_pkts_raw[ind]
-		base_time = base_pkt[0]
-		base_payload = base_pkt[1]
-		while ind < len(in_pkts_raw)-1 and len(base_payload) % cellSize != 0:
-			#fragment
+		#process incoming ones 
+		ind = 0
+		while ind < len(in_pkts_raw):
+			base_pkt = in_pkts_raw[ind]
+			base_time = base_pkt[0]
+			base_payload = base_pkt[1]
+			while ind < len(in_pkts_raw)-1 and len(base_payload) % cellSize != 0:
+				#fragment
+				ind += 1
+				tmp_pkt = in_pkts_raw[ind]
+				base_payload += tmp_pkt[1]
+
+			for b in range(0, len(base_payload), cellSize):
+				pkttype = isDummy if base_payload[b] else isReal
+				in_pkts.append([base_time, pkttype * (-1)])			
 			ind += 1
-			tmp_pkt = in_pkts_raw[ind]
-			base_payload += tmp_pkt[1]
 
-		for b in range(0, len(base_payload), cellSize):
-			pkttype = isDummy if base_payload[b] else isReal
-			in_pkts.append([base_time, pkttype * (-1)])			
-		ind += 1
+		#sort packets
+		total_pkts_unsorted = np.array(in_pkts + out_pkts)
+		total_pkts0 = total_pkts_unsorted[total_pkts_unsorted[:,0].argsort(kind = "mergesort")]
 
-	#sort packets
-	total_pkts_unsorted = np.array(in_pkts + out_pkts)
-	total_pkts0 = total_pkts_unsorted[total_pkts_unsorted[:,0].argsort(kind = "mergesort")]
-
-	#Cut off last few packets (1s away from their predecessor)
-	total_pkts1 = total_pkts0[1:]
-	time_diffs = total_pkts1[:,0] - total_pkts0[:-1,0]
-	tmp = np.where(time_diffs > 1)[0]
-	if len(tmp) == 0:
-		cut_off_ind = len(total_pkts0)
-	else:
-		cut_off_ind = tmp[-1]
-		print("{}: cut off at {}/{}".format(id_, cut_off_ind,len(total_pkts0)))
-	with open(savefiledir, 'w') as f:
-		for pkt in total_pkts0[:cut_off_ind]:
-			f.write("{:.6f}\t{:.0f}\n".format(pkt[0],pkt[1])) 	
-
+		#Cut off last few packets (1s away from their predecessor)
+		total_pkts1 = total_pkts0[1:]
+		time_diffs = total_pkts1[:,0] - total_pkts0[:-1,0]
+		tmp = np.where(time_diffs > 1)[0]
+		if len(tmp) == 0:
+			cut_off_ind = len(total_pkts0)
+		else:
+			cut_off_ind = tmp[-1]
+			print("{}: cut off at {}/{}".format(id_, cut_off_ind,len(total_pkts0)))
+		with open(savefiledir, 'w') as f:
+			for pkt in total_pkts0[:cut_off_ind]:
+				f.write("{:.6f}\t{:.0f}\n".format(pkt[0],pkt[1])) 	
+	except:
+		print("Error in {}".format(fdir.split('/')[-1]))
 
 
 
