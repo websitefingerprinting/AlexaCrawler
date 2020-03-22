@@ -10,6 +10,7 @@ import numpy as np
 Pardir = abspath(join(dirname(__file__), pardir))
 selected_mon_list_file = join(Pardir, "AlexaCrawler/utils/selected_mon.npy")
 selected_unmon_list_file = join(Pardir, "AlexaCrawler/utils/selected_unmon.npy")
+targetdir = join(Pardir, "AlexaCrawler/dataset/")
 selected_mon_list = np.load(selected_mon_list_file)
 selected_unmon_list = np.load(selected_unmon_list_file)
 DumpDir = join( Pardir , "AlexaCrawler/dataset")
@@ -115,5 +116,11 @@ if __name__ == '__main__':
 					cmd = "cp " + file + " " + newfiledir
 					# print(cmd)
 					subprocess.call(cmd, shell = True) 
-
-
+	
+	if args.mode == 'unmon':
+		tmp = output_dir.rstrip("/").split("/")[-1]
+		mon_dir = join(targetdir, "mon_" + tmp.split("unmon_")[-1])
+		cmd = "mv " + join(output_dir, "*") +  " " + mon_dir
+		# print(cmd)
+		
+		subprocess.call(cmd,shell=True)

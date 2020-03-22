@@ -40,4 +40,5 @@ for param, d1,d2 in zip(params, d50, d100):
 	+ str(t) + " -l " + str(l) + " -e " + str(e) + " -w " + str(w) + " -mode " + mode
 	# print(cmd)
 	subprocess.call(cmd, shell = True)
+	
 
