@@ -12,7 +12,6 @@ selected_mon_list_file = join(Pardir, "AlexaCrawler/utils/selected_mon.npy")
 selected_unmon_list_file = join(Pardir, "AlexaCrawler/utils/selected_unmon.npy")
 selected_mon_list = np.load(selected_mon_list_file)
 selected_unmon_list = np.load(selected_unmon_list_file)
-selected_unmon_list = None
 DumpDir = join( Pardir , "AlexaCrawler/dataset")
 def parse_arguments():
 
@@ -105,7 +104,7 @@ if __name__ == '__main__':
 				if oldlabel in selected_list:
 					newlabel = np.where(selected_list==oldlabel)[0][0]
 					newfiledir = join( output_dir, str(newlabel) + '-' + str(oldinst) +args.suffix)
-					cmd = "mv " + file + " " + newfiledir
+					cmd = "cp " + file + " " + newfiledir
 					# print(cmd)
 					subprocess.call(cmd, shell = True) 
 			else:
@@ -113,7 +112,7 @@ if __name__ == '__main__':
 				if oldlabel in selected_list:
 					newlabel = np.where(selected_list==oldlabel)[0][0]
 					newfiledir = join( output_dir, str(newlabel) +args.suffix)
-					cmd = "mv " + file + " " + newfiledir
+					cmd = "cp " + file + " " + newfiledir
 					# print(cmd)
 					subprocess.call(cmd, shell = True) 
 

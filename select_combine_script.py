@@ -19,50 +19,24 @@ params = [
 
 
 d50 = [
-"dataset0_49_0113_1203/",
-"dataset0_49_0114_1533/",
-"dataset0_49_0116_1204/",
-"dataset0_49_0117_1622/",
-"dataset0_49_0119_2217/",
-"dataset0_49_0124_1242/",
-"dataset0_49_0125_1144/",
-"dataset0_49_0127_1832/",
-"dataset0_49_0131_1520/",
-"dataset0_49_0202_1834/",
+"unmon_0303_1342/",
+"unmon_0303_1536/",
+"unmon_0303_1901/",
+"unmon_0305_1747/",
 ]
 
 d100 = [
-"dataset50_99_0207_1427/",
-"dataset50_99_0209_2345/",
-"dataset50_99_0209_2347/",
-"dataset50_99_0211_1250/",
-"dataset50_99_0211_1208/",
-"dataset50_99_0212_1250/",
-"dataset50_99_0212_1249/",
-"dataset50_99_0213_1715/",
-"dataset50_99_0213_2103/",
-"dataset50_99_0215_1432/",
+"unmon_0315_2254/",
+"unmon_0316_2158/",
+"unmon_0314_2218/",
+"unmon_0317_2001/",
 ]
 
-d150 = [
-"dataset100_149_0216_1150/",
-"dataset100_149_0216_1133/",
-"dataset100_149_0313_1121/",
-"dataset100_149_0218_1422/",
-"dataset100_149_0218_1940/",
-"dataset100_149_0220_1412/",
-"dataset100_149_0220_0014/",
-"dataset100_149_0221_1651/",
-"dataset100_149_0301_1040/",
-"dataset100_149_0229_2241/",
-]
 
-for param, d1,d2,d3 in zip(params, d50,d100,d150):
-	if d3 != "dataset100_149_0313_1121/":
-		continue
+for param, d1,d2 in zip(params, d50, d100):
 	t, l , e, w = param[0],param[1],param[2],param[3]
-	d1,d2,d3 = join(pdir, d1),join(pdir, d2), join(pdir, d3)
-	cmd = "python3 selected_combine.py -dir " + d1 + " " + d2 + " " + d3 + " -t " \
+	d1,d2 = join(pdir, d1),join(pdir, d2)
+	cmd = "python3 selected_combine.py -dir " + d1 + " " + d2 + " " + " -t " \
 	+ str(t) + " -l " + str(l) + " -e " + str(e) + " -w " + str(w) + " -mode " + mode
 	# print(cmd)
 	subprocess.call(cmd, shell = True)
