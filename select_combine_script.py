@@ -3,7 +3,7 @@ from os.path import join, abspath, dirname, pardir
 Pardir = abspath(join(dirname(__file__), pardir))
 pdir = join(Pardir, "AlexaCrawler/parsed")
 
-mode = 'mon'
+mode = 'unmon'
 params = [
 [20, 100, 0.5 , 6 ],
 [20, 100, 0.5 , 8 ],
