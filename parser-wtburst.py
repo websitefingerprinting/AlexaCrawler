@@ -45,7 +45,7 @@ def getDirection(pkt):
 def correct_format(payload, b):
 	if len(payload[b:]) <= 3:
 		return False
-	if payload[b] != 0 and payload[b] != 1:
+	if payload[b] != 0 and payload[b] != 1 and payload[b]!=2:
 		return False
 	if int.from_bytes(payload[b+1:b+2],'big') > cellSize - 3:
 		return False
@@ -88,34 +88,36 @@ def parse(fdir):
 				# print("Start from pkt no. {}".format(start))
 				break
 
-		
 
 		in_pkts_raw = []
 		in_pkts = []
 		out_pkts = []
+		out_pkts_raw = []
 		for i,pkt in enumerate(packets[start:]):
 			payload = pkt.load
 			dire = getDirection(pkt)
 			t = getTimestamp(pkt, t0)
 			if dire == 1:
-				#outgoing packet, only one case: 612 bytes (546 payload)
-				if len(payload) == cellSize:
-					if payload[0] == 0:
-						out_pkts.append([t, isReal])
-					elif payload[0] == 1:
-						out_pkts.append([t, isDummy])
-					else:
-						raise ValueError("FORMAT ERROR: {},{} pkt ,payload:{}".format(id_, start+i,payload))
-				else:
-					# rarely happen, several outgoing together, probably congestion?
-					for b in range(0, len(payload), cellSize):
-						pkttype = isDummy if payload[b] else isReal
-						out_pkts.append([t, pkttype])	
-					print("[WARN] Several outgoing: {},{} pkt ,len of payload:{}".format(id_,start+i, len(payload)))
+				out_pkts_raw.append([t,payload])
 			else:
 				#incoming ones are more complicated, first collect raw packets
 				in_pkts_raw.append([t, payload])
+		#process outgoing ones		
+		ind = 0
+		while ind < len(out_pkts_raw):
+			base_pkt = out_pkts_raw[ind]
+			base_time = base_pkt[0]
+			base_payload = base_pkt[1]
+			while ind < len(out_pkts_raw)-1 and len(base_payload) % cellSize != 0:
+				#fragment
+				ind += 1
+				tmp_pkt = out_pkts_raw[ind]
+				base_payload += tmp_pkt[1]
 
+			for b in range(0, len(base_payload), cellSize):
+				pkttype = isDummy if base_payload[b] else isReal
+				out_pkts.append([base_time, pkttype])			
+			ind += 1
 		#process incoming ones 
 		ind = 0
 		while ind < len(in_pkts_raw):
@@ -129,7 +131,7 @@ def parse(fdir):
 				base_payload += tmp_pkt[1]
 
 			for b in range(0, len(base_payload), cellSize):
-				pkttype = isDummy if base_payload[b] else isReal
+				pkttype = isDummy if base_payload[b]>0 else isReal
 				in_pkts.append([base_time, pkttype * (-1)])			
 			ind += 1
 
@@ -145,7 +147,7 @@ def parse(fdir):
 			cut_off_ind = len(total_pkts0)
 		else:
 			cut_off_ind = tmp[-1]
-			print("{}: cut off at {}/{}".format(id_, cut_off_ind,len(total_pkts0)))
+			# print("{}: cut off at {}/{}".format(id_, cut_off_ind,len(total_pkts0)))
 		with open(savefiledir, 'w') as f:
 			for pkt in total_pkts0[:cut_off_ind]:
 				f.write("{:.6f}\t{:.0f}\n".format(pkt[0],pkt[1])) 	
