@@ -16,9 +16,9 @@ import numpy as np
 from pyvirtualdisplay import Display
 
 
-timeout = 70
+timeout = 100
 padding_time = 2
-
+n0 = 0
 Pardir = abspath(join(dirname(__file__), pardir))
 DumpDir = join( Pardir , "AlexaCrawler/dump")
 logger = logging.getLogger("tcpdump")
@@ -46,7 +46,7 @@ def init_directories():
 
     # Define output directory
     timestamp = time.strftime('%m%d_%H%M')
-    output_dir = join(DumpDir, 'clean_'+timestamp)
+    output_dir = join(DumpDir, 'batch_'+timestamp)
     makedirs(output_dir)
 
     return output_dir
@@ -142,7 +142,6 @@ if __name__ == "__main__":
        111, 112, 113, 114, 115, 116, 118, 119, 120, 121, 123, 126, 130,
        131, 132, 134, 135, 136, 137, 138, 141, 142]
     websites = []
-    n0 = 70
     for ind in mylist[n0:]:
         websites.append("https://www."+wlist[ind][:-1])
 
