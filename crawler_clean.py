@@ -16,14 +16,14 @@ import numpy as np
 from pyvirtualdisplay import Display
 
 
-timeout = 70
-padding_time = 2
+timeout = 60
+padding_time = 5
 
 Pardir = abspath(join(dirname(__file__), pardir))
 DumpDir = join( Pardir , "AlexaCrawler/dump")
 logger = logging.getLogger("tcpdump")
 
-WebListDir = './global_top_500_without_timeout_in_first_200.txt'
+WebListDir = './sites.txt'
 src = "144.202.49.171"
 
 def config_logger():
@@ -70,7 +70,7 @@ def parse_arguments():
 	parser.add_argument('-m',
 						type=int,
 						metavar='<Num of instances>',
-						default=50,
+						default=15,
 						help='Number of instances for each website.')
 
 	# Parse arguments
