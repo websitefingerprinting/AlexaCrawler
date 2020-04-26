@@ -24,8 +24,8 @@ MY_CELL_SIZE = CELL_SIZE + 31 + 3
 isDummy = 888
 isReal = 1
 
-captured_file_name = 'capture.pcap.filtered'
-ParsedDir = join(abspath(join(dirname(__file__), pardir)) , "parsed")
+captured_file_name = '.pcap.filtered'
+ParsedDir = join(abspath(join(dirname(__file__), pardir)) , "AlexaCrawler/parsed")
 
 def init_directories(path):
     # Create a results dir if it doesn't exist yet
@@ -288,7 +288,7 @@ if __name__ == "__main__":
     filelist = []
     #Sanity check
     for f in filelist_:
-        pcapfile = join(f.split(".png")[0], captured_file_name)
+        pcapfile = f.split(".png")[0] + captured_file_name
         if os.path.exists(pcapfile):
             filelist.append(pcapfile)
 
