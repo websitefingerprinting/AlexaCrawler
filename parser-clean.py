@@ -74,7 +74,8 @@ def parse(fdir):
 					t0 = pkt.time
 					print("Start from pkt no. {}".format(start))
 					break
-
+			start = 0
+			t0 = packets[0].time
 			for i, pkt in enumerate(packets[start:]):
 				b = raw(pkt.payload.payload.payload)
 				byte_ind = b.find(b'\x17\x03\x03')
