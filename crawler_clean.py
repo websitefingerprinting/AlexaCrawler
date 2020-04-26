@@ -28,7 +28,7 @@ WebListDir = './sites.txt'
 
 
 def get_guard_ip():
-    addresses = []
+    addresses = {}
     with Controller.from_port(port = 9051) as controller:
         controller.authenticate()
 
@@ -39,9 +39,9 @@ def get_guard_ip():
             desc = controller.get_network_status(fingerprint, None)
             address = desc.address if desc else None
             if address:
-                addresses.append(address)
+                addresses.add(address)
 
-    return addresses
+    return list(addresses)
 
 def config_logger():
     # Set file
