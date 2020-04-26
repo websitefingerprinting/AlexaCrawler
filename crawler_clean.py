@@ -28,7 +28,7 @@ WebListDir = './sites.txt'
 
 
 def get_guard_ip():
-    addresses = {}
+    addresses = set()
     with Controller.from_port(port = 9051) as controller:
         controller.authenticate()
 
