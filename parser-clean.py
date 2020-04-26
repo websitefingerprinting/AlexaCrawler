@@ -67,13 +67,13 @@ def parse(fdir):
 	packets = rdpcap(fdir)
 	try:
 		with open(savefiledir, 'w') as f:
-			for i, pkt in enumerate(packets):
-				#skip the first few noise packets
-				if getDirection(pkt)>0 :
-					start = i
-					t0 = pkt.time
-					print("Start from pkt no. {}".format(start))
-					break
+			# for i, pkt in enumerate(packets):
+			# 	#skip the first few noise packets
+			# 	if getDirection(pkt)>0 :
+			# 		start = i
+			# 		t0 = pkt.time
+			# 		print("Start from pkt no. {}".format(start))
+			# 		break
 			start = 0
 			t0 = packets[0].time
 			for i, pkt in enumerate(packets[start:]):
