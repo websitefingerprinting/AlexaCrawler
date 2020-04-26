@@ -1,6 +1,5 @@
 google.com
 youtube.com
-sohu.com
 facebook.com
 wikipedia.org
 yahoo.com
@@ -48,7 +47,6 @@ myshopify.com
 espn.com
 amazonaws.com
 spotify.com
-163.com
 bbc.com
 medium.com
 detik.com
