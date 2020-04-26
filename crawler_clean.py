@@ -138,7 +138,7 @@ def crawl(url, filename, guards, s):
         start = time.time()
         driver.get(url)
         if s:
-            driver.get_screenshot_as_file(filename.split('.')[0]+'.png')
+            driver.get_screenshot_as_file(join("./screenshots",filename.split('.')[0]+'.png'))
         err = 0
     except:
         logger.warning("{} got timeout".format(url))
