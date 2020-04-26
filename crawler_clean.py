@@ -15,10 +15,12 @@ import numpy as np
 from stem import CircStatus
 from stem.control import Controller
 from pyvirtualdisplay import Display
+from utils import *
 
-
-timeout = 60
+SOFT_VISIT_TIMEOUT = 60
+HARD_VISIT_TIMEOUT = 100
 padding_time = 5
+
 
 Pardir = abspath(join(dirname(__file__), pardir))
 DumpDir = join( Pardir , "AlexaCrawler/dump")
@@ -121,7 +123,7 @@ def get_driver():
     profile.set_preference("network.http.use-cache", False)
     profile.update_preferences()
     driver = webdriver.Firefox(firefox_profile=profile)
-    driver.set_page_load_timeout(timeout)
+    driver.set_page_load_timeout(SOFT_VISIT_TIMEOUT)
     # logger.info("Firefox launch for {:.2f}s".format(time.time()-start))
     return driver
 
@@ -131,18 +133,19 @@ def crawl(url, filename, guards, s):
     driver = get_driver()
     src = ' or '.join(guards)
     try:
-        #start tcpdump
-        cmd = "sudo tcpdump host \("+src+"\) and tcp -i eth0 -w " + filename
-        print(cmd)
-        pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        start = time.time()
-        driver.get(url)
-        if s:
-            driver.get_screenshot_as_file(filename.split('.')[0]+'.png')
-        err = 0
-    except:
+    	with timeout(HARD_VISIT_TIMEOUT):
+	        #start tcpdump
+	        cmd = "sudo tcpdump host \("+src+"\) and tcp -i eth0 -w " + filename
+	        print(cmd)
+	        pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+	        start = time.time()
+	        driver.get(url)
+	        if s:
+	            driver.get_screenshot_as_file(filename.split('.')[0]+'.png')
+    except (HardTimeoutException, TimeoutException):
         logger.warning("{} got timeout".format(url))
-        err = 1
+    except Exception as exc:
+    	logger.warning("Unknow error:{}".format(exc))
     finally:
         driver.quit()
         display.stop()
@@ -156,7 +159,7 @@ def crawl(url, filename, guards, s):
         #filter ACKs and retransmission
         cmd = 'tshark -r '+ filename +' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename+".filtered"
         subprocess.call(cmd, shell= True)
-        return err, t
+        return t
 
 
 
@@ -179,11 +182,7 @@ if __name__ == "__main__":
             filename = join(batch_dump_dir, str(wid)+'-' + str(i) + '.pcap')
             logger.info("{:d}-{:d}: {}".format(wid,i,website))
             #begin to crawl
-            err, loading_time = crawl(website, filename, guards, s)
-            if err:
-                log = open(join(batch_dump_dir,'timeouts.txt'),'a+')
-                log.write(website+': '+str(wid)+'-' + str(i)+'\n')
-                log.close()
+            loading_time = crawl(website, filename, guards, s)
             f = open(join(batch_dump_dir,'loading_times.txt'),'a+')
             f.write("{}:{:.2f}\n".format(wid,loading_time))
             f.close()
