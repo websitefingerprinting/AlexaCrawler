@@ -138,7 +138,7 @@ def crawl(url, filename, guards, s):
         start = time.time()
         driver.get(url)
         if s:
-            driver.get_screenshot_as_file(join("./screenshots",filename.split('.')[0]+'.png'))
+            driver.get_screenshot_as_file(filename.split('.')[0]+'.png')
         err = 0
     except:
         logger.warning("{} got timeout".format(url))
@@ -173,7 +173,7 @@ if __name__ == "__main__":
 
     for i in range(m):
         guards = get_guard_ip()
-        print(guards)
+        # print(guards)
         for wid,website in enumerate(websites):
             wid = wid + n0
             filename = join(batch_dump_dir, str(wid)+'-' + str(i) + '.pcap')
