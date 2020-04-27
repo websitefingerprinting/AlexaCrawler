@@ -19,7 +19,7 @@ from utils import *
 
 SOFT_VISIT_TIMEOUT = 60
 HARD_VISIT_TIMEOUT = 100
-padding_time = 5
+padding_time = 4
 
 
 Pardir = abspath(join(dirname(__file__), pardir))
@@ -142,12 +142,12 @@ def crawl(url, filename, guards, s):
 	        driver.get(url)
 	        if s:
 	            driver.get_screenshot_as_file(filename.split('.')[0]+'.png')
+            driver.quit()
     except (HardTimeoutException, TimeoutException):
         logger.warning("{} got timeout".format(url))
     except Exception as exc:
     	logger.warning("Unknow error:{}".format(exc))
     finally:
-        driver.quit()
         display.stop()
         finish = time.time()
         t = finish-start
