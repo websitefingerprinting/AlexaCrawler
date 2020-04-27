@@ -24,6 +24,7 @@ padding_time = 4
 
 Pardir = abspath(join(dirname(__file__), pardir))
 DumpDir = join( Pardir , "AlexaCrawler/dump")
+ParseDir = join(Pardir, "AlexaCrawler/parsed")
 logger = logging.getLogger("tcpdump")
 
 WebListDir = './sites.txt'
@@ -58,14 +59,14 @@ def config_logger():
     # Set level format
     logger.setLevel(logging.INFO)
 
-def init_directories():
+def init_directories(mode):
     # Create a results dir if it doesn't exist yet
     if not os.path.exists(DumpDir):
         makedirs(DumpDir)
 
     # Define output directory
-    timestamp = time.strftime('%m%d_%H%M')
-    output_dir = join(DumpDir, 'clean_'+timestamp)
+    timestamp = time.strftime('%m%d_%H%M%S')
+    output_dir = join(DumpDir, mode+'_'+timestamp)
     makedirs(output_dir)
 
     return output_dir
@@ -91,23 +92,18 @@ def parse_arguments():
                         metavar='<Num of instances>',
                         default=15,
                         help='Number of instances for each website.')
+    parser.add_argument('-mode',
+                        type=str,
+                        metavar='<parse mode>',
+                        help='The type of dataset: clean, burst?.')
     parser.add_argument('-s',
-                        action='store_true', 
-                        default=False,
+                        action='store_false', 
+                        default=True,
                         help='Take a screenshot?')
 
     # Parse arguments
     args = parser.parse_args()
     return args
-
-# def page_has_loaded(driver):
-#   page_state = driver.execute_script('return document.readyState;')
-#   return page_state == 'complete'
-# def find_element_by(self, selector, timeout=100,
-#                   find_by=By.CSS_SELECTOR):
-#   """Wait until the element matching the selector appears or timeout."""
-#   return WebDriverWait(self, timeout).until(
-#       EC.presence_of_element_located((find_by, selector)))
 
 
 def get_driver():
@@ -159,9 +155,6 @@ def crawl(url, filename, guards, s):
         #filter ACKs and retransmission
         cmd = 'tshark -r '+ filename +' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename+".filtered"
         subprocess.call(cmd, shell= True)
-        return t
-
-
 
 
 if __name__ == "__main__":
@@ -172,7 +165,7 @@ if __name__ == "__main__":
         wlist = f.readlines()[n0:n0+n]
     websites = ["https://www."+w[:-1] for w in wlist]
 
-    batch_dump_dir = init_directories()
+    batch_dump_dir = init_directories(args.mode)
 
     for i in range(m):
         guards = get_guard_ip()
@@ -182,11 +175,13 @@ if __name__ == "__main__":
             filename = join(batch_dump_dir, str(wid)+'-' + str(i) + '.pcap')
             logger.info("{:d}-{:d}: {}".format(wid,i,website))
             #begin to crawl
-            loading_time = crawl(website, filename, guards, s)
-            f = open(join(batch_dump_dir,'loading_times.txt'),'a+')
-            f.write("{}:{:.2f}\n".format(wid,loading_time))
-            f.close()
+            crawl(website, filename, guards, s)
+
 
     subprocess.call("sudo killall tor",shell=True)
     logger.info("Tor killed!")
 
+    #parse raw traffic
+    logger.info("Parsing the traffic...")
+    cmd = "python3 parser.py "+batch_dump_dir + " -m -mode "+ args.mode
+    subprocess.call(cmd, shell = True) 
