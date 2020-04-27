@@ -8,7 +8,7 @@ import argparse
 import time
 Pardir = abspath(join(dirname(__file__), pardir))
 
-DumpDir = join( Pardir , "AlexaCrawler/dump")
+DumpDir = join( Pardir , "AlexaCrawler/parsed")
 def parse_arguments():
 
 	parser = argparse.ArgumentParser(description='Crawl Alexa top websites and capture the traffic')
@@ -33,7 +33,7 @@ def parse_arguments():
 	parser.add_argument('-suffix',
 						type=str,
 						metavar='<suffix>',
-						default='.pcap',
+						default='.cell',
 						help='suffix of the file')
 
 	# Parse arguments
