@@ -60,16 +60,18 @@ if __name__ == '__main__':
 		raw += glob.glob(join(folder, "*"+args.suffix))
 	print("Total:{}".format(len(raw)))
 	output_dir = init_directories(args.n,args.n0)
-	counter = [-1]*(args.n+args.n0)
+	counter = [0]*(args.n+args.n0)
 	# print(raw)
 	for r in raw:
 		filename = r.split("/")[-1].split(args.suffix)[0]
 		web_id,inst_id = filename.split("-")
-		counter[int(web_id)] += 1
 		new_inst_id = str(counter[int(web_id)])
 		newfilename = web_id + "-" + new_inst_id + args.suffix
 		cmd = "mv " + r + " " +join(output_dir, newfilename)
 		subprocess.call(cmd, shell=True)
+		counter[int(web_id)] += 1
+	for i in range(len(counter)):
+		print("#{}:{}".format(i, counter[i]))
 	print("Merged to {}".format(output_dir))
 
 
