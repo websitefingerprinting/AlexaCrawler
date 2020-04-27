@@ -28,6 +28,7 @@ logger = logging.getLogger("tcpdump")
 
 WebListDir = './sites.txt'
 
+My_Bridge_Ips = ['13.75.78.82', '52.175.31.228', '52.175.49.114','40.83.88.194']
 
 def get_guard_ip():
     addresses = set()
@@ -175,6 +176,8 @@ if __name__ == "__main__":
 
     for i in range(m):
         guards = get_guard_ip()
+        if len(guards) == 0:
+            guards = My_Bridge_Ips
         # print(guards)
         for wid,website in enumerate(websites):
             wid = wid + n0
