@@ -24,7 +24,6 @@ padding_time = 4
 
 Pardir = abspath(join(dirname(__file__), pardir))
 DumpDir = join( Pardir , "AlexaCrawler/dump")
-ParseDir = join(Pardir, "AlexaCrawler/parsed")
 logger = logging.getLogger("tcpdump")
 
 WebListDir = './sites.txt'
@@ -129,20 +128,20 @@ def crawl(url, filename, guards, s):
     driver = get_driver()
     src = ' or '.join(guards)
     try:
-    	with timeout(HARD_VISIT_TIMEOUT):
-	        #start tcpdump
-	        cmd = "sudo tcpdump host \("+src+"\) and tcp -i eth0 -w " + filename
-	        print(cmd)
-	        pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	        start = time.time()
-	        driver.get(url)
-	        if s:
-	            driver.get_screenshot_as_file(filename.split('.')[0]+'.png')
+        with timeout(HARD_VISIT_TIMEOUT):
+            #start tcpdump
+            cmd = "sudo tcpdump host \("+src+"\) and tcp -i eth0 -w " + filename
+            print(cmd)
+            pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            start = time.time()
+            driver.get(url)
+            if s:
+                driver.get_screenshot_as_file(filename.split('.')[0]+'.png')
             driver.quit()
     except (HardTimeoutException, TimeoutException):
         logger.warning("{} got timeout".format(url))
     except Exception as exc:
-    	logger.warning("Unknow error:{}".format(exc))
+        logger.warning("Unknow error:{}".format(exc))
     finally:
         display.stop()
         finish = time.time()
