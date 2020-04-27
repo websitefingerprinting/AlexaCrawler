@@ -99,7 +99,10 @@ def parse_arguments():
                         action='store_false', 
                         default=True,
                         help='Take a screenshot?')
-
+    parser.add_argument('-timeout',
+                        type = int,
+                        default=None,
+                        help='Change timeout value.')
     # Parse arguments
     args = parser.parse_args()
     return args
@@ -159,7 +162,11 @@ def crawl(url, filename, guards, s):
 if __name__ == "__main__":
     args = parse_arguments()
     config_logger()
+    print(args)
     n0, n, m, s= args.n0, args.n, args.m, args.s
+    if args.timeout and args.timeout > 0:
+        SOFT_VISIT_TIMEOUT = args.timeout
+
     with open(WebListDir,'r') as f:
         wlist = f.readlines()[n0:n0+n]
     websites = ["https://www."+w[:-1] for w in wlist]
