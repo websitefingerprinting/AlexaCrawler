@@ -70,80 +70,7 @@ def parse_arguments():
     args = parser.parse_args()
     return args
 
-def findall(p, s):
-    '''Yields all the positions of
-    the pattern p in the string s.'''
-    i = s.find(p)
-    while i != -1:
-        yield i
-        i = s.find(p, i+1)
 
-def get_cells(tls_str,cum_times,cum_bytes, dire):
-
-    cells = []
-
-    assert cum_bytes[-1] == len(tls_str)
-    cum_bytes = np.array(cum_bytes)
-    cum_times = np.array(cum_times)
-    for k,ind in enumerate(findall(b'\x17\x03\x03', tls_str)):
-        start_byte_ind = ind+5 - CELL_SIZE
-        tls_len = int.from_bytes(tls_str[ind+3:ind+5], 'big')
-        num_cell = int(np.round(tls_len/CELL_SIZE))
-#         print("start ind:{}, num cell:{}".format(ind+5, num_cell))
-        for i in range(num_cell):
-            start_byte_ind += CELL_SIZE
-            tmp = cum_times[cum_bytes >= start_byte_ind]
-            if len(tmp) > 0:
-                pkt_t = tmp[0]
-            else:
-                pkt_t = cum_times[-1]
-                # print("END")
-#             print("#{}, abs byte {}, rela byte {}, t:{}".format(k, start_byte_ind, start_byte_ind-ind, pkt_t))
-            cells.append([pkt_t, dire])
-    return cells   
-
-# def clean_parse(fdir):
-#     global savedir, suffix, ismon
-#     batch,site,inst = fdir.split("/")[-2].split("_")
-#     if ismon:
-#         savefiledir = join(savedir, site+"-"+inst+suffix) 
-#     else:
-#         savefiledir = join(savedir, site+suffix)
-#     packets = rdpcap(fdir)
-
-#     try:
-#         t0 = packets[0].time
-#         in_pkts = []
-#         out_pkts = []
-#         out_tls_str = b""
-#         in_tls_str = b""
-#         out_cum_bytes = [0]
-#         in_cum_bytes = [0]
-#         out_cum_times = [0]
-#         in_cum_times = [0]
-
-#         for i,pkt in enumerate(packets):
-#             payload = pkt.load
-#             dire = getDirection(pkt)
-#             t = getTimestamp(pkt, t0)
-#             if dire == 1:
-#                 out_tls_str += payload
-#                 out_cum_bytes.append(len(out_tls_str))
-#                 out_cum_times.append(t)
-#             else:
-#                 in_tls_str += payload
-#                 in_cum_bytes.append(len(in_tls_str))
-#                 in_cum_times.append(t)
-#         out_pkts = get_cells(out_tls_str,out_cum_times,out_cum_bytes,1)
-#         in_pkts = get_cells(in_tls_str,in_cum_times,in_cum_bytes,-1)
-#         #sort packets
-#         total_pkts_unsorted = np.array(in_pkts + out_pkts)
-#         total_pkts0 = total_pkts_unsorted[total_pkts_unsorted[:,0].argsort(kind = "mergesort")]
-#         with open(savefiledir, 'w') as f:
-#             for pkt in total_pkts0:
-#                 f.write("{:.6f}\t{:.0f}\n".format(pkt[0],pkt[1])) 
-#     except Exception as e: 
-#       print("Error in {}: {}".format(fdir.split('/')[-1], e))
 
 def clean_parse(fdir):
     global savedir, suffix, ismon
@@ -191,13 +118,14 @@ def clean_parse(fdir):
 
 def burst_parse(fdir):
     global savedir, suffix, ismon
-    batch,site,inst = fdir.split("/")[-2].split("_")
     if ismon:
+        site,inst = fdir.split("/")[-1].split(".pcap")[0].split("-")
         savefiledir = join(savedir, site+"-"+inst+suffix) 
     else:
+        site = fdir.split("/")[-1].split(".pcap")[0]
         savefiledir = join(savedir, site+suffix)
-
     packets = rdpcap(fdir)
+
     try:
         t0 = packets[0].time
 
