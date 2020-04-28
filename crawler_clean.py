@@ -11,14 +11,15 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
 import numpy as np
 from stem import CircStatus
 from stem.control import Controller
 from pyvirtualdisplay import Display
-from utils import *
+import utils as ut
 
 SOFT_VISIT_TIMEOUT = 60
-HARD_VISIT_TIMEOUT = 100
+HARD_VISIT_TIMEOUT = SOFT_VISIT_TIMEOUT + 20
 padding_time = 4
 
 
@@ -132,7 +133,7 @@ def crawl(url, filename, guards, s):
     driver = get_driver()
     src = ' or '.join(guards)
     try:
-        with timeout(HARD_VISIT_TIMEOUT):
+        with ut.timeout(HARD_VISIT_TIMEOUT):
             #start tcpdump
             cmd = "sudo tcpdump host \("+src+"\) and tcp -i eth0 -w " + filename
             print(cmd)
@@ -146,7 +147,7 @@ def crawl(url, filename, guards, s):
             t = finish-start
             #wait for padding traffic
             logger.info("Load {:.2f} + {:.2f}s".format(t, padding_time))
-    except (HardTimeoutException, TimeoutException):
+    except (ut.HardTimeoutException, TimeoutException):
         logger.warning("{} got timeout".format(url))
     except Exception as exc:
         logger.warning("Unknow error:{}".format(exc))
