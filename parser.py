@@ -208,7 +208,7 @@ def burst_parse(fdir):
             cut_off_ind = len(total_pkts0)
         else:
             cut_off_ind = tmp[-1]
-            print("{}: cut off at {}/{}".format(id_, cut_off_ind,len(total_pkts0)))
+            print("{}: cut off at {}/{}".format(fdir, cut_off_ind,len(total_pkts0)))
             
         with open(savefiledir, 'w') as f:
             for pkt in total_pkts0[:cut_off_ind]:
