@@ -142,16 +142,16 @@ def crawl(url, filename, guards, s):
             if s:
                 driver.get_screenshot_as_file(filename.split('.')[0]+'.png')
             driver.quit()
+            finish = time.time()
+            t = finish-start
+            #wait for padding traffic
+            logger.info("Load {:.2f} + {:.2f}s".format(t, padding_time))
     except (HardTimeoutException, TimeoutException):
         logger.warning("{} got timeout".format(url))
     except Exception as exc:
         logger.warning("Unknow error:{}".format(exc))
     finally:
         display.stop()
-        finish = time.time()
-        t = finish-start
-        #wait for padding traffic
-        logger.info("Load {:.2f} + {:.2f}s".format(t, padding_time))
         time.sleep(padding_time)
         #stop tcpdump
         subprocess.call("sudo killall tcpdump",shell=True)
