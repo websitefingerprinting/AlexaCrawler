@@ -200,6 +200,16 @@ def burst_parse(fdir):
         #sort packets
         total_pkts_unsorted = np.array(in_pkts + out_pkts)
         total_pkts0 = total_pkts_unsorted[total_pkts_unsorted[:,0].argsort(kind = "mergesort")]
+        #Cut off last few packets (1s away from their predecessor)
+        total_pkts1 = total_pkts0[1:]
+        time_diffs = total_pkts1[:,0] - total_pkts0[:-1,0]
+        tmp = np.where(time_diffs > 1)[0]
+        if len(tmp) == 0:
+            cut_off_ind = len(total_pkts0)
+        else:
+            cut_off_ind = tmp[-1]
+            print("{}: cut off at {}/{}".format(id_, cut_off_ind,len(total_pkts0)))
+            
         with open(savefiledir, 'w') as f:
             for pkt in total_pkts0:
                 f.write("{:.6f}\t{:.0f}\n".format(pkt[0],pkt[1])) 
