@@ -60,6 +60,10 @@ def parse_arguments():
                         action='store_true', 
                         default=False,
                         help='The type of dataset: is mon or unmon?.')
+    parser.add_argument('-s',
+                        action='store_true', 
+                        default=False,
+                        help='If use screenshot as sanity check?')
     parser.add_argument('-suffix',
                         type=str,
                         metavar='<parsed file suffix>',
@@ -222,13 +226,16 @@ if __name__ == "__main__":
     suffix = args.suffix
     ismon = args.m
     # filelist = glob.glob(join(args.dir,'*_*_*' ,'capture.pcap.filtered'))
-    filelist_ = glob.glob(join(args.dir,'*.png'))
-    filelist = []
-    #Sanity check
-    for f in filelist_:
-        pcapfile = f.split(".png")[0] + captured_file_name
-        if os.path.exists(pcapfile):
-            filelist.append(pcapfile)
+    if args.s:
+        filelist_ = glob.glob(join(args.dir,'*.png'))
+        filelist = []
+        #Sanity check
+        for f in filelist_:
+            pcapfile = f.split(".png")[0] + captured_file_name
+            if os.path.exists(pcapfile):
+                filelist.append(pcapfile)
+    else:
+        filelist =  glob.glob(join(args.dir,'*'+captured_file_name))         
 
     filename = args.dir.rstrip("/").split("/")[-1]
     savedir = join(ParsedDir, filename)
