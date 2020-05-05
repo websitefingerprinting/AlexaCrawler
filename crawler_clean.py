@@ -128,12 +128,12 @@ def get_driver():
     return driver
 
 def crawl(url, filename, guards, s):
-    display = Display(visible=0, size=(1000, 800))
-    display.start()
-    driver = get_driver()
-    src = ' or '.join(guards)
     try:
         with ut.timeout(HARD_VISIT_TIMEOUT):
+            display = Display(visible=0, size=(1000, 800))
+            display.start()
+            driver = get_driver()
+            src = ' or '.join(guards)
             #start tcpdump
             cmd = "sudo tcpdump host \("+src+"\) and tcp -i eth0 -w " + filename
             print(cmd)
