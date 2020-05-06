@@ -4,6 +4,7 @@ from os import environ
 from os.path import join, isfile, isdir, dirname
 
 import stem.process
+from stem import CircStatus
 from stem.control import Controller
 from stem.util import term
 import common as cm
@@ -23,17 +24,17 @@ class TorController(object):
 
 
     def get_guard_ip(self):
-        addresses = set(cm.My_Bridge_Ips)
-
+        addresses = set()
         for circ in sorted(self.controller.get_circuits()):
             if circ.status != CircStatus.BUILT:
                 continue
             fingerprint, nickname = circ.path[0]
-            desc = controller.get_network_status(fingerprint, None)
+            desc = self.controller.get_network_status(fingerprint, None)
             address = desc.address if desc else None
             if address:
                 addresses.add(address)
-
+        if len(addresses) == 0:
+            addresses = set(cm.My_Bridge_Ips)
         return list(addresses)
     # def get_guard_ips(self):
     #     ips = []

@@ -1,10 +1,9 @@
 import subprocess
 import os
+import sys
 from os import makedirs
 from os.path import join, abspath, dirname, pardir
 import time
-import logging
-import sys
 import argparse
 import time
 from selenium import webdriver
@@ -19,9 +18,23 @@ from pyvirtualdisplay import Display
 import utils as ut
 from common import *
 from torcontroller import *
+import logging
 
-logger = logging.getLogger("tcpdump")
 
+def config_logger():
+    logger = logging.getLogger("tcpdump")
+    # Set file
+    log_file = sys.stdout
+    ch = logging.StreamHandler(log_file)
+
+    # Set logging format
+    LOG_FORMAT = "%(asctime)s %(name)-12s %(levelname)-8s %(message)s"
+    ch.setFormatter(logging.Formatter(LOG_FORMAT))
+    logger.addHandler(ch)
+
+    # Set level format
+    logger.setLevel(logging.INFO)
+    return logger
 
 def init_directories(mode):
     # Create a results dir if it doesn't exist yet
@@ -122,14 +135,14 @@ def crawl(url, filename, guards, s):
             finish = time.time()
             t = finish-start
             #wait for padding traffic
-            logger.info("Load {:.2f} + {:.2f}s".format(t, padding_time))
+            logger.info("Load {:.2f} + {:.2f}s".format(t, GAP_BETWEEN_SITES))
     except (ut.HardTimeoutException, TimeoutException):
         logger.warning("{} got timeout".format(url))
     except Exception as exc:
         logger.warning("Unknow error:{}".format(exc))
     finally:
         display.stop()
-        time.sleep(padding_time)
+        time.sleep(GAP_BETWEEN_SITES)
         #stop tcpdump
         subprocess.call("sudo killall tcpdump",shell=True)
         #filter ACKs and retransmission
@@ -139,10 +152,10 @@ def crawl(url, filename, guards, s):
 
 if __name__ == "__main__":
     args = parse_arguments()
-    ut.config_logger()
+    logger = config_logger()
     print(args)
     n0, n, m, s, b = args.n0, args.n, args.m, args.s, args.b
-    torrc_path = arg.torrc
+    torrc_path = args.torrc
     if args.timeout and args.timeout > 0:
         SOFT_VISIT_TIMEOUT = args.timeout
 
@@ -153,8 +166,10 @@ if __name__ == "__main__":
     batch_dump_dir = init_directories(args.mode)
 
     controller = TorController(torrc_path=torrc_path)
-    for bb in range(b)
+    for bb in range(b):
         with controller.launch():
+            logger.info("Start Tor and sleep {}s".format(GAP_AFTER_LAUNCH))
+            time.sleep(GAP_AFTER_LAUNCH)
             guards = controller.get_guard_ip()         
             # print(guards)
             for mm in range(m):
@@ -165,12 +180,21 @@ if __name__ == "__main__":
                     logger.info("{:d}-{:d}: {}".format(wid,i,website))
                     #begin to crawl
                     crawl(website, filename, guards, s)
-            time.sleep(gap_between_batches)
+            logger.info("Finish batch #{}, sleep {}s.".format(bb,GAP_BETWEEN_BATCHES))
+            time.sleep(GAP_BETWEEN_BATCHES)
 
     # subprocess.call("sudo killall tor",shell=True)
     # logger.info("Tor killed!")
+    if args.p:
+        #parse raw traffic
+        logger.info("Parsing the traffic...")
+        if args.mode == 'clean':
+            #use sanity check
+            cmd = "python3 parser.py "+batch_dump_dir + " -s -m -mode clean"
+            subprocess.call(cmd, shell = True) 
 
-    #parse raw traffic
-    # logger.info("Parsing the traffic...")
-    # cmd = "python3 parser.py "+batch_dump_dir + " -m -mode "+ args.mode
-    # subprocess.call(cmd, shell = True) 
+        elif args.mode == 'burst':
+            cmd = "python3 parser.py "+batch_dump_dir + "-m -mode burst"
+            subprocess.call(cmd, shell = True) 
+        else:
+            pass

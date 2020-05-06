@@ -153,7 +153,7 @@ def burst_parse(fdir):
             if len(out_pkts_raw[ind][1]) % MY_CELL_SIZE == 0:
                 break   
             #skip fragments in the head
-            print("Skip outgoing pkt #{}".format(ind))
+            # print("Skip outgoing pkt #{}".format(ind))
             ind += 1 
         while ind < len(out_pkts_raw):
             base_pkt = out_pkts_raw[ind]
@@ -212,7 +212,7 @@ def burst_parse(fdir):
             cut_off_ind = len(total_pkts0)
         else:
             cut_off_ind = tmp[-1]
-            print("{}: cut off at {}/{}".format(fdir, cut_off_ind,len(total_pkts0)))
+            # print("{}: cut off at {}/{}".format(fdir, cut_off_ind,len(total_pkts0)))
             
         with open(savefiledir, 'w') as f:
             for pkt in total_pkts0[:cut_off_ind]:
@@ -267,7 +267,7 @@ def fast_burst_parse(fdir):
                     for b in range(0, len(payload), MY_CELL_SIZE):
                         pkttype = isDummy if payload[b] else isReal
                         out_pkts.append([t, pkttype])   
-                    print("[WARN] Several outgoing: {},{} pkt ,len of payload:{}".format(fdir,start+i, len(payload)))
+                    # print("[WARN] Several outgoing: {},{} pkt ,len of payload:{}".format(fdir,start+i, len(payload)))
             else:
                 #incoming ones are more complicated, first collect raw packets
                 in_pkts_raw.append([t, payload])
@@ -301,7 +301,7 @@ def fast_burst_parse(fdir):
             cut_off_ind = len(total_pkts0)
         else:
             cut_off_ind = tmp[-1]
-            print("{}: cut off at {}/{}".format(fdir, cut_off_ind,len(total_pkts0)))
+            # print("{}: cut off at {}/{}".format(fdir, cut_off_ind,len(total_pkts0)))
         with open(savefiledir, 'w') as f:
             for pkt in total_pkts0[:cut_off_ind]:
                 f.write("{:.6f}\t{:.0f}\n".format(pkt[0],pkt[1]))   
