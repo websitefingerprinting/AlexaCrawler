@@ -220,6 +220,94 @@ def burst_parse(fdir):
     except Exception as e: 
         print("Error in {}: {}".format(fdir.split('/')[-1], e))
 
+def fast_burst_parse(fdir):
+    global savedir, suffix, ismon
+    if ismon:
+        site,inst = fdir.split("/")[-1].split(".pcap")[0].split("-")
+        savefiledir = join(savedir, site+"-"+inst+suffix) 
+    else:
+        site = fdir.split("/")[-1].split(".pcap")[0]
+        savefiledir = join(savedir, site+suffix)
+
+    try:
+        # #remove acks and retransmissions
+        # cmd = 'tshark -r '+ fdir+ ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w '+ fdir
+        # subprocess.call(cmd, shell=True)
+        packets = rdpcap(fdir)
+        # print(savefiledir)
+
+        for i, pkt in enumerate(packets):
+            #skip the first few noise packets
+            if  getDirection(pkt)>0:
+                start = i
+                t0 = pkt.time
+                # print("Start from pkt no. {}".format(start))
+                break
+
+        
+
+        in_pkts_raw = []
+        in_pkts = []
+        out_pkts = []
+        for i,pkt in enumerate(packets[start:]):
+            payload = pkt.load
+            dire = getDirection(pkt)
+            t = getTimestamp(pkt, t0)
+            if dire == 1:
+                #outgoing packet, only one case: 612 bytes (546 payload)
+                if len(payload) == MY_CELL_SIZE:
+                    if payload[0] == 0:
+                        out_pkts.append([t, isReal])
+                    elif payload[0] == 1:
+                        out_pkts.append([t, isDummy])
+                    else:
+                        raise ValueError("FORMAT ERROR: {},{} pkt ,payload:{}".format(fdir, start+i,payload))
+                else:
+                    # rarely happen, several outgoing together, probably congestion?
+                    for b in range(0, len(payload), MY_CELL_SIZE):
+                        pkttype = isDummy if payload[b] else isReal
+                        out_pkts.append([t, pkttype])   
+                    print("[WARN] Several outgoing: {},{} pkt ,len of payload:{}".format(fdir,start+i, len(payload)))
+            else:
+                #incoming ones are more complicated, first collect raw packets
+                in_pkts_raw.append([t, payload])
+
+        #process incoming ones 
+        ind = 0
+        while ind < len(in_pkts_raw):
+            base_pkt = in_pkts_raw[ind]
+            base_time = base_pkt[0]
+            base_payload = base_pkt[1]
+            while ind < len(in_pkts_raw)-1 and len(base_payload) % MY_CELL_SIZE != 0:
+                #fragment
+                ind += 1
+                tmp_pkt = in_pkts_raw[ind]
+                base_payload += tmp_pkt[1]
+
+            for b in range(0, len(base_payload), MY_CELL_SIZE):
+                pkttype = isDummy if base_payload[b] else isReal
+                in_pkts.append([base_time, pkttype * (-1)])         
+            ind += 1
+
+        #sort packets
+        total_pkts_unsorted = np.array(in_pkts + out_pkts)
+        total_pkts0 = total_pkts_unsorted[total_pkts_unsorted[:,0].argsort(kind = "mergesort")]
+
+        #Cut off last few packets (1s away from their predecessor)
+        total_pkts1 = total_pkts0[1:]
+        time_diffs = total_pkts1[:,0] - total_pkts0[:-1,0]
+        tmp = np.where(time_diffs > 1)[0]
+        if len(tmp) == 0:
+            cut_off_ind = len(total_pkts0)
+        else:
+            cut_off_ind = tmp[-1]
+            print("{}: cut off at {}/{}".format(fdir, cut_off_ind,len(total_pkts0)))
+        with open(savefiledir, 'w') as f:
+            for pkt in total_pkts0[:cut_off_ind]:
+                f.write("{:.6f}\t{:.0f}\n".format(pkt[0],pkt[1]))   
+    except Exception as e:
+        print("Error in {}, {} ".format(fdir.split('/')[-1], e))
+
 if __name__ == "__main__":
     global savedir, suffix, ismon
     args = parse_arguments()
@@ -250,7 +338,7 @@ if __name__ == "__main__":
         # pool.map(clean_parse, filelist)
         pool.map(clean_parse, filelist)
     elif args.mode == 'burst':
-        pool.map(burst_parse, filelist)
+        pool.map(fast_burst_parse, filelist)
     else:
         raise Error('Wrong mode:{}'.format(args.mode))
 

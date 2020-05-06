@@ -20,3 +20,17 @@ class TimeoutException(Exception):
 
 class HardTimeoutException(Exception):
     pass
+
+
+def config_logger():
+    # Set file
+    log_file = sys.stdout
+    ch = logging.StreamHandler(log_file)
+
+    # Set logging format
+    LOG_FORMAT = "%(asctime)s %(name)-12s %(levelname)-8s %(message)s"
+    ch.setFormatter(logging.Formatter(LOG_FORMAT))
+    logger.addHandler(ch)
+
+    # Set level format
+    logger.setLevel(logging.INFO)

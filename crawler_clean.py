@@ -17,48 +17,11 @@ from stem import CircStatus
 from stem.control import Controller
 from pyvirtualdisplay import Display
 import utils as ut
+from common import *
+from torcontroller import *
 
-SOFT_VISIT_TIMEOUT = 60
-HARD_VISIT_TIMEOUT = SOFT_VISIT_TIMEOUT + 20
-padding_time = 4
-
-
-Pardir = abspath(join(dirname(__file__), pardir))
-DumpDir = join( Pardir , "AlexaCrawler/dump")
 logger = logging.getLogger("tcpdump")
 
-WebListDir = './sites.txt'
-
-My_Bridge_Ips = ['13.75.78.82', '52.175.31.228', '52.175.49.114','40.83.88.194', '13.94.61.159']
-
-def get_guard_ip():
-    addresses = set()
-    with Controller.from_port(port = 9051) as controller:
-        controller.authenticate()
-
-        for circ in sorted(controller.get_circuits()):
-            if circ.status != CircStatus.BUILT:
-                continue
-            fingerprint, nickname = circ.path[0]
-            desc = controller.get_network_status(fingerprint, None)
-            address = desc.address if desc else None
-            if address:
-                addresses.add(address)
-
-    return list(addresses)
-
-def config_logger():
-    # Set file
-    log_file = sys.stdout
-    ch = logging.StreamHandler(log_file)
-
-    # Set logging format
-    LOG_FORMAT = "%(asctime)s %(name)-12s %(levelname)-8s %(message)s"
-    ch.setFormatter(logging.Formatter(LOG_FORMAT))
-    logger.addHandler(ch)
-
-    # Set level format
-    logger.setLevel(logging.INFO)
 
 def init_directories(mode):
     # Create a results dir if it doesn't exist yet
@@ -88,11 +51,16 @@ def parse_arguments():
                         metavar='<start page>',
                         default=0,
                         help='Crawl n0 to n0+n-1 webpages')
+    parser.add_argument('-b',
+                        type=int,
+                        metavar='<Num of batches>',
+                        default=5,
+                        help='Crawl batches, Tor restarts at each batch.')
     parser.add_argument('-m',
                         type=int,
-                        metavar='<Num of instances>',
-                        default=15,
-                        help='Number of instances for each website.')
+                        metavar='<Num of instances in each batch>',
+                        default=5,
+                        help='Number of instances for each website in each batch to crawl.')
     parser.add_argument('-mode',
                         type=str,
                         metavar='<parse mode>',
@@ -100,11 +68,19 @@ def parse_arguments():
     parser.add_argument('-s',
                         action='store_false', 
                         default=True,
-                        help='Take a screenshot?')
+                        help='Take a screenshot? (default:true)')
+    parser.add_argument('-p',
+                        action='store_false', 
+                        default=True,
+                        help='Parse file after crawl? (default:true)')
     parser.add_argument('-timeout',
                         type = int,
                         default=None,
                         help='Change timeout value.')
+    parser.add_argument('-torrc',
+                        type = str,
+                        default=None,
+                        help='Torrc file path.')
     # Parse arguments
     args = parser.parse_args()
     return args
@@ -163,9 +139,10 @@ def crawl(url, filename, guards, s):
 
 if __name__ == "__main__":
     args = parse_arguments()
-    config_logger()
+    ut.config_logger()
     print(args)
-    n0, n, m, s= args.n0, args.n, args.m, args.s
+    n0, n, m, s, b = args.n0, args.n, args.m, args.s, args.b
+    torrc_path = arg.torrc
     if args.timeout and args.timeout > 0:
         SOFT_VISIT_TIMEOUT = args.timeout
 
@@ -175,23 +152,25 @@ if __name__ == "__main__":
 
     batch_dump_dir = init_directories(args.mode)
 
-    for i in range(m):
-        guards = get_guard_ip()
-        if len(guards) == 0:
-            guards = My_Bridge_Ips
-        # print(guards)
-        for wid,website in enumerate(websites):
-            wid = wid + n0
-            filename = join(batch_dump_dir, str(wid)+'-' + str(i) + '.pcap')
-            logger.info("{:d}-{:d}: {}".format(wid,i,website))
-            #begin to crawl
-            crawl(website, filename, guards, s)
+    controller = TorController(torrc_path=torrc_path)
+    for bb in range(b)
+        with controller.launch():
+            guards = controller.get_guard_ip()         
+            # print(guards)
+            for mm in range(m):
+                i = bb*m + mm
+                for wid,website in enumerate(websites):
+                    wid = wid + n0
+                    filename = join(batch_dump_dir, str(wid)+'-' + str(i) + '.pcap')
+                    logger.info("{:d}-{:d}: {}".format(wid,i,website))
+                    #begin to crawl
+                    crawl(website, filename, guards, s)
+            time.sleep(gap_between_batches)
 
-
-    subprocess.call("sudo killall tor",shell=True)
-    logger.info("Tor killed!")
+    # subprocess.call("sudo killall tor",shell=True)
+    # logger.info("Tor killed!")
 
     #parse raw traffic
-    logger.info("Parsing the traffic...")
-    cmd = "python3 parser.py "+batch_dump_dir + " -m -mode "+ args.mode
-    subprocess.call(cmd, shell = True) 
+    # logger.info("Parsing the traffic...")
+    # cmd = "python3 parser.py "+batch_dump_dir + " -m -mode "+ args.mode
+    # subprocess.call(cmd, shell = True) 
