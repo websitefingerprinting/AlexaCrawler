@@ -2,18 +2,10 @@ import subprocess
 import os
 import sys
 from os import makedirs
-from os.path import join, abspath, dirname, pardir
-import time
 import argparse
 import time
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
-import numpy as np
-from stem import CircStatus
-from stem.control import Controller
 from pyvirtualdisplay import Display
 import utils as ut
 from common import *
@@ -36,6 +28,7 @@ def config_logger():
     logger.setLevel(logging.INFO)
     return logger
 
+
 def init_directories(mode):
     # Create a results dir if it doesn't exist yet
     if not os.path.exists(DumpDir):
@@ -43,15 +36,13 @@ def init_directories(mode):
 
     # Define output directory
     timestamp = time.strftime('%m%d_%H%M%S')
-    output_dir = join(DumpDir, mode+'_'+timestamp)
+    output_dir = join(DumpDir, mode + '_' + timestamp)
     makedirs(output_dir)
 
     return output_dir
 
 
-
 def parse_arguments():
-
     parser = argparse.ArgumentParser(description='Crawl Alexa top websites and capture the traffic')
 
     parser.add_argument('-n',
@@ -79,19 +70,19 @@ def parse_arguments():
                         metavar='<parse mode>',
                         help='The type of dataset: clean, burst?.')
     parser.add_argument('-s',
-                        action='store_false', 
+                        action='store_false',
                         default=True,
                         help='Take a screenshot? (default:true)')
     parser.add_argument('-p',
-                        action='store_false', 
+                        action='store_false',
                         default=True,
                         help='Parse file after crawl? (default:true)')
     parser.add_argument('-timeout',
-                        type = int,
+                        type=int,
                         default=None,
                         help='Change timeout value.')
     parser.add_argument('-torrc',
-                        type = str,
+                        type=str,
                         default=None,
                         help='Torrc file path.')
     # Parse arguments
@@ -116,6 +107,7 @@ def get_driver():
     # logger.info("Firefox launch for {:.2f}s".format(time.time()-start))
     return driver
 
+
 def crawl(url, filename, guards, s):
     try:
         with ut.timeout(HARD_VISIT_TIMEOUT):
@@ -123,18 +115,18 @@ def crawl(url, filename, guards, s):
             display.start()
             driver = get_driver()
             src = ' or '.join(guards)
-            #start tcpdump
-            cmd = "sudo tcpdump host \("+src+"\) and tcp -i eth0 -w " + filename
+            # start tcpdump
+            cmd = "sudo tcpdump host \(" + src + "\) and tcp -i eth0 -w " + filename
             print(cmd)
             pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             start = time.time()
             driver.get(url)
             if s:
-                driver.get_screenshot_as_file(filename.split('.')[0]+'.png')
+                driver.get_screenshot_as_file(filename.split('.')[0] + '.png')
             driver.quit()
             finish = time.time()
-            t = finish-start
-            #wait for padding traffic
+            t = finish - start
+            # wait for padding traffic
             logger.info("Load {:.2f} + {:.2f}s".format(t, GAP_BETWEEN_SITES))
     except (ut.HardTimeoutException, TimeoutException):
         logger.warning("{} got timeout".format(url))
@@ -143,11 +135,11 @@ def crawl(url, filename, guards, s):
     finally:
         display.stop()
         time.sleep(GAP_BETWEEN_SITES)
-        #stop tcpdump
-        subprocess.call("sudo killall tcpdump",shell=True)
-        #filter ACKs and retransmission
-        cmd = 'tshark -r '+ filename +' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename+".filtered"
-        subprocess.call(cmd, shell= True)
+        # stop tcpdump
+        subprocess.call("sudo killall tcpdump", shell=True)
+        # filter ACKs and retransmission
+        cmd = 'tshark -r ' + filename + ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename + ".filtered"
+        subprocess.call(cmd, shell=True)
 
 
 if __name__ == "__main__":
@@ -159,9 +151,9 @@ if __name__ == "__main__":
     if args.timeout and args.timeout > 0:
         SOFT_VISIT_TIMEOUT = args.timeout
 
-    with open(WebListDir,'r') as f:
-        wlist = f.readlines()[n0:n0+n]
-    websites = ["https://www."+w[:-1] for w in wlist]
+    with open(WebListDir, 'r') as f:
+        wlist = f.readlines()[n0:n0 + n]
+    websites = ["https://www." + w[:-1] for w in wlist]
 
     batch_dump_dir = init_directories(args.mode)
 
@@ -170,31 +162,31 @@ if __name__ == "__main__":
         with controller.launch():
             logger.info("Start Tor and sleep {}s".format(GAP_AFTER_LAUNCH))
             time.sleep(GAP_AFTER_LAUNCH)
-            guards = controller.get_guard_ip()         
+            guards = controller.get_guard_ip()
             # print(guards)
             for mm in range(m):
-                i = bb*m + mm
-                for wid,website in enumerate(websites):
+                i = bb * m + mm
+                for wid, website in enumerate(websites):
                     wid = wid + n0
-                    filename = join(batch_dump_dir, str(wid)+'-' + str(i) + '.pcap')
-                    logger.info("{:d}-{:d}: {}".format(wid,i,website))
-                    #begin to crawl
+                    filename = join(batch_dump_dir, str(wid) + '-' + str(i) + '.pcap')
+                    logger.info("{:d}-{:d}: {}".format(wid, i, website))
+                    # begin to crawl
                     crawl(website, filename, guards, s)
-            logger.info("Finish batch #{}, sleep {}s.".format(bb,GAP_BETWEEN_BATCHES))
+            logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
             time.sleep(GAP_BETWEEN_BATCHES)
 
     # subprocess.call("sudo killall tor",shell=True)
     # logger.info("Tor killed!")
     if args.p:
-        #parse raw traffic
+        # parse raw traffic
         logger.info("Parsing the traffic...")
         if args.mode == 'clean':
-            #use sanity check
-            cmd = "python3 parser.py "+batch_dump_dir + " -s -m -mode clean"
-            subprocess.call(cmd, shell = True) 
+            # use sanity check
+            cmd = "python3 parser.py " + batch_dump_dir + " -s -m -mode clean"
+            subprocess.call(cmd, shell=True)
 
         elif args.mode == 'burst':
-            cmd = "python3 parser.py "+batch_dump_dir + " -m -mode burst"
-            subprocess.call(cmd, shell = True) 
+            cmd = "python3 parser.py " + batch_dump_dir + " -m -mode burst"
+            subprocess.call(cmd, shell=True)
         else:
             pass

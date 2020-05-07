@@ -6,3 +6,4 @@ jupyternotebook
 test2
 cleanpcap/
 *.ipynb
+.idea
