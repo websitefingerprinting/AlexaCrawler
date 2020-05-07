@@ -194,7 +194,7 @@ if __name__ == "__main__":
             subprocess.call(cmd, shell = True) 
 
         elif args.mode == 'burst':
-            cmd = "python3 parser.py "+batch_dump_dir + "-m -mode burst"
+            cmd = "python3 parser.py "+batch_dump_dir + " -m -mode burst"
             subprocess.call(cmd, shell = True) 
         else:
             pass
