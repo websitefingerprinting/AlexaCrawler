@@ -85,7 +85,9 @@ def clean_parse(fdir):
         site = fdir.split("/")[-1].split(".pcap")[0]
         savefiledir = join(savedir, site+suffix)
     packets = rdpcap(fdir)
-
+    if len(packets) < 50:
+        print("[WARN] {} has too few packets, skip!".format(fdir))
+        return
     try:
         with open(savefiledir, 'w') as f:
             start = 0
@@ -234,6 +236,9 @@ def fast_burst_parse(fdir):
         # cmd = 'tshark -r '+ fdir+ ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w '+ fdir
         # subprocess.call(cmd, shell=True)
         packets = rdpcap(fdir)
+        if len(packets) < 50:
+            print("[WARN] {} has too few packets, skip!".format(fdir))
+            return
         # print(savefiledir)
         for i, pkt in enumerate(packets):
             #skip the first few noise packets
@@ -270,9 +275,7 @@ def fast_burst_parse(fdir):
             else:
                 #incoming ones are more complicated, first collect raw packets
                 in_pkts_raw.append([t, payload])
-        if len(in_pkts_raw) <5  or len(out_pkts_raw) <5 or (len(in_pkts_raw)+len(out_pkts_raw)) < 50:
-            print("[WARN] bad file, skip")
-            return
+
 
         #process incoming ones 
         ind = 0
