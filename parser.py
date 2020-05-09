@@ -235,7 +235,6 @@ def fast_burst_parse(fdir):
         # subprocess.call(cmd, shell=True)
         packets = rdpcap(fdir)
         # print(savefiledir)
-
         for i, pkt in enumerate(packets):
             #skip the first few noise packets
             if  getDirection(pkt)>0:
@@ -271,6 +270,9 @@ def fast_burst_parse(fdir):
             else:
                 #incoming ones are more complicated, first collect raw packets
                 in_pkts_raw.append([t, payload])
+        if len(in_pkts_raw) <5  or len(out_pkts_raw) <5 or (len(in_pkts_raw)+len(out_pkts_raw)) < 50:
+            print("[WARN] bad file, skip")
+            return
 
         #process incoming ones 
         ind = 0
