@@ -262,7 +262,7 @@ def fast_burst_parse(fdir):
                 if len(payload) == MY_CELL_SIZE:
                     if payload[0] == 0:
                         out_pkts.append([t, isReal])
-                    elif payload[0] == 1:
+                    elif payload[0] == 1 or payload[0] == 2:
                         out_pkts.append([t, isDummy])
                     else:
                         raise ValueError("FORMAT ERROR: {},{} pkt ,payload:{}".format(fdir, start+i,payload))
