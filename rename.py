@@ -20,6 +20,10 @@ def parse_arguments():
                         action='store_true', 
                         default=False,
                         help='The type of dataset: is mon or unmon?.')
+    parser.add_argument('-n0',
+                        type = int,
+                        default=0,
+                        help='initial index.')
     parser.add_argument('-format',
                         type=str,
                         metavar='<file suffix>',
@@ -46,19 +50,17 @@ if __name__ == '__main__':
                 cnt += len(flist_cls)
         print("Total {} webs".format(cnt))
         assert len(l) == len(flist)
-        for new_label, old_label in enumerate(l):
-            # print("new vs old:",new_label, old_label)
-            assert new_label <= int(old_label)
+        for new_index, old_label in enumerate(l):
+            new_label  = new_index + args.n0
             if new_label == old_label:
                 continue
-            flist_cls = flist[new_label]
+            flist_cls = flist[new_index]
             for f in flist_cls:
                 filename = f.split("/")[-1].split(args.format)[0]
                 old_label_, old_inst = filename.split("-")
                 assert int(old_label_) == old_label
                 new_f = join(args.dir, str(new_label)+'-'+old_inst+args.format)
                 cmd = "mv " + f + " " + new_f
-                # print(cmd)
                 subprocess.call(cmd, shell = True)
 
 
