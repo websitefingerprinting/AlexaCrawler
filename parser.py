@@ -276,6 +276,11 @@ def fast_burst_parse(fdir):
                 #incoming ones are more complicated, first collect raw packets
                 in_pkts_raw.append([t, payload])
 
+        if len(out_pkts) < 2 or len(in_pkts_raw) < 5:
+            #I just pick two random number here. 
+            #If too few packets there, return
+            print("[WARN] {} has too few packets: {}+{}, skip!".format(fdir,len(out_pkts),len(in_pkts_raw)))
+            return
 
         #process incoming ones 
         ind = 0
@@ -307,6 +312,7 @@ def fast_burst_parse(fdir):
         else:
             cut_off_ind = tmp[-1]
             # print("{}: cut off at {}/{}".format(fdir, cut_off_ind,len(total_pkts0)))
+
         with open(savefiledir, 'w') as f:
             for pkt in total_pkts0[:cut_off_ind]:
                 f.write("{:.6f}\t{:.0f}\n".format(pkt[0],pkt[1]))   
