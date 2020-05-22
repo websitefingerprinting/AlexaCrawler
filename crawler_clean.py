@@ -45,16 +45,16 @@ def init_directories(mode):
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Crawl Alexa top websites and capture the traffic')
 
-    parser.add_argument('-n',
+    parser.add_argument('-start',
                         type=int,
-                        metavar='<Top N websites>',
-                        default=50,
-                        help='Top N websites to be crawled.')
-    parser.add_argument('-n0',
-                        type=int,
-                        metavar='<start page>',
+                        metavar='<start ind>',
                         default=0,
-                        help='Crawl n0 to n0+n-1 webpages')
+                        help='Start from which site in the list (include this ind).')
+    parser.add_argument('-end',
+                        type=int,
+                        metavar='<end ind>',
+                        default=50,
+                        help='End to which site in the list (exclude this ind).')
     parser.add_argument('-b',
                         type=int,
                         metavar='<Num of batches>',
@@ -67,6 +67,7 @@ def parse_arguments():
                         help='Number of instances for each website in each batch to crawl.')
     parser.add_argument('-mode',
                         type=str,
+                        required=True,
                         metavar='<parse mode>',
                         help='The type of dataset: clean, burst?.')
     parser.add_argument('-s',
@@ -85,17 +86,25 @@ def parse_arguments():
                         type=str,
                         default=None,
                         help='Torrc file path.')
+    parser.add_argument('-sp',
+                        type=int,
+                        default=9050,
+                        help='Tor socks port.')
+    parser.add_argument('-cp',
+                        type=int,
+                        default=9051,
+                        help='Tor control port.')
     # Parse arguments
     args = parser.parse_args()
     return args
 
 
-def get_driver():
+def get_driver(socks_port):
     start = time.time()
     profile = webdriver.FirefoxProfile()
     profile.set_preference("network.proxy.type", 1)
     profile.set_preference("network.proxy.socks", "127.0.0.1")
-    profile.set_preference("network.proxy.socks_port", 9050)
+    profile.set_preference("network.proxy.socks_port", socks_port)
     profile.set_preference("network.proxy.socks_version", 5)
     profile.set_preference("browser.cache.disk.enable", False)
     profile.set_preference("browser.cache.memory.enable", False)
@@ -108,15 +117,15 @@ def get_driver():
     return driver
 
 
-def crawl(url, filename, guards, s):
+def crawl(url, filename, guards, s, socks_port):
     try:
         with ut.timeout(HARD_VISIT_TIMEOUT):
-            display = Display(visible=0, size=(1000, 800))
-            display.start()
-            driver = get_driver()
+            # display = Display(visible=0, size=(1000, 800))
+            # display.start()
+            driver = get_driver(socks_port)
             src = ' or '.join(guards)
             # start tcpdump
-            cmd = "sudo tcpdump host \(" + src + "\) and tcp -i eth0 -w " + filename
+            cmd = "sudo tcpdump host \(" + src + "\) and tcp -i en0 -w " + filename
             print(cmd)
             pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             start = time.time()
@@ -133,7 +142,7 @@ def crawl(url, filename, guards, s):
     except Exception as exc:
         logger.warning("Unknow error:{}".format(exc))
     finally:
-        display.stop()
+        # display.stop()
         time.sleep(GAP_BETWEEN_SITES)
         # stop tcpdump
         subprocess.call("sudo killall tcpdump", shell=True)
@@ -146,18 +155,20 @@ if __name__ == "__main__":
     args = parse_arguments()
     logger = config_logger()
     print(args)
-    n0, n, m, s, b = args.n0, args.n, args.m, args.s, args.b
+    start, end, m, s, b = args.start, args.end, args.m, args.s, args.b
     torrc_path = args.torrc
+    control_port = args.cp
+    socks_port = args.sp
     if args.timeout and args.timeout > 0:
         SOFT_VISIT_TIMEOUT = args.timeout
 
     with open(WebListDir, 'r') as f:
-        wlist = f.readlines()[n0:n0 + n]
+        wlist = f.readlines()[start:end]
     websites = ["https://www." + w[:-1] for w in wlist]
 
     batch_dump_dir = init_directories(args.mode)
 
-    controller = TorController(torrc_path=torrc_path)
+    controller = TorController(torrc_path=torrc_path,control_port=control_port, socks_port=socks_port)
     for bb in range(b):
         with controller.launch():
             logger.info("Start Tor and sleep {}s".format(GAP_AFTER_LAUNCH))
@@ -167,11 +178,11 @@ if __name__ == "__main__":
             for mm in range(m):
                 i = bb * m + mm
                 for wid, website in enumerate(websites):
-                    wid = wid + n0
+                    wid = wid + start
                     filename = join(batch_dump_dir, str(wid) + '-' + str(i) + '.pcap')
                     logger.info("{:d}-{:d}: {}".format(wid, i, website))
                     # begin to crawl
-                    crawl(website, filename, guards, s)
+                    crawl(website, filename, guards, s,socks_port)
             logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
             time.sleep(GAP_BETWEEN_BATCHES)
 

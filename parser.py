@@ -8,15 +8,9 @@ import subprocess
 import argparse
 from scapy.all import *
 import glob
+from common import My_Source_Ips
 
-src1 = '10.0.0.4'
-src2 = '10.0.0.5'
-src3 = '10.0.0.6'
-src4 = '10.0.0.7'
-src5 = '10.0.1.4'
-src6 = '10.0.1.5'
-src7 = '10.0.1.6'
-src8 = '10.0.1.8'
+
 
 CELL_SIZE = 512
 #CELL+ TLS HEADER + MY HEADER
@@ -38,8 +32,7 @@ def getTimestamp(pkt, t0):
 
 
 def getDirection(pkt):
-    if (pkt.payload.src == src1) or (pkt.payload.src == src2) or (pkt.payload.src == src3) or (pkt.payload.src == src4)\
-    or (pkt.payload.src == src5) or (pkt.payload.src == src6) or (pkt.payload.src == src7) or (pkt.payload.src == src8):
+    if pkt.payload.src in My_Source_Ips:
         return 1
     else:
         return -1 
