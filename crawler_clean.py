@@ -86,25 +86,16 @@ def parse_arguments():
                         type=str,
                         default=None,
                         help='Torrc file path.')
-    parser.add_argument('-sp',
-                        type=int,
-                        default=9050,
-                        help='Tor socks port.')
-    parser.add_argument('-cp',
-                        type=int,
-                        default=9051,
-                        help='Tor control port.')
     # Parse arguments
     args = parser.parse_args()
     return args
 
 
-def get_driver(socks_port):
-    start = time.time()
+def get_driver():
     profile = webdriver.FirefoxProfile()
     profile.set_preference("network.proxy.type", 1)
     profile.set_preference("network.proxy.socks", "127.0.0.1")
-    profile.set_preference("network.proxy.socks_port", socks_port)
+    profile.set_preference("network.proxy.socks_port", 9050)
     profile.set_preference("network.proxy.socks_version", 5)
     profile.set_preference("browser.cache.disk.enable", False)
     profile.set_preference("browser.cache.memory.enable", False)
@@ -113,16 +104,15 @@ def get_driver(socks_port):
     profile.update_preferences()
     driver = webdriver.Firefox(firefox_profile=profile)
     driver.set_page_load_timeout(SOFT_VISIT_TIMEOUT)
-    # logger.info("Firefox launch for {:.2f}s".format(time.time()-start))
     return driver
 
 
-def crawl(url, filename, guards, s, socks_port):
+def crawl(url, filename, guards, s):
     try:
         with ut.timeout(HARD_VISIT_TIMEOUT):
-            # display = Display(visible=0, size=(1000, 800))
-            # display.start()
-            driver = get_driver(socks_port)
+            display = Display(visible=0, size=(1000, 800))
+            display.start()
+            driver = get_driver()
             src = ' or '.join(guards)
             # start tcpdump
             cmd = "sudo tcpdump host \(" + src + "\) and tcp -i en0 -w " + filename
@@ -142,10 +132,12 @@ def crawl(url, filename, guards, s, socks_port):
     except Exception as exc:
         logger.warning("Unknow error:{}".format(exc))
     finally:
-        # display.stop()
+        display.stop()
         time.sleep(GAP_BETWEEN_SITES)
         # stop tcpdump
-        subprocess.call("sudo killall tcpdump", shell=True)
+        pro.kill()
+        logger.info("Kill tcpdump.")
+        # subprocess.call("sudo killall tcpdump", shell=True)
         # filter ACKs and retransmission
         cmd = 'tshark -r ' + filename + ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename + ".filtered"
         subprocess.call(cmd, shell=True)
@@ -157,8 +149,7 @@ if __name__ == "__main__":
     print(args)
     start, end, m, s, b = args.start, args.end, args.m, args.s, args.b
     torrc_path = args.torrc
-    control_port = args.cp
-    socks_port = args.sp
+
     if args.timeout and args.timeout > 0:
         SOFT_VISIT_TIMEOUT = args.timeout
 
@@ -168,7 +159,7 @@ if __name__ == "__main__":
 
     batch_dump_dir = init_directories(args.mode)
 
-    controller = TorController(torrc_path=torrc_path,control_port=control_port, socks_port=socks_port)
+    controller = TorController(torrc_path=torrc_path)
     for bb in range(b):
         with controller.launch():
             logger.info("Start Tor and sleep {}s".format(GAP_AFTER_LAUNCH))
@@ -182,7 +173,7 @@ if __name__ == "__main__":
                     filename = join(batch_dump_dir, str(wid) + '-' + str(i) + '.pcap')
                     logger.info("{:d}-{:d}: {}".format(wid, i, website))
                     # begin to crawl
-                    crawl(website, filename, guards, s,socks_port)
+                    crawl(website, filename, guards, s)
             logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
             time.sleep(GAP_BETWEEN_BATCHES)
 
