@@ -135,9 +135,9 @@ def crawl(url, filename, guards, s):
         display.stop()
         time.sleep(GAP_BETWEEN_SITES)
         # stop tcpdump
-        pro.kill()
+        # pro.kill()
+        subprocess.call("killall tcpdump", shell=True)
         logger.info("Kill tcpdump.")
-        # subprocess.call("sudo killall tcpdump", shell=True)
         # filter ACKs and retransmission
         cmd = 'tshark -r ' + filename + ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename + ".filtered"
         subprocess.call(cmd, shell=True)
