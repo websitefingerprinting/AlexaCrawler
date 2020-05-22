@@ -344,7 +344,7 @@ if __name__ == "__main__":
     elif args.mode == 'burst':
         pool.map(fast_burst_parse, filelist)
     else:
-        raise Error('Wrong mode:{}'.format(args.mode))
+        raise ValueError('Wrong mode:{}'.format(args.mode))
 
     # zipcmd = "zip -rq " + savedir.rstrip("/") + ".zip" + " " + savedir
     # print(zipcmd)
