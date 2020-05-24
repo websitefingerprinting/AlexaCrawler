@@ -115,106 +115,6 @@ def clean_parse(fdir):
         print("Error in {}, {} ".format(fdir.split('/')[-1], e))
 
 
-def burst_parse(fdir):
-    global savedir, suffix, ismon
-    if ismon:
-        site,inst = fdir.split("/")[-1].split(".pcap")[0].split("-")
-        savefiledir = join(savedir, site+"-"+inst+suffix) 
-    else:
-        site = fdir.split("/")[-1].split(".pcap")[0]
-        savefiledir = join(savedir, site+suffix)
-    packets = rdpcap(fdir)
-
-    try:
-        t0 = packets[0].time
-
-        in_pkts_raw = []
-        in_pkts = []
-        out_pkts = []
-        out_pkts_raw = []
-        for i,pkt in enumerate(packets):
-            payload = pkt.load
-            dire = getDirection(pkt)
-            t = getTimestamp(pkt, t0)
-            if dire == 1:
-                out_pkts_raw.append([t,payload])
-            else:
-                #incoming ones are more complicated, first collect raw packets
-                in_pkts_raw.append([t, payload])
-
-        #process outgoing ones      
-        ind = 0
-        while ind < len(out_pkts_raw):
-            if len(out_pkts_raw[ind][1]) % MY_CELL_SIZE == 0:
-                break   
-            #skip fragments in the head
-            # print("Skip outgoing pkt #{}".format(ind))
-            ind += 1 
-        while ind < len(out_pkts_raw):
-            base_pkt = out_pkts_raw[ind]
-            cum_payload = base_pkt[1]
-            cum_bytes = [len(cum_payload)]
-            cum_times = [base_pkt[0]]
-            while ind < len(out_pkts_raw)-1 and len(cum_payload) % MY_CELL_SIZE != 0:
-                #fragment
-                ind += 1
-                tmp_pkt = out_pkts_raw[ind]
-                cum_payload += tmp_pkt[1]
-                cum_bytes.append(len(cum_payload))
-                cum_times.append(tmp_pkt[0])
-            # print("cum_bytes:{}\ncum_times:{}".format(cum_bytes,cum_times))
-            for b in range(0, len(cum_payload), MY_CELL_SIZE):
-                pkttype = isDummy if cum_payload[b]>0 else isReal
-                # print(b,np.where(np.array(cum_bytes)>=b))
-                pkttime = cum_times[np.where(np.array(cum_bytes)>=b)[0][0]]
-                out_pkts.append([pkttime, pkttype])         
-            ind += 1
-
-        #process incoming ones 
-        ind = 0
-        while ind < len(in_pkts_raw):
-            if len(out_pkts_raw[ind][1]) % MY_CELL_SIZE == 0:
-                break
-            #skip fragments in the head
-            # print("Skip incoming pkt #{}".format(ind))
-            ind += 1 
-        while ind < len(in_pkts_raw):
-            base_pkt = in_pkts_raw[ind]
-            cum_payload = base_pkt[1]
-            cum_bytes = [len(cum_payload)]
-            cum_times = [base_pkt[0]]
-            while ind < len(in_pkts_raw)-1 and len(cum_payload) % MY_CELL_SIZE != 0:
-                #fragment
-                ind += 1
-                tmp_pkt = in_pkts_raw[ind]
-                cum_payload += tmp_pkt[1]
-                cum_bytes.append(len(cum_payload))
-                cum_times.append(tmp_pkt[0])
-            for b in range(0, len(cum_payload), MY_CELL_SIZE):
-                pkttype = isDummy if cum_payload[b]>0 else isReal
-                pkttime = cum_times[np.where(np.array(cum_bytes)>=b)[0][0]]
-                in_pkts.append([pkttime, pkttype * (-1)])           
-            ind += 1
-
-        #sort packets
-        total_pkts_unsorted = np.array(in_pkts + out_pkts)
-        total_pkts0 = total_pkts_unsorted[total_pkts_unsorted[:,0].argsort(kind = "mergesort")]
-        #Cut off last few packets (1s away from their predecessor)
-        total_pkts1 = total_pkts0[1:]
-        time_diffs = total_pkts1[:,0] - total_pkts0[:-1,0]
-        tmp = np.where(time_diffs > 1)[0]
-        if len(tmp) == 0:
-            cut_off_ind = len(total_pkts0)
-        else:
-            cut_off_ind = tmp[-1]
-            # print("{}: cut off at {}/{}".format(fdir, cut_off_ind,len(total_pkts0)))
-            
-        with open(savefiledir, 'w') as f:
-            for pkt in total_pkts0[:cut_off_ind]:
-                f.write("{:.6f}\t{:.0f}\n".format(pkt[0],pkt[1])) 
-    except Exception as e: 
-        print("Error in {}: {}".format(fdir.split('/')[-1], e))
-
 def fast_burst_parse(fdir):
     global savedir, suffix, ismon
     if ismon:
@@ -233,13 +133,15 @@ def fast_burst_parse(fdir):
             print("[WARN] {} has too few packets, skip!".format(fdir))
             return
         # print(savefiledir)
-        for i, pkt in enumerate(packets):
-            #skip the first few noise packets
-            if  getDirection(pkt)>0:
-                start = i
-                t0 = pkt.time
-                # print("Start from pkt no. {}".format(start))
-                break
+        start = 0
+        t0 = packets[0].time
+        # for i, pkt in enumerate(packets):
+        #     #skip the first few noise packets
+        #     if  getDirection(pkt)>0:
+        #         start = i
+        #         t0 = pkt.time
+        #         # print("Start from pkt no. {}".format(start))
+        #         break
 
         
 
