@@ -239,7 +239,7 @@ if __name__ == "__main__":
     #   parse(f)
     print("Totol:{}".format(len(filelist)))
 
-    pool = mp.Pool(processes=15)
+    pool = mp.Pool(processes=2)
     if args.mode == 'clean':
         # pool.map(clean_parse, filelist)
         pool.map(clean_parse, filelist)
