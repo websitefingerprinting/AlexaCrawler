@@ -11,7 +11,7 @@ import utils as ut
 from common import *
 from torcontroller import *
 import logging
-
+import math
 
 def config_logger():
     logger = logging.getLogger("tcpdump")
@@ -29,14 +29,17 @@ def config_logger():
     return logger
 
 
-def init_directories(mode):
+def init_directories(mode, u):
     # Create a results dir if it doesn't exist yet
     if not os.path.exists(DumpDir):
         makedirs(DumpDir)
 
     # Define output directory
     timestamp = time.strftime('%m%d_%H%M%S')
-    output_dir = join(DumpDir, mode + '_' + timestamp)
+    if args.u:
+        output_dir = join(DumpDir, 'u'+mode + '_' + timestamp)
+    else:
+        output_dir = join(DumpDir, mode + '_' + timestamp)
     makedirs(output_dir)
 
     return output_dir
@@ -64,7 +67,7 @@ def parse_arguments():
                         type=int,
                         metavar='<Num of instances in each batch>',
                         default=5,
-                        help='Number of instances for each website in each batch to crawl.')
+                        help='Number of instances for each website in each batch to crawl. In unmon mode, for every m instances, restart tor.')
     parser.add_argument('-mode',
                         type=str,
                         required=True,
@@ -152,10 +155,10 @@ if __name__ == "__main__":
     logger = config_logger()
     print(args)
     start, end, m, s, b = args.start, args.end, args.m, args.s, args.b
+    assert end>start
     torrc_path = args.torrc
     u = args.u
-    if u:
-        m = 1
+
 
     if args.timeout and args.timeout > 0:
         SOFT_VISIT_TIMEOUT = args.timeout
@@ -164,29 +167,48 @@ if __name__ == "__main__":
         wlist = f.readlines()[start:end]
     websites = ["https://www." + w[:-1] for w in wlist]
 
-    batch_dump_dir = init_directories(args.mode)
+    batch_dump_dir = init_directories(args.mode,args.u)
 
     controller = TorController(torrc_path=torrc_path)
-    for bb in range(b):
-        with controller.launch():
-            logger.info("Start Tor and sleep {}s".format(GAP_AFTER_LAUNCH))
-            time.sleep(GAP_AFTER_LAUNCH)
-            guards = controller.get_guard_ip()
-            # print(guards)
-            for mm in range(m):
-                i = bb * m + mm
-                for wid, website in enumerate(websites):
-                    wid = wid + start
-                    if u:
-                        filename = join(batch_dump_dir, str(wid) + '.pcap')
-                        logger.info("{:d}: {}".format(wid, website))
-                    else:
-                        filename = join(batch_dump_dir, str(wid) + '-' + str(i) + '.pcap')
-                        logger.info("{:d}-{:d}: {}".format(wid, i, website))
+    if u:
+        #crawl unmonitored webpages, restart Tor every m pages
+        b = math.ceil((end-start)/m)
+        for bb in range(b):
+            with controller.launch():
+                logger.info("Start Tor and sleep {}s".format(GAP_AFTER_LAUNCH))
+                time.sleep(GAP_AFTER_LAUNCH)
+                guards = controller.get_guard_ip()
+                # print(guards)
+                for mm in range(m):
+                    i = bb * m + mm
+                    if i >= len(websites):
+                        break
+                    website = websites[i]
+                    wid = i + start
+                    filename = join(batch_dump_dir, str(wid) + '.pcap')
+                    logger.info("{:d}: {}".format(wid, website))
                     # begin to crawl
                     crawl(website, filename, guards, s)
-            logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
-            time.sleep(GAP_BETWEEN_BATCHES)
+                logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
+                time.sleep(GAP_BETWEEN_BATCHES)
+    else:
+        #crawl monitored webpages, round-robin fashion, restart Tor every m visits of a whole list
+        for bb in range(b):
+            with controller.launch():
+                logger.info("Start Tor and sleep {}s".format(GAP_AFTER_LAUNCH))
+                time.sleep(GAP_AFTER_LAUNCH)
+                guards = controller.get_guard_ip()
+                # print(guards)
+                for mm in range(m):
+                    i = bb * m + mm
+                    for wid, website in enumerate(websites):
+                        wid = wid + start
+                        filename = join(batch_dump_dir, str(wid) + '-' + str(i) + '.pcap')
+                        logger.info("{:d}-{:d}: {}".format(wid, i, website))
+                        # begin to crawl
+                        crawl(website, filename, guards, s)
+                logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
+                time.sleep(GAP_BETWEEN_BATCHES)
 
     # subprocess.call("sudo killall tor",shell=True)
     # logger.info("Tor killed!")
