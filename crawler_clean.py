@@ -116,6 +116,7 @@ def crawl(url, filename, guards, s):
             src = ' or '.join(guards)
             # start tcpdump
             cmd = "tcpdump host \(" + src + "\) and tcp -i eth0 -w " + filename
+            print(cmd)
             pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             start = time.time()
             driver.get(url)
