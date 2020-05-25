@@ -74,6 +74,10 @@ def parse_arguments():
                         action='store_false',
                         default=True,
                         help='Take a screenshot? (default:true)')
+    parser.add_argument('-u',
+                        action='store_true',
+                        default=False,
+                        help='is monitored webpage or unmonitored? (default:is monitored, false)')
     parser.add_argument('-p',
                         action='store_false',
                         default=True,
@@ -149,6 +153,9 @@ if __name__ == "__main__":
     print(args)
     start, end, m, s, b = args.start, args.end, args.m, args.s, args.b
     torrc_path = args.torrc
+    u = args.u
+    if u:
+        m = 1
 
     if args.timeout and args.timeout > 0:
         SOFT_VISIT_TIMEOUT = args.timeout
@@ -170,8 +177,12 @@ if __name__ == "__main__":
                 i = bb * m + mm
                 for wid, website in enumerate(websites):
                     wid = wid + start
-                    filename = join(batch_dump_dir, str(wid) + '-' + str(i) + '.pcap')
-                    logger.info("{:d}-{:d}: {}".format(wid, i, website))
+                    if u:
+                        filename = join(batch_dump_dir, str(wid) + '.pcap')
+                        logger.info("{:d}: {}".format(wid, website))
+                    else:
+                        filename = join(batch_dump_dir, str(wid) + '-' + str(i) + '.pcap')
+                        logger.info("{:d}-{:d}: {}".format(wid, i, website))
                     # begin to crawl
                     crawl(website, filename, guards, s)
             logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
@@ -182,13 +193,17 @@ if __name__ == "__main__":
     if args.p:
         # parse raw traffic
         logger.info("Parsing the traffic...")
+        if u:
+            suffix = " -u"
+        else:
+            suffix = ""
         if args.mode == 'clean':
             # use sanity check
-            cmd = "python3 parser.py " + batch_dump_dir + " -s -m -mode clean"
+            cmd = "python3 parser.py " + batch_dump_dir + " -s -mode clean "+suffix
             subprocess.call(cmd, shell=True)
 
         elif args.mode == 'burst':
-            cmd = "python3 parser.py " + batch_dump_dir + " -m -mode burst"
+            cmd = "python3 parser.py " + batch_dump_dir + " -mode burst "+suffix
             subprocess.call(cmd, shell=True)
         else:
             pass

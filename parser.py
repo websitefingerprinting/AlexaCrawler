@@ -49,10 +49,10 @@ def parse_arguments():
                         type=str,
                         metavar='<parse mode>',
                         help='The type of dataset: clean, burst?.')
-    parser.add_argument('-m',
-                        action='store_true', 
+    parser.add_argument('-u',
+                        action='store_true',
                         default=False,
-                        help='The type of dataset: is mon or unmon?.')
+                        help='is monitored webpage or unmonitored? (default:is monitored, false)')
     parser.add_argument('-s',
                         action='store_true', 
                         default=False,
@@ -70,13 +70,13 @@ def parse_arguments():
 
 
 def clean_parse(fdir):
-    global savedir, suffix, ismon
-    if ismon:
-        site,inst = fdir.split("/")[-1].split(".pcap")[0].split("-")
-        savefiledir = join(savedir, site+"-"+inst+suffix) 
-    else:
+    global savedir, suffix, isunmon
+    if isunmon:
         site = fdir.split("/")[-1].split(".pcap")[0]
         savefiledir = join(savedir, site+suffix)
+    else:
+        site,inst = fdir.split("/")[-1].split(".pcap")[0].split("-")
+        savefiledir = join(savedir, site+"-"+inst+suffix)
     packets = rdpcap(fdir)
     if len(packets) < 50:
         print("[WARN] {} has too few packets, skip!".format(fdir))
@@ -116,13 +116,13 @@ def clean_parse(fdir):
 
 
 def fast_burst_parse(fdir):
-    global savedir, suffix, ismon
-    if ismon:
-        site,inst = fdir.split("/")[-1].split(".pcap")[0].split("-")
-        savefiledir = join(savedir, site+"-"+inst+suffix) 
-    else:
+    global savedir, suffix, isunmon
+    if isunmon:
         site = fdir.split("/")[-1].split(".pcap")[0]
         savefiledir = join(savedir, site+suffix)
+    else:
+        site,inst = fdir.split("/")[-1].split(".pcap")[0].split("-")
+        savefiledir = join(savedir, site+"-"+inst+suffix)
 
     try:
         # #remove acks and retransmissions
@@ -215,10 +215,10 @@ def fast_burst_parse(fdir):
         print("Error in {}, {} ".format(fdir.split('/')[-1], e))
 
 if __name__ == "__main__":
-    global savedir, suffix, ismon
+    global savedir, suffix, isunmon
     args = parse_arguments()
     suffix = args.suffix
-    ismon = args.m
+    isunmon = args.u
     # filelist = glob.glob(join(args.dir,'*_*_*' ,'capture.pcap.filtered'))
     if args.s:
         filelist_ = glob.glob(join(args.dir,'*.png'))
