@@ -20,16 +20,24 @@ def parse_arguments():
 						dest = 'dirlist',
 						default = [],
 						help='bacth folders')
-	parser.add_argument('-n',
+	parser.add_argument('-start',
 						type=int,
-						metavar='<num of web>',
-						default =50,
-						help='num of web')
-	parser.add_argument('-n0',
-						type=int,
-						metavar='<start page>',
+						metavar='<start ind>',
 						default=0,
-						help='Crawl n0 to n0+n-1 webpages')
+						help='Start from which site in the list (include this ind).')
+	parser.add_argument('-end',
+						type=int,
+						metavar='<end ind>',
+						default=50,
+						help='End to which site in the list (exclude this ind).')
+	parser.add_argument('-c',
+						action='store_true',
+						default=False,
+						help='Keep a copy of original dataset? (default:False)')
+	parser.add_argument('-u',
+						action='store_true',
+						default=False,
+						help='is monitored webpage or unmonitored? (default:is monitored, False)')
 	parser.add_argument('-suffix',
 						type=str,
 						metavar='<suffix>',
@@ -40,17 +48,20 @@ def parse_arguments():
 	args = parser.parse_args()
 	return args
 
-def init_directories(n,n0):
-    # Create a results dir if it doesn't exist yet
-    if not os.path.exists(DumpDir):
-        makedirs(DumpDir)
+def init_directories(start,end, u):
+	# Create a results dir if it doesn't exist yet
+	if not os.path.exists(DumpDir):
+		makedirs(DumpDir)
+	if u:
+		prefix = "u"
+	else:
+		prefix = ""
+	# Define output directory
+	timestamp = time.strftime('%m%d_%H%M%S')
+	output_dir = join(DumpDir, prefix+'dataset'+str(start)+'_'+str(end-1)+'_'+timestamp)
+	makedirs(output_dir)
 
-    # Define output directory
-    timestamp = time.strftime('%m%d_%H%M')
-    output_dir = join(DumpDir, 'dataset'+str(n0)+'_'+str(n+n0-1)+'_'+timestamp)
-    makedirs(output_dir)
-
-    return output_dir
+	return output_dir
 
 if __name__ == '__main__':
 	args = parse_arguments()
@@ -59,19 +70,28 @@ if __name__ == '__main__':
 	for folder in folders:
 		raw += glob.glob(join(folder, "*"+args.suffix))
 	print("Total:{}".format(len(raw)))
-	output_dir = init_directories(args.n,args.n0)
-	counter = [0]*(args.n+args.n0)
+	output_dir = init_directories(args.start,args.end, args.u)
+	counter = [0]*args.end
 	# print(raw)
 	for r in raw:
 		filename = r.split("/")[-1].split(args.suffix)[0]
-		web_id,inst_id = filename.split("-")
-		new_inst_id = str(counter[int(web_id)])
-		newfilename = web_id + "-" + new_inst_id + args.suffix
-		cmd = "mv " + r + " " +join(output_dir, newfilename)
+		if args.u:
+			web_id = filename
+			newfilename = filename + args.suffix
+		else:
+			web_id,inst_id = filename.split("-")
+			new_inst_id = str(counter[int(web_id)])
+			newfilename = web_id + "-" + new_inst_id + args.suffix
+		if args.c:
+			command = "cp "
+		else:
+			command = "mv "
+		cmd = command + r + " " +join(output_dir, newfilename)
 		subprocess.call(cmd, shell=True)
 		counter[int(web_id)] += 1
 	for i in range(len(counter)):
-		print("#{}:{}".format(i, counter[i]))
+		if counter[i] > 0 :
+			print("#{}:{}".format(i, counter[i]))
 	print("Merged to {}".format(output_dir))
 
 
