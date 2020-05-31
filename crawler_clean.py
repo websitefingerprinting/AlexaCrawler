@@ -135,10 +135,10 @@ def crawl(url, filename, guards, s):
             # wait for padding traffic
             logger.info("Load {:.2f} + {:.2f}s".format(t, GAP_BETWEEN_SITES))
     except (ut.HardTimeoutException, TimeoutException):
-        finish = time.time()
-        t = finish - start
-        # wait for padding traffic
-        logger.info("Load {:.2f} + {:.2f}s".format(t, GAP_BETWEEN_SITES))
+        # finish = time.time()
+        # t = finish - start
+        # # wait for padding traffic
+        # logger.info("Load {:.2f} + {:.2f}s".format(t, GAP_BETWEEN_SITES))
         logger.warning("{} got timeout".format(url))
     except Exception as exc:
         logger.warning("Unknow error:{}".format(exc))
