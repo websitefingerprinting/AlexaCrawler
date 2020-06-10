@@ -60,7 +60,7 @@ def insert(arr, dir):
         t2 = arr[ind+1,0]
         # print(t2-t1, "dir", dir)
         n = int((t2-t1) / rho[dir])
-        print(n)
+        # print(n)
         for i in range(1,n):
             arr = np.concatenate((arr,[[t1+rho[dir]*i, dir*66666]]),0)
     arr = arr[arr[:, 0].argsort(kind="mergesort")]
@@ -99,5 +99,5 @@ if __name__ == "__main__":
 
     print("Totol:{}".format(len(filelist)))
 
-    pool = mp.Pool(processes=2)
+    pool = mp.Pool(processes=6)
     pool.map(syn, filelist)
