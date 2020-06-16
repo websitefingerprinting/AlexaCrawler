@@ -1,5 +1,6 @@
 from os.path import join, abspath, dirname, pardir
-WebListDir = './unmon_sites.txt'
+unmon_list = './unmon_sites.txt'
+mon_list = './sites.txt'
 Pardir = abspath(join(dirname(__file__), pardir))
 DumpDir = join( Pardir , "AlexaCrawler/dump")
 SOFT_VISIT_TIMEOUT = 60

@@ -162,7 +162,10 @@ if __name__ == "__main__":
     assert end>start
     torrc_path = args.torrc
     u = args.u
-
+    if u:
+        WebListDir = unmon_list
+    else:
+        WebListDir = mon_list
 
     if args.timeout and args.timeout > 0:
         SOFT_VISIT_TIMEOUT = args.timeout

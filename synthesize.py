@@ -46,7 +46,7 @@ def parse_arguments():
 
 def insert(arr, dir):
     rho = {1: 0.02, -1: 0.006}
-    gap = rho[dir] * 2.5
+    gap = rho[dir] * 1.4
 
     diff = np.diff(arr[:,0])
     inds = np.where(diff>gap)
@@ -64,6 +64,12 @@ def insert(arr, dir):
         for i in range(1,n):
             arr = np.concatenate((arr,[[t1+rho[dir]*i, dir*66666]]),0)
     arr = arr[arr[:, 0].argsort(kind="mergesort")]
+
+    #delete close ones
+    diff = np.diff(arr[:,0])
+    inds = np.where(diff<=rho[dir]*0.1)
+    for ind in inds:
+        arr = np.delete(arr, ind, 0)
     return arr
 def syn(fdir):
     global savedir
