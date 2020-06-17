@@ -152,6 +152,9 @@ def crawl(url, filename, guards, s):
         # filter ACKs and retransmission
         cmd = 'tshark -r ' + filename + ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename + ".filtered"
         subprocess.call(cmd, shell=True)
+        #remove raw pcapfile
+        cmd = 'rm '+filename
+        subprocess.call(cmd, shell=True)
 
 
 if __name__ == "__main__":
