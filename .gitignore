@@ -7,3 +7,5 @@ test2
 cleanpcap/
 *.ipynb
 .idea
+list
+cmd.txt
