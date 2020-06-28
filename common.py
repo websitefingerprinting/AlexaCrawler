@@ -3,6 +3,7 @@ unmon_list = './unmon_sites.txt'
 mon_list = './mon_sites.txt'
 Pardir = abspath(join(dirname(__file__), pardir))
 DumpDir = join( Pardir , "AlexaCrawler/dump")
+ListDir = join( Pardir, "AlexaCrawler/list")
 SOFT_VISIT_TIMEOUT = 60
 HARD_VISIT_TIMEOUT = SOFT_VISIT_TIMEOUT + 20
 GAP_BETWEEN_BATCHES = 2
