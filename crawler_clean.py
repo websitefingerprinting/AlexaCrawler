@@ -93,6 +93,10 @@ def parse_arguments():
                         type=str,
                         default=None,
                         help='Torrc file path.')
+    parser.add_argument('-l',
+                        type=str,
+                        default=None,
+                        help='Crawl specific unmon sites, given a list')
     # Parse arguments
     args = parser.parse_args()
     return args
@@ -155,7 +159,14 @@ def crawl(url, filename, guards, s):
         #remove raw pcapfile
         cmd = 'rm '+filename
         subprocess.call(cmd, shell=True)
-
+def pick_specific_webs(listdir):
+    l = []
+    with open(listdir,"r") as f:
+        lines = f.readlines()
+    for line in lines:
+        line = int(line.split("\n")[0])
+        l.append(line)
+    return l
 
 if __name__ == "__main__":
     args = parse_arguments()
@@ -165,6 +176,7 @@ if __name__ == "__main__":
     assert end>start
     torrc_path = args.torrc
     u = args.u
+    l = args.l
     if u:
         WebListDir = unmon_list
     else:
@@ -176,7 +188,10 @@ if __name__ == "__main__":
     with open(WebListDir, 'r') as f:
         wlist = f.readlines()[start:end]
     websites = ["https://www." + w[:-1] for w in wlist]
-
+    if u and l:
+        l_inds = pick_specific_webs(l)
+    if l:
+        assert len(l_inds) > 0
     batch_dump_dir = init_directories(args.mode,args.u)
 
     controller = TorController(torrc_path=torrc_path)
@@ -195,6 +210,9 @@ if __name__ == "__main__":
                         break
                     website = websites[i]
                     wid = i + start
+                    if l:
+                        if wid not in l_inds:
+                            continue
                     filename = join(batch_dump_dir, str(wid) + '.pcap')
                     logger.info("{:d}: {}".format(wid, website))
                     # begin to crawl
