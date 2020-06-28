@@ -12,7 +12,7 @@ def init_directories(name):
 
 	# Define output directory
 	output_dir = join(ListDir, name+".list")
-	makedirs(output_dir)
+	# makedirs(output_dir)
 
 	return output_dir
 def parse_arguments():
