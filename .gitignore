@@ -9,3 +9,4 @@ cleanpcap/
 .idea
 list
 cmd.txt
+__pycache__
