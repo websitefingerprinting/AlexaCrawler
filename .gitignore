@@ -10,3 +10,4 @@ cleanpcap/
 list
 cmd.txt
 __pycache__
+private

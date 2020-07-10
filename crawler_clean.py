@@ -12,6 +12,7 @@ from common import *
 from torcontroller import *
 import logging
 import math
+import datetime
 
 def config_logger():
     logger = logging.getLogger("tcpdump")
@@ -168,10 +169,8 @@ def pick_specific_webs(listdir):
         l.append(line)
     return l
 
-if __name__ == "__main__":
-    args = parse_arguments()
-    logger = config_logger()
-    print(args)
+
+def main(args):
     start, end, m, s, b = args.start, args.end, args.m, args.s, args.b
     assert end>start
     torrc_path = args.torrc
@@ -257,3 +256,20 @@ if __name__ == "__main__":
             subprocess.call(cmd, shell=True)
         else:
             pass
+
+def sendmail(msg):
+    cmd = "python3 "+SendMailPyDir+" -m "+msg
+    subprocess.call(cmd,shell=True)
+if __name__ == "__main__":
+    try:
+        args = parse_arguments()
+        logger = config_logger()
+        print(args)
+        main(args)
+        msg = "'Crawler Message:Crawl done at {}!'".format(datetime.datetime.now())
+        sendmail(msg)
+    except KeyboardInterrupt:
+        sys.exit(-1)
+    except Exception as e:
+        msg = "'Crawler Message: An error occurred:\n{}'".format(e)
+        sendmail(msg)
