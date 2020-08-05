@@ -230,10 +230,10 @@ def main(args):
                 time.sleep(GAP_AFTER_LAUNCH)
                 guards = controller.get_guard_ip()
                 # print(guards)
-                for mm in range(m):
-                    i = bb * m + mm
-                    for wid, website in enumerate(websites):
-                        wid = wid + start
+                for wid, website in enumerate(websites):
+                    wid = wid + start
+                    for mm in range(m):
+                        i = bb * m + mm
                         filename = join(batch_dump_dir, str(wid) + '-' + str(i) )
                         logger.info("{:d}-{:d}: {}".format(wid, i, website))
                         # begin to crawl
