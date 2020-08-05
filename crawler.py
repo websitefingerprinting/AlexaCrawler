@@ -139,7 +139,7 @@ def crawl(url, filename, guards, s):
                 tcpdump_timeout -= 0.1
             if tcpdump_timeout < 0:
                 raise TcpdumpTimeoutError()
-            logger.info("Launch tcpdump in {}s".format(TCPDUMP_START_TIMEOUT-tcpdump_timeout))
+            logger.info("Launch tcpdump in {:.2f}s".format(TCPDUMP_START_TIMEOUT-tcpdump_timeout))
             start = time.time()
             driver.get(url)
             if s:
