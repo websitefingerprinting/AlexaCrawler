@@ -127,23 +127,24 @@ def crawl(url, filename, guards, s):
             driver = get_driver()
             src = ' or '.join(guards)
             # start tcpdump
-            cmd = "tcpdump host \(" + src + "\) and tcp -i eth0 -w " + filename
+            cmd = "tcpdump host \(" + src + "\) and tcp -i eth0 -w " + filename+'.pcap'
             print(cmd)
             pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             start = time.time()
             driver.get(url)
             if s:
-                driver.get_screenshot_as_file(filename.split('.')[0] + '.png')
+                driver.get_screenshot_as_file(filename + '.png')
             driver.quit()
             finish = time.time()
             t = finish - start
             # wait for padding traffic
             logger.info("Load {:.2f} + {:.2f}s".format(t, GAP_BETWEEN_SITES))
+            with open(filename+'.time','w') as f:
+                f.write("{:.4f}".format(t))
     except (ut.HardTimeoutException, TimeoutException):
-        # finish = time.time()
-        # t = finish - start
-        # # wait for padding traffic
-        # logger.info("Load {:.2f} + {:.2f}s".format(t, GAP_BETWEEN_SITES))
+        t = time.time()-start
+        with open(filename+'.time','w') as f:
+            f.write("{:.4f}".format(t))
         logger.warning("{} got timeout".format(url))
     except Exception as exc:
         logger.warning("Unknow error:{}".format(exc))
@@ -155,11 +156,14 @@ def crawl(url, filename, guards, s):
         subprocess.call("killall tcpdump", shell=True)
         logger.info("Kill tcpdump.")
         # filter ACKs and retransmission
-        cmd = 'tshark -r ' + filename + ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename + ".filtered"
-        subprocess.call(cmd, shell=True)
-        #remove raw pcapfile
-        cmd = 'rm '+filename
-        subprocess.call(cmd, shell=True)
+        if os.path.exists(filename+'.pcap'):
+            cmd = 'tshark -r ' + filename+'.pcap'  + ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename + "pcap.filtered"
+            subprocess.call(cmd, shell=True)
+            #remove raw pcapfile
+            cmd = 'rm '+filename+'.pcap'
+            subprocess.call(cmd, shell=True)
+        else:
+            logger.warning("Pcap failed in {}".format(filename+".pcap"))
 def pick_specific_webs(listdir):
     l = []
     with open(listdir,"r") as f:
@@ -212,7 +216,7 @@ def main(args):
                     if l:
                         if wid not in l_inds:
                             continue
-                    filename = join(batch_dump_dir, str(wid) + '.pcap')
+                    filename = join(batch_dump_dir, str(wid))
                     logger.info("{:d}: {}".format(wid, website))
                     # begin to crawl
                     crawl(website, filename, guards, s)
@@ -230,7 +234,7 @@ def main(args):
                     i = bb * m + mm
                     for wid, website in enumerate(websites):
                         wid = wid + start
-                        filename = join(batch_dump_dir, str(wid) + '-' + str(i) + '.pcap')
+                        filename = join(batch_dump_dir, str(wid) + '-' + str(i) )
                         logger.info("{:d}-{:d}: {}".format(wid, i, website))
                         # begin to crawl
                         crawl(website, filename, guards, s)
