@@ -86,7 +86,10 @@ if __name__ == '__main__':
 			command = "cp "
 		else:
 			command = "mv "
+		#move pcapfile and time file
 		cmd = command + r + " " +join(output_dir, newfilename)
+		subprocess.call(cmd, shell=True)
+		cmd = command + filename+".time" + " " +join(output_dir, newfilename)
 		subprocess.call(cmd, shell=True)
 		counter[int(web_id)] += 1
 	for i in range(len(counter)):
