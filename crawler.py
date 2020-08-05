@@ -157,7 +157,7 @@ def crawl(url, filename, guards, s):
         logger.info("Kill tcpdump.")
         # filter ACKs and retransmission
         if os.path.exists(filename+'.pcap'):
-            cmd = 'tshark -r ' + filename+'.pcap'  + ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename + "pcap.filtered"
+            cmd = 'tshark -r ' + filename+'.pcap'  + ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename + ".pcap.filtered"
             subprocess.call(cmd, shell=True)
             #remove raw pcapfile
             cmd = 'rm '+filename+'.pcap'
