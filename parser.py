@@ -235,6 +235,9 @@ if __name__ == "__main__":
     savedir = join(ParsedDir, filename)
     init_directories(savedir)
     print("Parsed file in {}".format(savedir))
+
+    subprocess.call("mv "+args.dir+"/*.time "+savedir,shell =True)
+    print("mv "+args.dir+"*.time "+savedir)
     # for f in filelist:
     #   parse(f)
     print("Totol:{}".format(len(filelist)))
