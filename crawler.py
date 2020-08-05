@@ -134,7 +134,7 @@ def crawl(url, filename, guards, s):
 
             pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             tcpdump_timeout = TCPDUMP_START_TIMEOUT  # in seconds
-            while tcpdump_timeout > 0 and not is_tcpdump_running():
+            while tcpdump_timeout > 0 and not is_tcpdump_running(pro):
                 time.sleep(0.1)
                 tcpdump_timeout -= 0.1
             if tcpdump_timeout < 0:
@@ -165,8 +165,9 @@ def crawl(url, filename, guards, s):
         time.sleep(GAP_BETWEEN_SITES)
         # stop tcpdump
         # pro.kill()
-        subprocess.call("killall tcpdump", shell=True)
-        logger.info("Kill tcpdump.")
+        if is_tcpdump_running(pro):
+            subprocess.call("killall tcpdump", shell=True)
+
         # filter ACKs and retransmission
         if os.path.exists(filename+'.pcap'):
             cmd = 'tshark -r ' + filename+'.pcap'  + ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename + ".pcap.filtered"
