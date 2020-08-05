@@ -14,6 +14,7 @@ import logging
 import math
 import datetime
 
+
 def config_logger():
     logger = logging.getLogger("tcpdump")
     # Set file
@@ -44,6 +45,7 @@ def init_directories(mode, u):
     makedirs(output_dir)
 
     return output_dir
+
 
 
 def parse_arguments():
@@ -129,7 +131,15 @@ def crawl(url, filename, guards, s):
             # start tcpdump
             cmd = "tcpdump host \(" + src + "\) and tcp -i eth0 -w " + filename+'.pcap'
             print(cmd)
+
             pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            tcpdump_timeout = TCPDUMP_START_TIMEOUT  # in seconds
+            while tcpdump_timeout > 0 and not is_tcpdump_running():
+                time.sleep(0.1)
+                tcpdump_timeout -= 0.1
+            if tcpdump_timeout < 0:
+                raise TcpdumpTimeoutError()
+            logger.info("Launch tcpdump in {}s".format(TCPDUMP_START_TIMEOUT-tcpdump_timeout))
             start = time.time()
             driver.get(url)
             if s:
@@ -146,6 +156,8 @@ def crawl(url, filename, guards, s):
         with open(filename+'.time','w') as f:
             f.write("{:.4f}".format(t))
         logger.warning("{} got timeout".format(url))
+    except TcpdumpTimeoutError :
+        logger.warning("Fail to launch tmpdump")
     except Exception as exc:
         logger.warning("Unknow error:{}".format(exc))
     finally:

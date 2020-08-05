@@ -1,4 +1,5 @@
 from os.path import join, abspath, dirname, pardir
+import psutil
 unmon_list = './unmon_sites.txt'
 mon_list = './mon_sites.txt'
 Pardir = abspath(join(dirname(__file__), pardir))
@@ -10,7 +11,7 @@ HARD_VISIT_TIMEOUT = SOFT_VISIT_TIMEOUT + 20
 GAP_BETWEEN_BATCHES = 2
 GAP_BETWEEN_SITES = 5
 GAP_AFTER_LAUNCH = 8
-padding_time = 4
+TCPDUMP_START_TIMEOUT = 2
 My_Bridge_Ips = ['13.75.78.82', '52.175.31.228', '52.175.49.114','40.83.88.194', '13.94.61.159']
 My_Source_Ips = {
 '10.0.0.4',
@@ -30,3 +31,20 @@ My_Source_Ips = {
 '172.17.0.7',
 '172.17.0.8',
 }
+
+class TcpdumpTimeoutError(Exception):
+    pass
+
+def is_tcpdump_running(p0):
+        if "tcpdump" in psutil.Process(p0.pid).cmdline():
+            return p0.returncode is None
+        for proc in gen_all_children_procs(p0.pid):
+            if "tcpdump" in proc.cmdline():
+                return True
+        return False
+
+def gen_all_children_procs(parent_pid):
+    """Iterator over the children of a process."""
+    parent = psutil.Process(parent_pid)
+    for child in parent.children(recursive=True):
+        yield child
