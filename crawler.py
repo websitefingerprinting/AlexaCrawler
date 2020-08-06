@@ -20,6 +20,10 @@ def config_logger(log_file):
     # Set file
     if log_file is None:
         log_file = sys.stdout
+    else:
+        pardir = os.path.split(log_file)[0]
+        if not os.path.exists(pardir):
+            os.makedirs(pardir)
     ch = logging.StreamHandler(log_file)
 
     # Set logging format
