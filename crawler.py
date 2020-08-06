@@ -15,10 +15,11 @@ import math
 import datetime
 
 
-def config_logger():
-    logger = logging.getLogger("tcpdump")
+def config_logger(log_file):
+    logger = logging.getLogger("crawler")
     # Set file
-    log_file = sys.stdout
+    if log_file is None:
+        log_file = sys.stdout
     ch = logging.StreamHandler(log_file)
 
     # Set logging format
@@ -100,6 +101,12 @@ def parse_arguments():
                         type=str,
                         default=None,
                         help='Crawl specific unmon sites, given a list')
+    parser.add_argument('-log',
+                        type=str,
+                        metavar='<log path>',
+                        default=None,
+                        help='path to the log file. It will print to stdout by default.')
+
     # Parse arguments
     args = parser.parse_args()
     return args
@@ -280,7 +287,7 @@ def sendmail(msg):
 if __name__ == "__main__":
     try:
         args = parse_arguments()
-        logger = config_logger()
+        logger = config_logger(args.log)
         print(args)
         main(args)
         msg = "'Crawler Message:Crawl done at {}!'".format(datetime.datetime.now())
