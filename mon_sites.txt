@@ -36,7 +36,6 @@ kickass.to
 pornhub.com
 dropbox.com
 themeforest.net
-odnoklassniki.ru
 dailymotion.com
 xnxx.com
 netflix.com
@@ -81,7 +80,6 @@ quora.com
 stackexchange.com
 naver.com
 getmyads.com
-slideshare.net
 t.co
 whatsapp.com
 office.com
@@ -98,3 +96,5 @@ soundcloud.com
 googleusercontent.com
 chaturbate.com
 nicovideo.jp
+hulu.com
+healthline.com
