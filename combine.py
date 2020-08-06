@@ -90,7 +90,7 @@ if __name__ == '__main__':
 		cmd = command + r + " " +join(output_dir, newfilename)
 		subprocess.call(cmd, shell=True)
 		cmd = command + r.split(".")[0]+".time" + " " +join(output_dir, newfilename.split(".")[0]+".time")
-		print(cmd)
+		# print(cmd)
 		subprocess.call(cmd, shell=True)
 		counter[int(web_id)] += 1
 	for i in range(len(counter)):
