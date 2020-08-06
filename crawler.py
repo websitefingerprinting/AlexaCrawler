@@ -19,12 +19,12 @@ def config_logger(log_file):
     logger = logging.getLogger("crawler")
     # Set file
     if log_file is None:
-        log_file = sys.stdout
+        ch = logging.StreamHandler(sys.stdout)
     else:
         pardir = os.path.split(log_file)[0]
         if not os.path.exists(pardir):
             os.makedirs(pardir)
-    ch = logging.FileHandler(log_file)
+        ch = logging.FileHandler(log_file)
 
     # Set logging format
     LOG_FORMAT = "%(asctime)s %(name)-12s %(levelname)-8s %(message)s"
