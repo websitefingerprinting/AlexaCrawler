@@ -24,7 +24,7 @@ def config_logger(log_file):
         pardir = os.path.split(log_file)[0]
         if not os.path.exists(pardir):
             os.makedirs(pardir)
-    ch = logging.StreamHandler(log_file)
+    ch = logging.FileHandler(log_file)
 
     # Set logging format
     LOG_FORMAT = "%(asctime)s %(name)-12s %(levelname)-8s %(message)s"
@@ -292,7 +292,7 @@ if __name__ == "__main__":
     try:
         args = parse_arguments()
         logger = config_logger(args.log)
-        print(args)
+        logger.info(args)
         main(args)
         msg = "'Crawler Message:Crawl done at {}!'".format(datetime.datetime.now())
         sendmail(msg)
