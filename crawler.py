@@ -298,6 +298,6 @@ if __name__ == "__main__":
         sendmail(msg)
     except KeyboardInterrupt:
         sys.exit(-1)
-    # except Exception as e:
-    #     msg = "'Crawler Message: An error occurred:\n{}'".format(e)
-    #     sendmail(msg)
+    except Exception as e:
+        msg = "'Crawler Message: An error occurred:\n{}'".format(e)
+        sendmail(msg)
