@@ -170,8 +170,7 @@ def crawl(url, filename, guards, s):
         time.sleep(GAP_BETWEEN_SITES)
         # stop tcpdump
         # pro.kill()
-        if is_tcpdump_running(pro):
-            subprocess.call("killall tcpdump", shell=True)
+        subprocess.call("killall tcpdump", shell=True)
         # filter ACKs and retransmission
         if os.path.exists(filename+'.pcap'):
             cmd = 'tshark -r ' + filename+'.pcap'  + ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename + ".pcap.filtered"
@@ -185,6 +184,7 @@ def crawl(url, filename, guards, s):
         logger.warning("Fail to launch tmpdump")
     except Exception as exc:
         logger.warning("Unknow error:{}".format(exc))
+        subprocess.call("killall tcpdump", shell=True)
     finally:
         display.stop()
 
