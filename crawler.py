@@ -167,18 +167,11 @@ def crawl(url, filename, guards, s):
         with open(filename+'.time','w') as f:
             f.write("{:.4f}".format(t))
         logger.warning("{} got timeout".format(url))
-    except TcpdumpTimeoutError :
-        logger.warning("Fail to launch tmpdump")
-    except Exception as exc:
-        logger.warning("Unknow error:{}".format(exc))
-    finally:
-        display.stop()
         time.sleep(GAP_BETWEEN_SITES)
         # stop tcpdump
         # pro.kill()
         if is_tcpdump_running(pro):
             subprocess.call("killall tcpdump", shell=True)
-
         # filter ACKs and retransmission
         if os.path.exists(filename+'.pcap'):
             cmd = 'tshark -r ' + filename+'.pcap'  + ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename + ".pcap.filtered"
@@ -188,6 +181,13 @@ def crawl(url, filename, guards, s):
             subprocess.call(cmd, shell=True)
         else:
             logger.warning("Pcap failed in {}".format(filename+".pcap"))
+    except TcpdumpTimeoutError :
+        logger.warning("Fail to launch tmpdump")
+    except Exception as exc:
+        logger.warning("Unknow error:{}".format(exc))
+    finally:
+        display.stop()
+
 def pick_specific_webs(listdir):
     l = []
     with open(listdir,"r") as f:
