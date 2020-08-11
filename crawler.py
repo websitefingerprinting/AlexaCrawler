@@ -139,7 +139,7 @@ def crawl(url, filename, guards, s):
             src = ' or '.join(guards)
             # start tcpdump
             # cmd = "tcpdump host \(" + src + "\) and tcp -i eth0 -w " + filename+'.pcap'
-            pcap_filter="tcp and host " + src + " and not tcp port 22 and not tcp port 20 "
+            pcap_filter="tcp and (host " + src + ") and not tcp port 22 and not tcp port 20 "
             cmd = 'dumpcap -P -a duration:{} -a filesize:{} -i eth0 -s 0 -f \'{}\' -w {}' \
                 .format(HARD_VISIT_TIMEOUT, MAXDUMPSIZE,
                         pcap_filter, filename+'.pcap')
