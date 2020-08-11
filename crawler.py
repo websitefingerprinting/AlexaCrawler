@@ -143,7 +143,7 @@ def crawl(url, filename, guards, s):
             cmd = 'dumpcap -P -a duration:{} -a filesize:{} -i eth0 -s 0 -f \'{}\' -w {}' \
                 .format(HARD_VISIT_TIMEOUT, MAXDUMPSIZE,
                         pcap_filter, filename+'.pcap')
-            print(cmd)
+            logger.info(cmd)
             pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             tcpdump_timeout = TCPDUMP_START_TIMEOUT  # in seconds
             while tcpdump_timeout > 0 and not is_tcpdump_running(pro):
@@ -175,11 +175,10 @@ def crawl(url, filename, guards, s):
 
         time.sleep(GAP_BETWEEN_SITES)
         subprocess.call("killall dumpcap", shell=True)
-        logger.debug("Sleep {}s and capture killed, capture {} Bytes.".format(GAP_BETWEEN_SITES,os.path.getsize(filename+".pcap")))
+        logger.info("Sleep {}s and capture killed, capture {} Bytes.".format(GAP_BETWEEN_SITES,os.path.getsize(filename+".pcap")))
 
 
         # filter ACKs and retransmission
-        logger.info("Filter out ACKS.")
         if os.path.exists(filename + '.pcap'):
             cmd = 'tshark -r ' + filename + '.pcap' + ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename + ".pcap.filtered"
             subprocess.call(cmd, shell=True)
