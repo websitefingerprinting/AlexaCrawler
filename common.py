@@ -1,5 +1,8 @@
 from os.path import join, abspath, dirname, pardir
 import psutil
+import logging
+logger = logging.getLogger("crawler")
+
 unmon_list = './unmon_sites.txt'
 mon_list = './mon_sites.txt'
 Pardir = abspath(join(dirname(__file__), pardir))
@@ -36,12 +39,14 @@ class TcpdumpTimeoutError(Exception):
     pass
 
 def is_tcpdump_running(p0):
-        if "tcpdump" in psutil.Process(p0.pid).cmdline():
-            return p0.returncode is None
-        for proc in gen_all_children_procs(p0.pid):
-            if "tcpdump" in proc.cmdline():
-                return True
-        return False
+    logger.debug("{}".format(psutil.Process(p0.pid).cmdline()))
+    if "tshark" in psutil.Process(p0.pid).cmdline():
+        return p0.returncode is None
+    for proc in gen_all_children_procs(p0.pid):
+        if "tshark" in proc.cmdline():
+            logger.debug("{}".format(proc.cmdline()))
+            return True
+    return False
 
 def gen_all_children_procs(parent_pid):
     """Iterator over the children of a process."""

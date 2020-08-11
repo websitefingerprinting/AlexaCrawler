@@ -135,12 +135,11 @@ def get_driver():
 def crawl(url, filename, guards, s):
     try:
         with ut.timeout(HARD_VISIT_TIMEOUT):
-            display = Display(visible=0, size=(1000, 800))
-            display.start()
             driver = get_driver()
             src = ' or '.join(guards)
             # start tcpdump
-            cmd = "tcpdump host \(" + src + "\) and tcp -i eth0 -w " + filename+'.pcap'
+            # cmd = "tcpdump host \(" + src + "\) and tcp -i eth0 -w " + filename+'.pcap'
+            cmd = "tshark -i eth0 -f host " + src + " -a duration:"+HARD_VISIT_TIMEOUT+" filesize:30000 -w "+ filename+".pcap &"
             print(cmd)
 
             pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -156,34 +155,36 @@ def crawl(url, filename, guards, s):
             if s:
                 driver.get_screenshot_as_file(filename + '.png')
             driver.quit()
-            finish = time.time()
-            t = finish - start
-            # wait for padding traffic
-            logger.info("Load {:.2f} + {:.2f}s".format(t, GAP_BETWEEN_SITES))
-            with open(filename+'.time','w') as f:
-                f.write("{:.4f}".format(t))
     except (ut.HardTimeoutException, TimeoutException):
-        t = time.time()-start
-        with open(filename+'.time','w') as f:
-            f.write("{:.4f}".format(t))
         logger.warning("{} got timeout".format(url))
-        time.sleep(GAP_BETWEEN_SITES)
-
-        # filter ACKs and retransmission
-        if os.path.exists(filename+'.pcap'):
-            cmd = 'tshark -r ' + filename+'.pcap'  + ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename + ".pcap.filtered"
-            subprocess.call(cmd, shell=True)
-            #remove raw pcapfile
-            cmd = 'rm '+filename+'.pcap'
-            subprocess.call(cmd, shell=True)
-        else:
-            logger.warning("Pcap failed in {}".format(filename+".pcap"))
     except TcpdumpTimeoutError :
         logger.warning("Fail to launch tmpdump")
     except Exception as exc:
         logger.warning("Unknow error:{}".format(exc))
     finally:
-        display.stop()
+        #post visit
+        #Log loading time
+        if 'start' in locals():
+            #avoid exception happens before start is declared and assigned to trigger exception here
+            t = time.time() - start
+            logger.info("Load {:.2f}s".format(t))
+            with open(filename + '.time', 'w') as f:
+                f.write("{:.4f}".format(t))
+
+        time.sleep(GAP_BETWEEN_SITES)
+        subprocess.call("killall tcpdump", shell=True)
+        logger.debug("Sleep {}s and kill TCPDUMP .".format(GAP_BETWEEN_SITES))
+
+        # filter ACKs and retransmission
+        logger.info("Filter out ACKS.")
+        if os.path.exists(filename + '.pcap'):
+            cmd = 'tshark -r ' + filename + '.pcap' + ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename + ".pcap.filtered"
+            subprocess.call(cmd, shell=True)
+            # remove raw pcapfile
+            cmd = 'rm ' + filename + '.pcap'
+            subprocess.call(cmd, shell=True)
+        else:
+            logger.warning("{} not captured for site {}".format(filename+'.pcap',url))
 
 def pick_specific_webs(listdir):
     l = []
@@ -217,7 +218,6 @@ def main(args):
     if l:
         assert len(l_inds) > 0
     batch_dump_dir = init_directories(args.mode,args.u)
-
     controller = TorController(torrc_path=torrc_path)
     if u:
         #crawl unmonitored webpages, restart Tor every m pages
@@ -290,11 +290,14 @@ if __name__ == "__main__":
         args = parse_arguments()
         logger = config_logger(args.log)
         logger.info(args)
+        display = Display(visible=0, size=(1000, 800))
+        display.start()
         main(args)
         msg = "'Crawler Message:Crawl done at {}!'".format(datetime.datetime.now())
-        sendmail(msg)
     except KeyboardInterrupt:
         sys.exit(-1)
     except Exception as e:
         msg = "'Crawler Message: An error occurred:\n{}'".format(e)
+    finally:
         sendmail(msg)
+        display.stop()
