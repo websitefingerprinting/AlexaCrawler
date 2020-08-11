@@ -139,9 +139,11 @@ def crawl(url, filename, guards, s):
             src = ' or '.join(guards)
             # start tcpdump
             # cmd = "tcpdump host \(" + src + "\) and tcp -i eth0 -w " + filename+'.pcap'
-            cmd = "tshark -i eth0 -f host " + src + " -a duration:"+HARD_VISIT_TIMEOUT+" filesize:30000 -w "+ filename+".pcap &"
+            pcap_filter="tcp and host " + src + " and not tcp port 22 and not tcp port 20 "
+            cmd = 'dumpcap -P -a duration:{} -a filesize:{} -i eth0 -s 0 -f \'{}\' -w {}' \
+                .format(HARD_VISIT_TIMEOUT, MAXDUMPSIZE,
+                        pcap_filter, filename+'.pcap')
             print(cmd)
-
             pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             tcpdump_timeout = TCPDUMP_START_TIMEOUT  # in seconds
             while tcpdump_timeout > 0 and not is_tcpdump_running(pro):
@@ -149,7 +151,7 @@ def crawl(url, filename, guards, s):
                 tcpdump_timeout -= 0.1
             if tcpdump_timeout < 0:
                 raise TcpdumpTimeoutError()
-            logger.info("Launch tcpdump in {:.2f}s".format(TCPDUMP_START_TIMEOUT-tcpdump_timeout))
+            logger.info("Launch dumpcap in {:.2f}s".format(TCPDUMP_START_TIMEOUT-tcpdump_timeout))
             start = time.time()
             driver.get(url)
             if s:
@@ -172,8 +174,9 @@ def crawl(url, filename, guards, s):
                 f.write("{:.4f}".format(t))
 
         time.sleep(GAP_BETWEEN_SITES)
-        subprocess.call("killall tcpdump", shell=True)
-        logger.debug("Sleep {}s and kill TCPDUMP .".format(GAP_BETWEEN_SITES))
+        subprocess.call("killall dumpcap", shell=True)
+        logger.debug("Sleep {}s and capture killed, capture {} Bytes.".format(GAP_BETWEEN_SITES,os.path.getsize(filename+".pcap")))
+
 
         # filter ACKs and retransmission
         logger.info("Filter out ACKS.")
@@ -299,5 +302,5 @@ if __name__ == "__main__":
     except Exception as e:
         msg = "'Crawler Message: An error occurred:\n{}'".format(e)
     finally:
-        sendmail(msg)
+        # sendmail(msg)
         display.stop()

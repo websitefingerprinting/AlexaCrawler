@@ -11,6 +11,7 @@ ListDir = join( Pardir, "AlexaCrawler/list")
 SendMailPyDir = join(Pardir, "AlexaCrawler/private/sendmail.py")
 SOFT_VISIT_TIMEOUT = 60
 HARD_VISIT_TIMEOUT = SOFT_VISIT_TIMEOUT + 20
+MAXDUMPSIZE = 20000 #KB
 GAP_BETWEEN_BATCHES = 2
 GAP_BETWEEN_SITES = 5
 GAP_AFTER_LAUNCH = 8
@@ -39,12 +40,10 @@ class TcpdumpTimeoutError(Exception):
     pass
 
 def is_tcpdump_running(p0):
-    logger.debug("{}".format(psutil.Process(p0.pid).cmdline()))
-    if "tshark" in psutil.Process(p0.pid).cmdline():
+    if "dumpcap" in psutil.Process(p0.pid).cmdline():
         return p0.returncode is None
     for proc in gen_all_children_procs(p0.pid):
-        if "tshark" in proc.cmdline():
-            logger.debug("{}".format(proc.cmdline()))
+        if "dumpcap" in proc.cmdline():
             return True
     return False
 
