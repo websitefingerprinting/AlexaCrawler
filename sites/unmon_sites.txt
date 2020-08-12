@@ -1,5 +1,3 @@
-grid.id
-shutterstock.com
 udemy.com
 indiatimes.com
 tokopedia.com
