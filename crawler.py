@@ -93,14 +93,14 @@ def parse_arguments():
                         action='store_false',
                         default=True,
                         help='Parse file after crawl? (default:true)')
-    parser.add_argument('-timeout',
-                        type=int,
-                        default=None,
-                        help='Change timeout value.')
     parser.add_argument('-torrc',
                         type=str,
                         default=None,
                         help='Torrc file path.')
+    parser.add_argument('-w',
+                        type=str,
+                        default=None,
+                        help='Self provided web list.')
     parser.add_argument('-l',
                         type=str,
                         default=None,
@@ -208,17 +208,21 @@ def main(args):
     torrc_path = args.torrc
     u = args.u
     l = args.l
+
     if u:
         WebListDir = unmon_list
     else:
         WebListDir = mon_list
-
-    if args.timeout and args.timeout > 0:
-        SOFT_VISIT_TIMEOUT = args.timeout
-
+    if args.w:
+        WebListDir = args.w
     with open(WebListDir, 'r') as f:
         wlist = f.readlines()[start:end]
-    websites = ["https://www." + w[:-1] for w in wlist]
+    websites = []
+    for w in wlist:
+        if "https://www." not in w:
+             websites.append("https://www." + w.rstrip("\n"))
+        else:
+            websites.append(w.rstrip("\n"))
     if u and l:
         l_inds = pick_specific_webs(l)
     if l:
