@@ -3,8 +3,8 @@ import psutil
 import logging
 logger = logging.getLogger("crawler")
 
-unmon_list = './unmon_sites.txt'
-mon_list = './mon_sites.txt'
+unmon_list = './sites/unmon_sites.txt'
+mon_list = './sites/mon_sites.txt'
 Pardir = abspath(join(dirname(__file__), pardir))
 DumpDir = join( Pardir , "AlexaCrawler/dump")
 ListDir = join( Pardir, "AlexaCrawler/list")

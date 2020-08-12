@@ -219,7 +219,7 @@ def main(args):
         wlist = f.readlines()[start:end]
     websites = []
     for w in wlist:
-        if "https://www." not in w:
+        if "https" not in w:
              websites.append("https://www." + w.rstrip("\n"))
         else:
             websites.append(w.rstrip("\n"))
