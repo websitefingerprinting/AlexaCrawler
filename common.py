@@ -36,19 +36,3 @@ My_Source_Ips = {
 '172.17.0.8',
 }
 
-class TcpdumpTimeoutError(Exception):
-    pass
-
-def is_tcpdump_running(p0):
-    if "dumpcap" in psutil.Process(p0.pid).cmdline():
-        return p0.returncode is None
-    for proc in gen_all_children_procs(p0.pid):
-        if "dumpcap" in proc.cmdline():
-            return True
-    return False
-
-def gen_all_children_procs(parent_pid):
-    """Iterator over the children of a process."""
-    parent = psutil.Process(parent_pid)
-    for child in parent.children(recursive=True):
-        yield child

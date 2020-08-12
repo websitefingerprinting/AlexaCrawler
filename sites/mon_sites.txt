@@ -75,7 +75,6 @@ forbes.com
 gmail.com
 adf.ly
 blastingnews.com
-bet365.com
 quora.com
 stackexchange.com
 naver.com
@@ -98,3 +97,4 @@ nicovideo.jp
 hulu.com
 instructure.com
 pixnet.net
+fandom.com

@@ -1,10 +1,5 @@
-bbc.co.uk
-pixnet.net
-soundcloud.com
 grid.id
-xhamster.com
 shutterstock.com
-fandom.com
 udemy.com
 indiatimes.com
 tokopedia.com
@@ -13,25 +8,18 @@ mercadolivre.com.br
 zendesk.com
 chase.com
 etsy.com
-uol.com.br
-salesforce.com
 okta.com
 canva.com
-slideshare.net
 washingtonpost.com
 youm7.com
 abs-cbn.com
 archive.org
-forbes.com
 setn.com
-t.co
 hdfcbank.com
 mediafire.com
 suara.com
 y2mate.com
 amazon.it
-vimeo.com
-chaturbate.com
 ilovepdf.com
 iqoption.com
 momoshop.com.tw
@@ -41,17 +29,13 @@ amazon.fr
 icicibank.com
 kumparan.com
 bestbuy.com
-quora.com
 skype.com
-ask.com
 messenger.com
 gamepedia.com
 manoramaonline.com
 businessinsider.com
 airbnb.com
 gosuslugi.ru
-mozilla.org
-fc2.com
 thesaurus.com
 steamcommunity.com
 patria.org.ve
@@ -72,13 +56,11 @@ investing.com
 behance.net
 sciencedirect.com
 goodreads.com
-nicovideo.jp
 ebay-kleinanzeigen.de
 fedex.com
 mercadolibre.com.ar
 box.com
 breitbart.com
-hootsuite.com
 weebly.com
 reverso.net
 sahibinden.com
@@ -86,7 +68,6 @@ asos.com
 rambler.ru
 9gag.com
 allegro.pl
-youporn.com
 yts.lt
 lazada.sg
 patch.com
@@ -117,7 +98,6 @@ trustpilot.com
 kompasiana.com
 irctc.co.in
 kakaku.com
-aol.com
 quizlet.com
 doubleclick.net
 workouttomorrow.com
@@ -141,7 +121,6 @@ souq.com
 dribbble.com
 issuu.com
 homedepot.com
-buzzfeed.com
 taleo.net
 alodokter.com
 dell.com
@@ -150,7 +129,6 @@ sportbible.com
 marca.com
 reuters.com
 t.me
-ameblo.jp
 trendingnow.video
 gismeteo.ru
 xfinity.com
@@ -181,15 +159,12 @@ web.de
 douyu.com
 elpais.com
 cambridge.org
-outbrain.com
 kaskus.co.id
 mgid.com
 mathrubhumi.com
 turkiye.gov.tr
-popads.net
 steampowered.com
 myworkday.com
-fiverr.com
 crunchyroll.com
 rokna.net
 moneycontrol.com
@@ -263,7 +238,6 @@ timeanddate.com
 kundelik.kz
 wattpad.com
 klix.ba
-redtube.com
 freejobalert.com
 news18.com
 tiktok.com
@@ -341,7 +315,6 @@ delta.com
 vtv.vn
 rezka.ag
 mawdoo3.com
-yelp.com
 techradar.com
 tencent.com
 kayak.com
@@ -366,7 +339,6 @@ gamer.com.tw
 consultant.ru
 pikabu.ru
 3movierulz.vc
-wordpress.org
 epfindia.gov.in
 att.com
 afip.gob.ar
@@ -389,7 +361,6 @@ service-now.com
 ytmp3.cc
 myanimelist.net
 sabq.org
-mailchimp.com
 skroutz.gr
 dictionary.com
 gamespot.com
@@ -401,7 +372,6 @@ manyvids.com
 costco.com
 discover.com
 friv.com
-flickr.com
 smartsheet.com
 rbc.ru
 17track.net
@@ -685,7 +655,6 @@ thenewslens.com
 nexusmods.com
 clarin.com
 wease.im
-themeforest.net
 nvidia.com
 vseigru.net
 emalls.ir
@@ -1291,7 +1260,6 @@ java.com
 freelancer.com
 tripadvisor.ru
 sportt.space
-txxx.com
 post.ir
 sulekha.com
 dailyhunt.in
@@ -1409,7 +1377,6 @@ foodnetwork.com
 copts-united.com
 searchmulty.com
 olymptrade.com
-gmail.com
 blogimg.jp
 y8.com
 otomoto.pl
@@ -2361,7 +2328,6 @@ sastasundar.com
 elitedaily.com
 ovh.net
 medscape.com
-adf.ly
 timesofoman.com
 panasonic.com
 tcafe2a.com
@@ -3918,7 +3884,6 @@ lance.com.br
 devmedia.com.br
 hamshahrionline.ir
 dazn.com
-about.com
 eventbrite.fr
 samatika.com
 paper-io.com
@@ -5278,7 +5243,6 @@ chomikuj.pl
 gamovideo.com
 luminati.io
 piraeuspress.gr
-adcash.com
 chargebee.com
 prosperworks.com
 rewe.de
@@ -9279,7 +9243,6 @@ techlandia.com
 sbiyono.sbi
 lewat.club
 rstudio.com
-coccoc.com
 seamless.com
 7sur7.be
 dolarhoje.com
@@ -10375,7 +10338,6 @@ bikedekho.com
 olacabs.com
 jntufastupdates.com
 acquia.com
-huffingtonpost.com
 iauctb.ac.ir
 umschool.net
 maariv.co.il

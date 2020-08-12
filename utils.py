@@ -1,7 +1,6 @@
 import signal
 from contextlib import contextmanager
-import sys
-import logging
+import psutil
 @contextmanager
 def timeout(seconds):
     """From: http://stackoverflow.com/a/601168/1336939"""
@@ -22,3 +21,19 @@ class TimeoutException(Exception):
 class HardTimeoutException(Exception):
     pass
 
+
+def is_tcpdump_running(p0):
+    if "dumpcap" in psutil.Process(p0.pid).cmdline():
+        return p0.returncode is None
+    for proc in gen_all_children_procs(p0.pid):
+        if "dumpcap" in proc.cmdline():
+            return True
+    return False
+
+def gen_all_children_procs(parent_pid):
+    """Iterator over the children of a process."""
+    parent = psutil.Process(parent_pid)
+    for child in parent.children(recursive=True):
+        yield child
+class TcpdumpTimeoutError(Exception):
+    pass

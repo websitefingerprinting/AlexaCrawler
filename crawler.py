@@ -146,11 +146,11 @@ def crawl(url, filename, guards, s):
             logger.info(cmd)
             pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             tcpdump_timeout = TCPDUMP_START_TIMEOUT  # in seconds
-            while tcpdump_timeout > 0 and not is_tcpdump_running(pro):
+            while tcpdump_timeout > 0 and not ut.is_tcpdump_running(pro):
                 time.sleep(0.1)
                 tcpdump_timeout -= 0.1
             if tcpdump_timeout < 0:
-                raise TcpdumpTimeoutError()
+                raise ut.TcpdumpTimeoutError()
             logger.info("Launch dumpcap in {:.2f}s".format(TCPDUMP_START_TIMEOUT-tcpdump_timeout))
             start = time.time()
             driver.get(url)
@@ -158,7 +158,7 @@ def crawl(url, filename, guards, s):
                 driver.get_screenshot_as_file(filename + '.png')
     except (ut.HardTimeoutException, TimeoutException):
         logger.warning("{} got timeout".format(url))
-    except TcpdumpTimeoutError :
+    except ut.TcpdumpTimeoutError :
         logger.warning("Fail to launch tmpdump")
     except Exception as exc:
         logger.warning("Unknow error:{}".format(exc))
