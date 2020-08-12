@@ -156,7 +156,6 @@ def crawl(url, filename, guards, s):
             driver.get(url)
             if s:
                 driver.get_screenshot_as_file(filename + '.png')
-            driver.quit()
     except (ut.HardTimeoutException, TimeoutException):
         logger.warning("{} got timeout".format(url))
     except TcpdumpTimeoutError :
@@ -166,13 +165,13 @@ def crawl(url, filename, guards, s):
     finally:
         #post visit
         #Log loading time
+        driver.quit()
         if 'start' in locals():
             #avoid exception happens before start is declared and assigned to trigger exception here
             t = time.time() - start
             logger.info("Load {:.2f}s".format(t))
             with open(filename + '.time', 'w') as f:
                 f.write("{:.4f}".format(t))
-
         time.sleep(GAP_BETWEEN_SITES)
         subprocess.call("killall dumpcap", shell=True)
         logger.info("Sleep {}s and capture killed, capture {} Bytes.".format(GAP_BETWEEN_SITES,os.path.getsize(filename+".pcap")))
@@ -199,6 +198,7 @@ def pick_specific_webs(listdir):
 
 
 def main(args):
+    global  batch_dump_dir
     start, end, m, s, b = args.start, args.end, args.m, args.s, args.b
     assert end>start
     torrc_path = args.torrc
@@ -266,28 +266,13 @@ def main(args):
 
     # subprocess.call("sudo killall tor",shell=True)
     # logger.info("Tor killed!")
-    if args.p:
-        # parse raw traffic
-        logger.info("Parsing the traffic...")
-        if u:
-            suffix = " -u"
-        else:
-            suffix = ""
-        if args.mode == 'clean':
-            # use sanity check
-            cmd = "python3 parser.py " + batch_dump_dir + " -s -mode clean "+suffix
-            subprocess.call(cmd, shell=True)
 
-        elif args.mode == 'burst':
-            cmd = "python3 parser.py " + batch_dump_dir + " -mode burst "+suffix
-            subprocess.call(cmd, shell=True)
-        else:
-            pass
 
 def sendmail(msg):
     cmd = "python3 "+SendMailPyDir+" -m "+msg
     subprocess.call(cmd,shell=True)
 if __name__ == "__main__":
+    global  batch_dump_dir
     try:
         args = parse_arguments()
         logger = config_logger(args.log)
@@ -296,10 +281,28 @@ if __name__ == "__main__":
         display.start()
         main(args)
         msg = "'Crawler Message:Crawl done at {}!'".format(datetime.datetime.now())
+        sendmail(msg)
     except KeyboardInterrupt:
         sys.exit(-1)
     except Exception as e:
         msg = "'Crawler Message: An error occurred:\n{}'".format(e)
+        sendmail(msg)
     finally:
-        # sendmail(msg)
         display.stop()
+        if args.p:
+            # parse raw traffic
+            logger.info("Parsing the traffic...")
+            if args.u:
+                suffix = " -u"
+            else:
+                suffix = ""
+            if args.mode == 'clean':
+                # use sanity check
+                cmd = "python3 parser.py " + batch_dump_dir + " -s -mode clean " + suffix
+                subprocess.call(cmd, shell=True)
+
+            elif args.mode == 'burst':
+                cmd = "python3 parser.py " + batch_dump_dir + " -mode burst " + suffix
+                subprocess.call(cmd, shell=True)
+            else:
+                pass
