@@ -220,6 +220,10 @@ if __name__ == "__main__":
     suffix = args.suffix
     isunmon = args.u
     # filelist = glob.glob(join(args.dir,'*_*_*' ,'capture.pcap.filtered'))
+    filename = args.dir.rstrip("/").split("/")[-1]
+    savedir = join(ParsedDir, filename)
+    init_directories(savedir)
+    print("Parsed file in {}".format(savedir))
     if args.s:
         filelist_ = glob.glob(join(args.dir,'*.png'))
         filelist = []
@@ -228,15 +232,12 @@ if __name__ == "__main__":
             pcapfile = f.split(".png")[0] + captured_file_name
             if os.path.exists(pcapfile):
                 filelist.append(pcapfile)
+                subprocess.call("mv " + pcapfile.split(".pcap")[0]+".time " + savedir, shell=True)
     else:
-        filelist =  glob.glob(join(args.dir,'*'+captured_file_name))         
+        filelist =  glob.glob(join(args.dir,'*'+captured_file_name))
+        subprocess.call("mv " + join(args.dir,"*.time ")+ savedir, shell=True)
 
-    filename = args.dir.rstrip("/").split("/")[-1]
-    savedir = join(ParsedDir, filename)
-    init_directories(savedir)
-    print("Parsed file in {}".format(savedir))
 
-    subprocess.call("mv "+args.dir+"/*.time "+savedir,shell =True)
     # for f in filelist:
     #   parse(f)
     print("Totol:{}".format(len(filelist)))
