@@ -165,9 +165,13 @@ def crawl(url, filename, guards, s):
     finally:
         #post visit
         #Log loading time
-        driver.quit()
+        if 'driver' in locals():
+            #avoid exception happens before driver is declared and assigned
+            # which triggers exception here
+            driver.quit()
         if 'start' in locals():
-            #avoid exception happens before start is declared and assigned to trigger exception here
+            #avoid exception happens before start is declared and assigned
+            # which triggers exception here
             t = time.time() - start
             logger.info("Load {:.2f}s".format(t))
             with open(filename + '.time', 'w') as f:
