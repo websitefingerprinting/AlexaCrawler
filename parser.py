@@ -232,10 +232,8 @@ if __name__ == "__main__":
             pcapfile = f.split(".png")[0] + captured_file_name
             if os.path.exists(pcapfile):
                 filelist.append(pcapfile)
-                subprocess.call("mv " + pcapfile.split(".pcap")[0]+".time " + savedir, shell=True)
     else:
         filelist =  glob.glob(join(args.dir,'*'+captured_file_name))
-        subprocess.call("mv " + join(args.dir,"*.time ")+ savedir, shell=True)
 
 
     # for f in filelist:
