@@ -181,7 +181,7 @@ def crawl(url, filename, guards, s):
             #     f.write("{:.4f}".format(t))
         time.sleep(GAP_BETWEEN_SITES)
         subprocess.call("killall dumpcap", shell=True)
-        logger.info("Sleep {}s and capture killed, capture {} Bytes.".format(GAP_BETWEEN_SITES,os.path.getsize(filename+".pcap")))
+        logger.info("Sleep {}s and capture killed, capture {:.2f} MB.".format(GAP_BETWEEN_SITES,os.path.getsize(filename+".pcap")/(1024*1024)))
 
 
         # filter ACKs and retransmission
