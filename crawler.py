@@ -35,6 +35,7 @@ def config_logger(log_file):
         ch2.setFormatter(logging.Formatter(LOG_FORMAT))
         ch2.setLevel(logging.DEBUG)
         logger.addHandler(ch2)
+    logger.setLevel(logging.INFO)
     return logger
 
 
