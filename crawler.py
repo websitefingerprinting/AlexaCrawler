@@ -17,22 +17,24 @@ import datetime
 
 def config_logger(log_file):
     logger = logging.getLogger("crawler")
-    # Set file
-    if log_file is None:
-        ch = logging.StreamHandler(sys.stdout)
-    else:
-        pardir = os.path.split(log_file)[0]
-        if not os.path.exists(pardir):
-            os.makedirs(pardir)
-        ch = logging.FileHandler(log_file)
-
     # Set logging format
     LOG_FORMAT = "%(asctime)s %(name)-12s %(levelname)-8s %(message)s"
-    ch.setFormatter(logging.Formatter(LOG_FORMAT))
-    logger.addHandler(ch)
+    # Set file
+    ch1 = logging.StreamHandler(sys.stdout)
+    ch1.setFormatter(logging.Formatter(LOG_FORMAT))
+    ch1.setLevel(logging.INFO)
+    logger.addHandler(ch1)
 
-    # Set level format
-    logger.setLevel(logging.INFO)
+    if log_file is not None:
+        pardir = os.path.split(log_file)[0]
+        f = open(log_file,"w")
+        f.close()
+        if not os.path.exists(pardir):
+            os.makedirs(pardir)
+        ch2 = logging.FileHandler(log_file)
+        ch2.setFormatter(logging.Formatter(LOG_FORMAT))
+        ch2.setLevel(logging.DEBUG)
+        logger.addHandler(ch2)
     return logger
 
 
@@ -174,8 +176,8 @@ def crawl(url, filename, guards, s):
             # which triggers exception here
             t = time.time() - start
             logger.info("Load {:.2f}s".format(t))
-            with open(filename + '.time', 'w') as f:
-                f.write("{:.4f}".format(t))
+            # with open(filename + '.time', 'w') as f:
+            #     f.write("{:.4f}".format(t))
         time.sleep(GAP_BETWEEN_SITES)
         subprocess.call("killall dumpcap", shell=True)
         logger.info("Sleep {}s and capture killed, capture {} Bytes.".format(GAP_BETWEEN_SITES,os.path.getsize(filename+".pcap")))

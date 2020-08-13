@@ -89,9 +89,7 @@ if __name__ == '__main__':
 		#move pcapfile and time file
 		cmd = command + r + " " +join(output_dir, newfilename)
 		subprocess.call(cmd, shell=True)
-		cmd = command + r.split(".")[0]+".time" + " " +join(output_dir, newfilename.split(".")[0]+".time")
-		# print(cmd)
-		subprocess.call(cmd, shell=True)
+
 		counter[int(web_id)] += 1
 	for i in range(len(counter)):
 		if counter[i] > 0 :
