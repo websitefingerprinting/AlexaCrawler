@@ -62,7 +62,11 @@ def parse_arguments():
                         metavar='<parsed file suffix>',
                         default='.cell',
                         help='to save file as xx.suffix')
-
+    parser.add_argument('-proc_num',
+                        type=int,
+                        metavar='<process num>',
+                        default=2,
+                        help='The num of CPU')
     # Parse arguments
     args = parser.parse_args()
     return args
@@ -240,7 +244,7 @@ if __name__ == "__main__":
     #   parse(f)
     print("Totol:{}".format(len(filelist)))
 
-    pool = mp.Pool(processes=2)
+    pool = mp.Pool(processes=args.proc_num)
     if args.mode == 'clean':
         # pool.map(clean_parse, filelist)
         pool.map(clean_parse, filelist)
