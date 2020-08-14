@@ -85,9 +85,9 @@ def parse_arguments():
                         metavar='<parse mode>',
                         help='The type of dataset: clean, burst?.')
     parser.add_argument('-s',
-                        action='store_false',
-                        default=True,
-                        help='Take a screenshot? (default:true)')
+                        action='store_true',
+                        default=False,
+                        help='Take a screenshot? (default:False)')
     parser.add_argument('-u',
                         action='store_true',
                         default=False,
@@ -309,11 +309,11 @@ if __name__ == "__main__":
                 suffix = ""
             if args.mode == 'clean':
                 # use sanity check
-                cmd = "python3 parser.py " + batch_dump_dir + " -s -mode clean " + suffix
+                cmd = "python3 parser.py " + batch_dump_dir + " -s -mode clean -proc_num 1" + suffix
                 subprocess.call(cmd, shell=True)
 
             elif args.mode == 'burst':
-                cmd = "python3 parser.py " + batch_dump_dir + " -mode burst " + suffix
+                cmd = "python3 parser.py " + batch_dump_dir + " -mode burst -proc_num 1" + suffix
                 subprocess.call(cmd, shell=True)
             else:
                 pass

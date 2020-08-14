@@ -28,6 +28,10 @@ def parse_arguments():
 						metavar='<suffix>',
 						default='.cell',
 						help='suffix of files')
+	parser.add_argument('-i',
+						default=False,
+						action='store_true',
+						help='Count file in or not in the range. (default: not)')
 	# Parse arguments
 	args = parser.parse_args()
 	return args
@@ -39,8 +43,13 @@ if __name__ == '__main__':
 	l = []
 	for i in range(UNMON_NUM):
 		fname = join(args.dir, str(i)+args.format)
-		if not os.path.exists(fname):
-			l.append(i)
+		if args.i:
+			if os.path.exists(fname):
+				l.append(i)
+		else:
+			if not os.path.exists(fname):
+				l.append(i)
+
 	with open(outputdir,"w") as f:
 		for i in l:
 			f.write("{:d}\n".format(i))
