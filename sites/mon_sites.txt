@@ -32,7 +32,6 @@ bbc.com
 huffingtonpost.com
 adobe.com
 godaddy.com
-kickass.to
 pornhub.com
 dropbox.com
 themeforest.net
@@ -50,7 +49,6 @@ vimeo.com
 flickr.com
 github.com
 redtube.com
-salesforce.com
 fiverr.com
 nytimes.com
 buzzfeed.com
@@ -70,7 +68,6 @@ mailchimp.com
 hootsuite.com
 theguardian.com
 wikia.com
-directrev.com
 forbes.com
 gmail.com
 adf.ly
@@ -79,7 +76,6 @@ quora.com
 stackexchange.com
 naver.com
 getmyads.com
-t.co
 whatsapp.com
 office.com
 paypal.com
@@ -98,3 +94,7 @@ hulu.com
 fandom.com
 grid.id
 udemy.com
+indiatimes.com
+tokopedia.com
+digikala.com
+chase.com

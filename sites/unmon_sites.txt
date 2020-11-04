@@ -1,9 +1,3 @@
-indiatimes.com
-tokopedia.com
-digikala.com
-mercadolivre.com.br
-zendesk.com
-chase.com
 etsy.com
 okta.com
 canva.com
@@ -352,7 +346,6 @@ biblegateway.com
 storm.mg
 urdupoint.com
 service-now.com
-5kv261gjmq04c9.com
 ytmp3.cc
 myanimelist.net
 sabq.org
