@@ -6,7 +6,6 @@ import argparse
 import time
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
-from pyvirtualdisplay import Display
 import utils as ut
 from common import *
 from torcontroller import *
@@ -157,6 +156,7 @@ def crawl(url, filename, guards, s):
             logger.info("Launch dumpcap in {:.2f}s".format(TCPDUMP_START_TIMEOUT-tcpdump_timeout))
             start = time.time()
             driver.get(url)
+            time.sleep(1)
             if s:
                 driver.get_screenshot_as_file(filename + '.png')
     except (ut.HardTimeoutException, TimeoutException):
@@ -288,8 +288,6 @@ if __name__ == "__main__":
         args = parse_arguments()
         logger = config_logger(args.log)
         logger.info(args)
-        display = Display(visible=0, size=(1000, 800))
-        display.start()
         main(args)
         msg = "'Crawler Message:Crawl done at {}!'".format(datetime.datetime.now())
         sendmail(msg)
@@ -299,7 +297,6 @@ if __name__ == "__main__":
         msg = "'Crawler Message: An error occurred:\n{}'".format(e)
         sendmail(msg)
     finally:
-        display.stop()
         if args.p:
             # parse raw traffic
             logger.info("Parsing the traffic...")
