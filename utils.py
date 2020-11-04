@@ -30,10 +30,19 @@ def is_tcpdump_running(p0):
             return True
     return False
 
+
 def gen_all_children_procs(parent_pid):
     """Iterator over the children of a process."""
     parent = psutil.Process(parent_pid)
     for child in parent.children(recursive=True):
         yield child
+
+
+def kill_all_children(parent_pid):
+    """Kill all child process of a given parent."""
+    for child in gen_all_children_procs(parent_pid):
+        child.kill()
+
+
 class TcpdumpTimeoutError(Exception):
     pass

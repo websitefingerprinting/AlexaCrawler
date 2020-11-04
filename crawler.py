@@ -5,6 +5,7 @@ from os import makedirs
 import argparse
 import time
 from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import TimeoutException
 import utils as ut
 from common import *
@@ -83,6 +84,10 @@ def parse_arguments():
                         required=True,
                         metavar='<parse mode>',
                         help='The type of dataset: clean, burst?.')
+    parser.add_argument('-device',
+                        type=str,
+                        default='eth0',
+                        help='Network device name.')
     parser.add_argument('-s',
                         action='store_true',
                         default=False,
@@ -129,12 +134,14 @@ def get_driver():
     profile.set_preference("browser.cache.offline.enable", False)
     profile.set_preference("network.http.use-cache", False)
     profile.update_preferences()
-    driver = webdriver.Firefox(firefox_profile=profile)
+    opts = Options()
+    opts.headless = True
+    driver = webdriver.Firefox(firefox_profile=profile, options=opts)
     driver.set_page_load_timeout(SOFT_VISIT_TIMEOUT)
     return driver
 
 
-def crawl(url, filename, guards, s):
+def crawl(url, filename, guards, s, device):
     try:
         with ut.timeout(HARD_VISIT_TIMEOUT):
             driver = get_driver()
@@ -142,8 +149,8 @@ def crawl(url, filename, guards, s):
             # start tcpdump
             # cmd = "tcpdump host \(" + src + "\) and tcp -i eth0 -w " + filename+'.pcap'
             pcap_filter="tcp and (host " + src + ") and not tcp port 22 and not tcp port 20 "
-            cmd = 'dumpcap -P -a duration:{} -a filesize:{} -i eth0 -s 0 -f \'{}\' -w {}' \
-                .format(HARD_VISIT_TIMEOUT, MAXDUMPSIZE,
+            cmd = 'dumpcap -P -a duration:{} -a filesize:{} -i {} -s 0 -f \'{}\' -w {}' \
+                .format(HARD_VISIT_TIMEOUT, MAXDUMPSIZE, device,
                         pcap_filter, filename+'.pcap')
             logger.info(cmd)
             pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -162,7 +169,7 @@ def crawl(url, filename, guards, s):
     except (ut.HardTimeoutException, TimeoutException):
         logger.warning("{} got timeout".format(url))
     except ut.TcpdumpTimeoutError :
-        logger.warning("Fail to launch tmpdump")
+        logger.warning("Fail to launch dumpcap")
     except Exception as exc:
         logger.warning("Unknow error:{}".format(exc))
     finally:
@@ -180,7 +187,9 @@ def crawl(url, filename, guards, s):
             # with open(filename + '.time', 'w') as f:
             #     f.write("{:.4f}".format(t))
         time.sleep(GAP_BETWEEN_SITES)
-        subprocess.call("killall dumpcap", shell=True)
+        ut.kill_all_children(pro.pid)
+        pro.kill()
+        # subprocess.call("killall dumpcap", shell=True)
         logger.info("Sleep {}s and capture killed, capture {:.2f} MB.".format(GAP_BETWEEN_SITES,os.path.getsize(filename+".pcap")/(1024*1024)))
 
 
@@ -209,6 +218,7 @@ def main(args):
     start, end, m, s, b = args.start, args.end, args.m, args.s, args.b
     assert end>start
     torrc_path = args.torrc
+    device = args.device
     u = args.u
     l = args.l
 
@@ -253,7 +263,7 @@ def main(args):
                     filename = join(batch_dump_dir, str(wid))
                     logger.info("{:d}: {}".format(wid, website))
                     # begin to crawl
-                    crawl(website, filename, guards, s)
+                    crawl(website, filename, guards, s, device)
                 logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
                 time.sleep(GAP_BETWEEN_BATCHES)
     else:
@@ -271,7 +281,7 @@ def main(args):
                         filename = join(batch_dump_dir, str(wid) + '-' + str(i) )
                         logger.info("{:d}-{:d}: {}".format(wid, i, website))
                         # begin to crawl
-                        crawl(website, filename, guards, s)
+                        crawl(website, filename, guards, s, device)
                 logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
                 time.sleep(GAP_BETWEEN_BATCHES)
 
