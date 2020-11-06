@@ -3,12 +3,15 @@ import psutil
 import logging
 logger = logging.getLogger("crawler")
 
+
 unmon_list = './sites/unmon_sites.txt'
 mon_list = './sites/mon_sites.txt'
 Pardir = abspath(join(dirname(__file__), pardir))
 DumpDir = join( Pardir , "AlexaCrawler/dump")
 ListDir = join( Pardir, "AlexaCrawler/list")
 SendMailPyDir = join(Pardir, "AlexaCrawler/private/sendmail.py")
+golang_communication_path = join(Pardir, 'gan-tunnel/communication/switch.txt')
+
 SOFT_VISIT_TIMEOUT = 60
 HARD_VISIT_TIMEOUT = SOFT_VISIT_TIMEOUT + 20
 MAXDUMPSIZE = 20000 #KB

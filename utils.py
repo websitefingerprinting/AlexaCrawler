@@ -46,3 +46,13 @@ def kill_all_children(parent_pid):
 
 class TcpdumpTimeoutError(Exception):
     pass
+
+
+def pick_specific_webs(listdir):
+    l = []
+    with open(listdir,"r") as f:
+        lines = f.readlines()
+    for line in lines:
+        line = int(line.split("\n")[0])
+        l.append(line)
+    return l
