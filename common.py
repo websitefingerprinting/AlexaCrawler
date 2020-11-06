@@ -10,7 +10,7 @@ Pardir = abspath(join(dirname(__file__), pardir))
 DumpDir = join( Pardir , "AlexaCrawler/dump")
 ListDir = join( Pardir, "AlexaCrawler/list")
 SendMailPyDir = join(Pardir, "AlexaCrawler/private/sendmail.py")
-golang_communication_path = join(Pardir, 'gan-tunnel/communication/switch.txt')
+golang_communication_path = join(Pardir, 'trafficSniffer/communication/switch.txt')
 
 SOFT_VISIT_TIMEOUT = 60
 HARD_VISIT_TIMEOUT = SOFT_VISIT_TIMEOUT + 20

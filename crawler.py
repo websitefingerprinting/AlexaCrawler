@@ -328,8 +328,6 @@ def main(args):
                 logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
                 time.sleep(GAP_BETWEEN_BATCHES)
 
-    # subprocess.call("sudo killall tor",shell=True)
-    # logger.info("Tor killed!")
 
 
 def sendmail(msg):
@@ -352,6 +350,8 @@ if __name__ == "__main__":
         msg = "'Crawler Message: An error occurred:\n{}'".format(e)
         sendmail(msg)
     finally:
+        subprocess.call("sudo killall tor",shell=True)
+        logger.info("Tor killed!")
         if args.p and args.c:
             # parse raw traffic
             logger.info("Parsing the traffic...")
