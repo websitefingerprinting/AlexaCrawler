@@ -155,7 +155,11 @@ def crawl_without_cap(url, filename, guards, s, device):
             start = time.time()
             with open(golang_communication_path,'w') as f:
                 f.write('StartRecord\n')
-                f.write('{}\n'.format(filename+'.cell'))
+                f.write('{}.cell\n'.format(filename))
+                # proxy side directory is different
+                basedir, file = os.path.split(filename)
+                proxy_filename = join(basedir.rstrip('/')+'_proxy', file)
+                f.write('{}.cell'.format(proxy_filename))
                 logger.info("Start capturing.")
             time.sleep(0.5)
             driver.get(url)
@@ -178,7 +182,7 @@ def crawl_without_cap(url, filename, guards, s, device):
             t = time.time() - start
             logger.info("Load {:.2f}s".format(t))
         with open(golang_communication_path, 'w') as f:
-            f.write('StopRecord\n')
+            f.write('StopRecord')
             logger.info("Stop capturing.")
         time.sleep(GAP_BETWEEN_SITES)
         logger.info("Sleep {}s and capture killed, capture {:.2f} MB.".format(GAP_BETWEEN_SITES,
