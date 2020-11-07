@@ -155,11 +155,7 @@ def crawl_without_cap(url, filename, guards, s, device):
             start = time.time()
             with open(golang_communication_path,'w') as f:
                 f.write('StartRecord\n')
-                f.write('{}.cell\n'.format(filename))
-                # proxy side directory is different
-                basedir, file = os.path.split(filename)
-                proxy_filename = join(basedir.rstrip('/')+'_proxy', file)
-                f.write('{}.cell'.format(proxy_filename))
+                f.write('{}.cell'.format(filename))
                 logger.info("Start capturing.")
             time.sleep(0.5)
             driver.get(url)
