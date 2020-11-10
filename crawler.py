@@ -350,20 +350,20 @@ if __name__ == "__main__":
     finally:
         subprocess.call("sudo killall tor",shell=True)
         logger.info("Tor killed!")
-        if args.p and args.c:
-            # parse raw traffic
-            logger.info("Parsing the traffic...")
-            if args.u:
-                suffix = " -u"
-            else:
-                suffix = ""
-            if args.mode == 'clean':
-                # use sanity check
-                cmd = "python3 parser.py " + batch_dump_dir + " -s -mode clean -proc_num 1" + suffix
-                subprocess.call(cmd, shell=True)
-
-            elif args.mode == 'burst':
-                cmd = "python3 parser.py " + batch_dump_dir + " -mode burst -proc_num 1" + suffix
-                subprocess.call(cmd, shell=True)
-            else:
-                pass
+        # if args.p and args.c:
+        #     # parse raw traffic
+        #     logger.info("Parsing the traffic...")
+        #     if args.u:
+        #         suffix = " -u"
+        #     else:
+        #         suffix = ""
+        #     if args.mode == 'clean':
+        #         # use sanity check
+        #         cmd = "python3 parser.py " + batch_dump_dir + " -s -mode clean -proc_num 1" + suffix
+        #         subprocess.call(cmd, shell=True)
+        #
+        #     elif args.mode == 'burst':
+        #         cmd = "python3 parser.py " + batch_dump_dir + " -mode burst -proc_num 1" + suffix
+        #         subprocess.call(cmd, shell=True)
+        #     else:
+        #         pass
