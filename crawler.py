@@ -157,9 +157,8 @@ def crawl_without_cap(url, filename, guards, s, device):
                 f.write('StartRecord\n')
                 f.write('{}.cell'.format(filename))
                 logger.info("Start capturing.")
-            time.sleep(0.5)
-            driver.get(url)
             pid = driver.service.process.pid
+            driver.get(url)
             time.sleep(0.5)
             if s:
                 driver.get_screenshot_as_file(filename + '.png')
