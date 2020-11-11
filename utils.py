@@ -41,7 +41,10 @@ def gen_all_children_procs(parent_pid):
 def kill_all_children(parent_pid):
     """Kill all child process of a given parent."""
     for child in gen_all_children_procs(parent_pid):
-        child.kill()
+        try:
+            child.kill()
+        except psutil.NoSuchProcess:
+            continue
 
 
 class TcpdumpTimeoutError(Exception):
