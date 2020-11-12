@@ -282,11 +282,9 @@ def main(args):
     batch_dump_dir = init_directories(args.mode, args.u)
     controller = TorController(torrc_path=torrc_path)
 
-    if not os.path.exists(golang_communication_path):
-        raise FileNotFoundError("The golang communication file {} is not existed.".format(golang_communication_path))
+    logger.info("Reset switch file.")
     with open(golang_communication_path, 'w') as f:
         f.write('StopRecord')
-        logger.info("Stop capturing.")
     if u:
         # crawl unmonitored webpages, restart Tor every m pages
         b = math.ceil((end - start) / m)
