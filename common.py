@@ -12,6 +12,7 @@ ListDir = join( Pardir, "AlexaCrawler/list")
 SendMailPyDir = join(Pardir, "AlexaCrawler/private/sendmail.py")
 golang_communication_path = join(expanduser("~"), 'switch.txt')
 
+BROWSER_LAUNCH_TIMEOUT = 10
 SOFT_VISIT_TIMEOUT = 60
 HARD_VISIT_TIMEOUT = SOFT_VISIT_TIMEOUT + 20
 MAXDUMPSIZE = 20000 #KB

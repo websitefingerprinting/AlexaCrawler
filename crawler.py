@@ -144,107 +144,112 @@ def get_driver():
     return driver
 
 
-def crawl_without_cap(url, filename, guards, s, device):
-    if not os.path.exists(golang_communication_path):
-        raise FileNotFoundError("The golang communication file {} is not existed.".format(golang_communication_path))
+def crawl_without_cap(url, filename, s):
+    # try to launch driver
+    try:
+        pid = None
+        with ut.timeout(BROWSER_LAUNCH_TIMEOUT):
+            driver = get_driver()
+            pid = driver.service.process.pid
+    except Exception as exc:
+        logger.error("Fail to launch browser, err:{}".format(exc))
+        if pid:
+            logger.info("Kill remaining browser process")
+            ut.kill_all_children(pid)
+        time.sleep(GAP_BETWEEN_SITES)
+        return
 
+    # try to crawl website
     try:
         with ut.timeout(HARD_VISIT_TIMEOUT):
-            driver = get_driver()
-            src = ' or '.join(guards)
             start = time.time()
             with open(golang_communication_path,'w') as f:
                 f.write('StartRecord\n')
                 f.write('{}.cell'.format(filename))
                 logger.info("Start capturing.")
-            pid = driver.service.process.pid
             driver.get(url)
-            time.sleep(0.5)
             if s:
                 driver.get_screenshot_as_file(filename + '.png')
+            time.sleep(1)
     except (ut.HardTimeoutException, TimeoutException):
         logger.warning("{} got timeout".format(url))
     except Exception as exc:
         logger.warning("Unknow error:{}".format(exc))
     finally:
+        with open(golang_communication_path, 'w') as f:
+            f.write('StopRecord')
+            logger.info("Stop capturing.")
+        t = time.time() - start
+        logger.info("Load {:.2f}s".format(t))
         # kill firefox
         ut.kill_all_children(pid)
+        logger.info("Sleep {}s and capture killed".format(GAP_BETWEEN_SITES))
+        time.sleep(GAP_BETWEEN_SITES)
+
+
+
+def crawl(url, filename, guards, s, device):
+    try:
+        with ut.timeout(HARD_VISIT_TIMEOUT):
+            driver = get_driver()
+            src = ' or '.join(guards)
+            # start tcpdump
+            # cmd = "tcpdump host \(" + src + "\) and tcp -i eth0 -w " + filename+'.pcap'
+            pcap_filter = "tcp and (host " + src + ") and not tcp port 22 and not tcp port 20 "
+            cmd = 'dumpcap -P -a duration:{} -a filesize:{} -i {} -s 0 -f \'{}\' -w {}' \
+                .format(HARD_VISIT_TIMEOUT, MAXDUMPSIZE, device,
+                        pcap_filter, filename + '.pcap')
+            logger.info(cmd)
+            pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            tcpdump_timeout = TCPDUMP_START_TIMEOUT  # in seconds
+            while tcpdump_timeout > 0 and not ut.is_tcpdump_running(pro):
+                time.sleep(0.1)
+                tcpdump_timeout -= 0.1
+            if tcpdump_timeout < 0:
+                raise ut.TcpdumpTimeoutError()
+            logger.info("Launch dumpcap in {:.2f}s".format(TCPDUMP_START_TIMEOUT - tcpdump_timeout))
+            start = time.time()
+            driver.get(url)
+            time.sleep(1)
+            if s:
+                driver.get_screenshot_as_file(filename + '.png')
+    except (ut.HardTimeoutException, TimeoutException):
+        logger.warning("{} got timeout".format(url))
+    except ut.TcpdumpTimeoutError:
+        logger.warning("Fail to launch dumpcap")
+    except Exception as exc:
+        logger.warning("Unknow error:{}".format(exc))
+    finally:
+        # post visit
+        # Log loading time
+        if 'driver' in locals():
+            # avoid exception happens before driver is declared and assigned
+            # which triggers exception here
+            driver.quit()
         if 'start' in locals():
             # avoid exception happens before start is declared and assigned
             # which triggers exception here
             t = time.time() - start
             logger.info("Load {:.2f}s".format(t))
-        with open(golang_communication_path, 'w') as f:
-            f.write('StopRecord')
-            logger.info("Stop capturing.")
+            # with open(filename + '.time', 'w') as f:
+            #     f.write("{:.4f}".format(t))
         time.sleep(GAP_BETWEEN_SITES)
+        ut.kill_all_children(pro.pid)
+        pro.kill()
+        # subprocess.call("killall dumpcap", shell=True)
         logger.info("Sleep {}s and capture killed, capture {:.2f} MB.".format(GAP_BETWEEN_SITES,
-                                                                              os.path.getsize(filename + ".cell") / (
+                                                                              os.path.getsize(filename + ".pcap") / (
                                                                                           1024 * 1024)))
 
-
-# def crawl(url, filename, guards, s, device):
-#     try:
-#         with ut.timeout(HARD_VISIT_TIMEOUT):
-#             driver = get_driver()
-#             src = ' or '.join(guards)
-#             # start tcpdump
-#             # cmd = "tcpdump host \(" + src + "\) and tcp -i eth0 -w " + filename+'.pcap'
-#             pcap_filter = "tcp and (host " + src + ") and not tcp port 22 and not tcp port 20 "
-#             cmd = 'dumpcap -P -a duration:{} -a filesize:{} -i {} -s 0 -f \'{}\' -w {}' \
-#                 .format(HARD_VISIT_TIMEOUT, MAXDUMPSIZE, device,
-#                         pcap_filter, filename + '.pcap')
-#             logger.info(cmd)
-#             pro = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-#             tcpdump_timeout = TCPDUMP_START_TIMEOUT  # in seconds
-#             while tcpdump_timeout > 0 and not ut.is_tcpdump_running(pro):
-#                 time.sleep(0.1)
-#                 tcpdump_timeout -= 0.1
-#             if tcpdump_timeout < 0:
-#                 raise ut.TcpdumpTimeoutError()
-#             logger.info("Launch dumpcap in {:.2f}s".format(TCPDUMP_START_TIMEOUT - tcpdump_timeout))
-#             start = time.time()
-#             driver.get(url)
-#             time.sleep(1)
-#             if s:
-#                 driver.get_screenshot_as_file(filename + '.png')
-#     except (ut.HardTimeoutException, TimeoutException):
-#         logger.warning("{} got timeout".format(url))
-#     except ut.TcpdumpTimeoutError:
-#         logger.warning("Fail to launch dumpcap")
-#     except Exception as exc:
-#         logger.warning("Unknow error:{}".format(exc))
-#     finally:
-#         # post visit
-#         # Log loading time
-#         if 'driver' in locals():
-#             # avoid exception happens before driver is declared and assigned
-#             # which triggers exception here
-#             driver.quit()
-#         if 'start' in locals():
-#             # avoid exception happens before start is declared and assigned
-#             # which triggers exception here
-#             t = time.time() - start
-#             logger.info("Load {:.2f}s".format(t))
-#             # with open(filename + '.time', 'w') as f:
-#             #     f.write("{:.4f}".format(t))
-#         time.sleep(GAP_BETWEEN_SITES)
-#         ut.kill_all_children(pro.pid)
-#         pro.kill()
-#         # subprocess.call("killall dumpcap", shell=True)
-#         logger.info("Sleep {}s and capture killed, capture {:.2f} MB.".format(GAP_BETWEEN_SITES,
-#                                                                               os.path.getsize(filename + ".pcap") / (
-#                                                                                           1024 * 1024)))
-#
-#         # filter ACKs and retransmission
-#         if os.path.exists(filename + '.pcap'):
-#             cmd = 'tshark -r ' + filename + '.pcap' + ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename + ".pcap.filtered"
-#             subprocess.call(cmd, shell=True)
-#             # remove raw pcapfile
-#             cmd = 'rm ' + filename + '.pcap'
-#             subprocess.call(cmd, shell=True)
-#         else:
-#             logger.warning("{} not captured for site {}".format(filename + '.pcap', url))
+        # filter ACKs and retransmission
+        if os.path.exists(filename + '.pcap'):
+            cmd = 'tshark -r ' + filename + '.pcap' + ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename + ".pcap.filtered"
+            subprocess.call(cmd, shell=True)
+            # remove raw pcapfile
+            cmd = 'rm ' + filename + '.pcap'
+            subprocess.call(cmd, shell=True)
+        else:
+            logger.warning("{} not captured for site {}".format(filename + '.pcap', url))
 
 
 def main(args):
@@ -276,6 +281,12 @@ def main(args):
         assert len(l_inds) > 0
     batch_dump_dir = init_directories(args.mode, args.u)
     controller = TorController(torrc_path=torrc_path)
+
+    if not os.path.exists(golang_communication_path):
+        raise FileNotFoundError("The golang communication file {} is not existed.".format(golang_communication_path))
+    with open(golang_communication_path, 'w') as f:
+        f.write('StopRecord')
+        logger.info("Stop capturing.")
     if u:
         # crawl unmonitored webpages, restart Tor every m pages
         b = math.ceil((end - start) / m)
@@ -283,7 +294,8 @@ def main(args):
             with controller.launch():
                 logger.info("Start Tor and sleep {}s".format(GAP_AFTER_LAUNCH))
                 time.sleep(GAP_AFTER_LAUNCH)
-                guards = controller.get_guard_ip()
+                if args.c:
+                    guards = controller.get_guard_ip()
                 # print(guards)
                 for mm in range(m):
                     i = bb * m + mm
@@ -300,7 +312,7 @@ def main(args):
                     if args.c:
                         crawl(website, filename, guards, s, device)
                     else:
-                        crawl_without_cap(website, filename, guards, s, device)
+                        crawl_without_cap(website, filename, s)
                 logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
                 time.sleep(GAP_BETWEEN_BATCHES)
     else:
@@ -309,7 +321,8 @@ def main(args):
             with controller.launch():
                 logger.info("Start Tor and sleep {}s".format(GAP_AFTER_LAUNCH))
                 time.sleep(GAP_AFTER_LAUNCH)
-                guards = controller.get_guard_ip()
+                if args.c:
+                    guards = controller.get_guard_ip()
                 # print(guards)
                 for wid, website in enumerate(websites):
                     wid = wid + start
@@ -321,7 +334,7 @@ def main(args):
                         if args.c:
                             crawl(website, filename, guards, s, device)
                         else:
-                            crawl_without_cap(website, filename, guards, s, device)
+                            crawl_without_cap(website, filename, s)
                 logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
                 time.sleep(GAP_BETWEEN_BATCHES)
 
