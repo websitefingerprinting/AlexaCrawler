@@ -146,27 +146,33 @@ def get_driver():
 
 def crawl_without_cap(url, filename, s):
     # try to launch driver
-    try:
-        pid = None
-        with ut.timeout(BROWSER_LAUNCH_TIMEOUT):
-            driver = get_driver()
-            pid = driver.service.process.pid
-    except Exception as exc:
-        logger.error("Fail to launch browser, err:{}".format(exc))
-        if pid:
-            logger.info("Kill remaining browser process")
-            ut.kill_all_children(pid)
-        time.sleep(GAP_BETWEEN_SITES)
-        return
+    tries = 3
+    for i in range(tries):
+        try:
+            pid = None
+            with ut.timeout(BROWSER_LAUNCH_TIMEOUT):
+                driver = get_driver()
+                pid = driver.service.process.pid
+        except Exception as exc:
+            if i < tries - 1:
+                logger.error("Fail to launch browser, retry {} times, Err msg:{}".format(tries - (i + 1), exc))
+                if pid:
+                    logger.info("Kill remaining browser process")
+                    ut.kill_all_children(pid)
+                time.sleep(1)
+                continue
+            else:
+                raise OSError("Fail to launch browser after {} tries".format(tries))
+        break
 
     # try to crawl website
     try:
         with ut.timeout(HARD_VISIT_TIMEOUT):
             start = time.time()
-            with open(golang_communication_path,'w') as f:
+            with open(golang_communication_path, 'w') as f:
                 f.write('StartRecord\n')
                 f.write('{}.cell'.format(filename))
-                logger.info("Start capturing.")
+            logger.info("Start capturing.")
             driver.get(url)
             if s:
                 driver.get_screenshot_as_file(filename + '.png')
@@ -178,14 +184,14 @@ def crawl_without_cap(url, filename, s):
     finally:
         with open(golang_communication_path, 'w') as f:
             f.write('StopRecord')
-            logger.info("Stop capturing.")
+        logger.info("Stop capturing, save to {}.cell.".format(filename))
         t = time.time() - start
         logger.info("Load {:.2f}s".format(t))
         # kill firefox
         ut.kill_all_children(pid)
+        subprocess.call('rm -rf /tmp/*', shell=True)  # since we use pid to kill firefox, we should clean up tmp too
         logger.info("Sleep {}s and capture killed".format(GAP_BETWEEN_SITES))
         time.sleep(GAP_BETWEEN_SITES)
-
 
 
 def crawl(url, filename, guards, s, device):
@@ -239,7 +245,7 @@ def crawl(url, filename, guards, s, device):
         # subprocess.call("killall dumpcap", shell=True)
         logger.info("Sleep {}s and capture killed, capture {:.2f} MB.".format(GAP_BETWEEN_SITES,
                                                                               os.path.getsize(filename + ".pcap") / (
-                                                                                          1024 * 1024)))
+                                                                                      1024 * 1024)))
 
         # filter ACKs and retransmission
         if os.path.exists(filename + '.pcap'):
@@ -277,8 +283,8 @@ def main(args):
             websites.append(w.rstrip("\n"))
     if u and l:
         l_inds = ut.pick_specific_webs(l)
-    if l:
         assert len(l_inds) > 0
+
     batch_dump_dir = init_directories(args.mode, args.u)
     controller = TorController(torrc_path=torrc_path)
 
@@ -337,7 +343,6 @@ def main(args):
                 time.sleep(GAP_BETWEEN_BATCHES)
 
 
-
 def sendmail(msg):
     cmd = "python3 " + SendMailPyDir + " -m " + msg
     subprocess.call(cmd, shell=True)
@@ -358,7 +363,7 @@ if __name__ == "__main__":
         msg = "'Crawler Message: An error occurred:\n{}'".format(e)
         sendmail(msg)
     finally:
-        subprocess.call("sudo killall tor",shell=True)
+        subprocess.call("sudo killall tor", shell=True)
         logger.info("Tor killed!")
         # if args.p and args.c:
         #     # parse raw traffic
