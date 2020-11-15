@@ -8,7 +8,6 @@ import argparse
 import time
 Pardir = abspath(join(dirname(__file__), pardir))
 
-DumpDir = join( Pardir , "AlexaCrawler/parsed")
 def parse_arguments():
 
 	parser = argparse.ArgumentParser(description='Crawl Alexa top websites and capture the traffic')
@@ -72,6 +71,9 @@ if __name__ == '__main__':
 	args = parse_arguments()
 	if args.o:
 		DumpDir = args.o
+	else:
+		#default
+		DumpDir = join(Pardir, "AlexaCrawler/parsed")
 	folders = args.dirlist
 	raw = []
 	for folder in folders:
