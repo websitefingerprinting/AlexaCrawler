@@ -38,6 +38,9 @@ def parse_arguments():
 						action='store_true',
 						default=False,
 						help='is monitored webpage or unmonitored? (default:is monitored, False)')
+	parser.add_argument('-o',
+						default=None,
+						help='Output combined results to which folder? ')
 	parser.add_argument('-suffix',
 						type=str,
 						metavar='<suffix>',
@@ -49,6 +52,7 @@ def parse_arguments():
 	return args
 
 def init_directories(start,end, u):
+	global DumpDir
 	# Create a results dir if it doesn't exist yet
 	if not os.path.exists(DumpDir):
 		makedirs(DumpDir)
@@ -64,7 +68,10 @@ def init_directories(start,end, u):
 	return output_dir
 
 if __name__ == '__main__':
+	global DumpDir
 	args = parse_arguments()
+	if args.o:
+		DumpDir = args.o
 	folders = args.dirlist
 	raw = []
 	for folder in folders:
