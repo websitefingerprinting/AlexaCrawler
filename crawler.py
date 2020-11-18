@@ -291,9 +291,8 @@ def main(args):
     # open up python server
     if args.mode=='burst' and not args.grpc:
         raise ValueError("Please provide the path of python server.")
-    grpc_pro = subprocess.Popen('python3 '+args.grpc, stdout=subprocess.STDOUT, stderr=subprocess.STDOUT, shell=True)
+    grpc_pro = subprocess.Popen('python3 '+args.grpc, stdout = subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
     logger.info("Python server is listening on the port.")
-
 
     batch_dump_dir = init_directories(args.mode, args.u)
     controller = TorController(torrc_path=torrc_path)
