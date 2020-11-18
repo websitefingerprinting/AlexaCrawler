@@ -55,7 +55,7 @@ def parse_arguments():
                         type=int,
                         metavar='<process num>',
                         default=2,
-                        help='The num of CPU')
+                        help='The num of parallel workers')
     # Parse arguments
     args = parser.parse_args()
     return args
