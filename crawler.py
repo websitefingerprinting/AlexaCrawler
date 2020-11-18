@@ -59,7 +59,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description='Crawl Alexa top websites and capture the traffic')
     parser.add_argument('-grpc',
                         type=str,
-                        required=True,
+                        default=None,
                         help='Path of python grpc server code.')
     parser.add_argument('-start',
                         type=int,
@@ -289,7 +289,7 @@ def main(args):
         assert len(l_inds) > 0
 
     # open up python server
-    if not args.grpc:
+    if args.mode=='burst' and not args.grpc:
         raise ValueError("Please provide the path of python server.")
     grpc_pro = subprocess.Popen('python3 '+args.grpc, stdout=subprocess.STDOUT, stderr=subprocess.STDOUT, shell=True)
     logger.info("Python server is listening on the port.")
