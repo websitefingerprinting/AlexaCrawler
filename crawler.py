@@ -291,8 +291,9 @@ def main(args):
     # open up python server
     if args.mode=='burst' and not args.grpc:
         raise ValueError("Please provide the path of python server.")
-    grpc_pro = subprocess.Popen('python3 '+args.grpc, stdout = subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
-    logger.info("Python server is listening on the port.")
+    if args.mode == 'burst':
+        grpc_pro = subprocess.Popen('python3 '+args.grpc, stdout = subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+        logger.info("Python server is listening on the port.")
 
     batch_dump_dir = init_directories(args.mode, args.u)
     controller = TorController(torrc_path=torrc_path)
@@ -350,7 +351,8 @@ def main(args):
                             crawl_without_cap(website, filename, s)
                 logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
                 time.sleep(GAP_BETWEEN_BATCHES)
-    grpc_pro.kill()
+    if args.mode == 'burst':
+        grpc_pro.kill()
 
 
 def sendmail(msg):
