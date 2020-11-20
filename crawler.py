@@ -57,10 +57,6 @@ def init_directories(mode, u):
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Crawl Alexa top websites and capture the traffic')
-    parser.add_argument('-grpc',
-                        type=str,
-                        default=None,
-                        help='Path of python grpc server code.')
     parser.add_argument('-start',
                         type=int,
                         metavar='<start ind>',
@@ -288,12 +284,6 @@ def main(args):
         l_inds = ut.pick_specific_webs(l)
         assert len(l_inds) > 0
 
-    # open up python server
-    if args.mode=='burst' and not args.grpc:
-        raise ValueError("Please provide the path of python server.")
-    if args.mode == 'burst':
-        grpc_pro = subprocess.Popen('python3 '+args.grpc, stdout = subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
-        logger.info("Python server is listening on the port.")
 
     batch_dump_dir = init_directories(args.mode, args.u)
     controller = TorController(torrc_path=torrc_path)
@@ -351,8 +341,6 @@ def main(args):
                             crawl_without_cap(website, filename, s)
                 logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
                 time.sleep(GAP_BETWEEN_BATCHES)
-    if args.mode == 'burst':
-        grpc_pro.kill()
 
 
 def sendmail(msg):
