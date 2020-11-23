@@ -144,6 +144,7 @@ def get_driver():
 
 
 def crawl_without_cap(url, filename, s):
+    global bad_list
     # try to launch driver
     tries = 3
     for i in range(tries):
@@ -178,8 +179,10 @@ def crawl_without_cap(url, filename, s):
             time.sleep(1)
     except (ut.HardTimeoutException, TimeoutException):
         logger.warning("{} got timeout".format(url))
+        bad_list.append(filename+'.cell')
     except Exception as exc:
         logger.warning("Unknow error:{}".format(exc))
+        bad_list.append(filename+'.cell')
     finally:
         with open(golang_communication_path, 'w') as f:
             f.write('StopRecord')
@@ -258,7 +261,7 @@ def crawl(url, filename, guards, s, device):
 
 
 def main(args):
-    global batch_dump_dir
+    global batch_dump_dir, bad_list
     start, end, m, s, b = args.start, args.end, args.m, args.s, args.b
     assert end > start
     torrc_path = args.torrc
@@ -284,7 +287,7 @@ def main(args):
         l_inds = ut.pick_specific_webs(l)
         assert len(l_inds) > 0
 
-
+    bad_list = []
     batch_dump_dir = init_directories(args.mode, args.u)
     controller = TorController(torrc_path=torrc_path)
 
@@ -341,6 +344,9 @@ def main(args):
                             crawl_without_cap(website, filename, s)
                 logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
                 time.sleep(GAP_BETWEEN_BATCHES)
+    with open(join(batch_dump_dir,'bad.list'),'w') as f:
+        for w in bad_list:
+            f.write(w+'\n')
 
 
 def sendmail(msg):
@@ -349,7 +355,6 @@ def sendmail(msg):
 
 
 if __name__ == "__main__":
-    global batch_dump_dir
     try:
         args = parse_arguments()
         logger = config_logger(args.log)
@@ -362,9 +367,9 @@ if __name__ == "__main__":
     except Exception as e:
         msg = "'Crawler Message: An error occurred:\n{}'".format(e)
         sendmail(msg)
-    finally:
-        subprocess.call("sudo killall tor", shell=True)
-        logger.info("Tor killed!")
+    # finally:
+        # subprocess.call("sudo killall tor", shell=True)
+        # logger.info("Tor killed!")
         # if args.p and args.c:
         #     # parse raw traffic
         #     logger.info("Parsing the traffic...")
