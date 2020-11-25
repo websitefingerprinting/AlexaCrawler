@@ -168,11 +168,12 @@ def crawl_without_cap(url, filename, s):
     # try to crawl website
     try:
         with ut.timeout(HARD_VISIT_TIMEOUT):
-            start = time.time()
             with open(golang_communication_path, 'w') as f:
                 f.write('StartRecord\n')
                 f.write('{}.cell'.format(filename))
+            time.sleep(0.05) # the golang process scan the switch file every 50 millisecond
             logger.info("Start capturing.")
+            start = time.time()
             driver.get(url)
             if s:
                 driver.get_screenshot_as_file(filename + '.png')
@@ -184,15 +185,14 @@ def crawl_without_cap(url, filename, s):
         logger.warning("Unknow error:{}".format(exc))
         bad_list.append(filename+'.cell')
     finally:
-        with open(golang_communication_path, 'w') as f:
-            f.write('StopRecord')
-        logger.info("Stop capturing, save to {}.cell.".format(filename))
         t = time.time() - start
-        logger.info("Load {:.2f}s".format(t))
         # kill firefox
         ut.kill_all_children(pid)
         subprocess.call('rm -rf /tmp/*', shell=True)  # since we use pid to kill firefox, we should clean up tmp too
-        logger.info("Sleep {}s and capture killed".format(GAP_BETWEEN_SITES))
+        with open(golang_communication_path, 'w') as f:
+            f.write('StopRecord')
+        logger.info("Stop capturing, save to {}.cell.".format(filename))
+        logger.info("Webpage loaded {:.2f}s".format(t))
         time.sleep(GAP_BETWEEN_SITES)
 
 
