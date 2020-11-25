@@ -43,12 +43,10 @@ flipkart.com
 uol.com.br
 about.com
 rakuten.co.jp
-vimeo.com
 github.com
 redtube.com
 fiverr.com
 nytimes.com
-buzzfeed.com
 globo.com
 outbrain.com
 cnet.com
@@ -93,8 +91,10 @@ chase.com
 etsy.com
 okta.com
 canva.com
-washingtonpost.com
-abs-cbn.com
 archive.org
 setn.com
 mediafire.com
+suara.com
+y2mate.com
+ilovepdf.com
+iqoption.com
