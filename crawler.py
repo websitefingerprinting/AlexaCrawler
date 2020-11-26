@@ -355,6 +355,7 @@ def sendmail(msg):
 
 
 if __name__ == "__main__":
+    global batch_dump_dir
     try:
         args = parse_arguments()
         logger = config_logger(args.log)
@@ -367,7 +368,12 @@ if __name__ == "__main__":
     except Exception as e:
         msg = "'Crawler Message: An error occurred:\n{}'".format(e)
         sendmail(msg)
-    # finally:
+    finally:
+        # clean up bad webs
+        pydir = join(Pardir, "AlexaCrawler", "clean.py")
+        clean_cmd = "python3 "+ pydir + " " + batch_dump_dir
+        subprocess.call(clean_cmd, shell=True)
+        logger.info("Clean up bad loads.")
         # subprocess.call("sudo killall tor", shell=True)
         # logger.info("Tor killed!")
         # if args.p and args.c:
