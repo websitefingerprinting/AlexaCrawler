@@ -7,6 +7,8 @@ import time
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from tbselenium.tbdriver import TorBrowserDriver
 import utils as ut
 from common import *
 from torcontroller import *
@@ -127,23 +129,33 @@ def parse_arguments():
 
 
 def get_driver():
-    profile = webdriver.FirefoxProfile()
-    profile.set_preference("network.proxy.type", 1)
-    profile.set_preference("network.proxy.socks", "127.0.0.1")
-    profile.set_preference("network.proxy.socks_port", 9050)
-    profile.set_preference("network.proxy.socks_version", 5)
-    profile.set_preference("browser.cache.disk.enable", False)
-    profile.set_preference("browser.cache.memory.enable", False)
-    profile.set_preference("browser.cache.offline.enable", False)
-    profile.set_preference("network.http.use-cache", False)
-    profile.set_preference("network.http.pipelining.max - optimistic - requests", 5000)
-    profile.set_preference("network.http.pipelining.maxrequests", 15000)
-    profile.set_preference("network.http.pipelining", False)
-
-    profile.update_preferences()
-    opts = Options()
-    opts.headless = True
-    driver = webdriver.Firefox(firefox_profile=profile, options=opts)
+    # profile = webdriver.FirefoxProfile()
+    # profile.set_preference("network.proxy.type", 1)
+    # profile.set_preference("network.proxy.socks", "127.0.0.1")
+    # profile.set_preference("network.proxy.socks_port", 9050)
+    # profile.set_preference("network.proxy.socks_version", 5)
+    # profile.set_preference("browser.cache.disk.enable", False)
+    # profile.set_preference("browser.cache.memory.enable", False)
+    # profile.set_preference("browser.cache.offline.enable", False)
+    # profile.set_preference("network.http.use-cache", False)
+    # profile.set_preference("network.http.pipelining.max - optimistic - requests", 5000)
+    # profile.set_preference("network.http.pipelining.maxrequests", 15000)
+    # profile.set_preference("network.http.pipelining", False)
+    #
+    # profile.update_preferences()
+    # opts = Options()
+    # opts.headless = True
+    # driver = webdriver.Firefox(firefox_profile=profile, options=opts)
+    ffprefs = {
+        "browser.cache.disk.enable":False,
+        "browser.cache.memory.enable":False,
+        "browser.cache.offline.enable":False,
+        "network.http.use-cache": False
+    }
+    caps = DesiredCapabilities().FIREFOX
+    caps['pageLoadStrategy'] = 'normal'
+    driver = TorBrowserDriver(tbb_path=cm.TBB_PATH, tor_cfg=1, pref_dict=ffprefs,\
+                              socks_port=9050, capabilities=caps, headless=True)
     driver.set_page_load_timeout(SOFT_VISIT_TIMEOUT)
     return driver
 
