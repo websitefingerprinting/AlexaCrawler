@@ -197,8 +197,13 @@ def clean_up(take_screenshot):
 
     no_screenshot_num = len(bad_list) - error_num
     logger.info("Found {} (error) + {} (screenshot) bad loadings.".format(error_num, no_screenshot_num))
+    removed_list = set()
     for bad_item in bad_list:
         w, reason = bad_item[0], bad_item[1]
+        if w in removed_list:
+            continue
+        else:
+            removed_list.add(w)
         if reason == 'ConnError' and ConnError:
             subprocess.call("rm " + w, shell=True)
         elif reason == 'HasCaptcha' and HasCaptcha:
@@ -215,7 +220,7 @@ def clean_up(take_screenshot):
 
 def crawl_without_cap(url, filename, s):
     # try to launch driver
-    tries = 3
+    tries = 5
     for i in range(tries):
         try:
             pid = None
@@ -228,7 +233,7 @@ def crawl_without_cap(url, filename, s):
                 if pid:
                     logger.info("Kill remaining browser process")
                     ut.kill_all_children(pid)
-                time.sleep(1)
+                time.sleep(5)
                 continue
             else:
                 raise OSError("Fail to launch browser after {} tries".format(tries))
@@ -263,6 +268,7 @@ def crawl_without_cap(url, filename, s):
             # kill firefox
             with ut.timeout(5):
                 driver.quit()
+                logger.info("Firefox quit successfully.")
         except Exception as exc:
             # if driver.quit() cann't kill, use pid instead
             logger.error("Error when kill firefox: {}".format(exc))
