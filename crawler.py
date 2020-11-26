@@ -136,9 +136,9 @@ def get_driver():
     profile.set_preference("browser.cache.offline.enable", False)
     profile.set_preference("network.http.use-cache", False)
     profile.set_preference("network.http.pipelining.max - optimistic - requests", 5000)
-    profile.set_preference("network.http.pipelining.maxrequests",15000)
-    profile.set_preference("network.http.pipelining",False)
-    
+    profile.set_preference("network.http.pipelining.maxrequests", 15000)
+    profile.set_preference("network.http.pipelining", False)
+
     profile.update_preferences()
     opts = Options()
     opts.headless = True
@@ -147,33 +147,11 @@ def get_driver():
     return driver
 
 
-def check_conn_error(driver):
-    if driver.current_url == "about:newtab":
-        logger.warning('Stuck in about:newtab')
-        return True
-    if driver.is_connection_error_page:
-        logger.warning('Connection Error')
-        return True
-    return False
-
-
-def check_captcha(page_source):
-    if has_captcha(page_source):
-        logger.warning('captcha found')
-        return True
-    return False
-
-
-def has_captcha(page_source):
-    keywords = ['recaptcha_submit',
-                'manual_recaptcha_challenge_field']
-    return any(keyword in page_source for keyword in keywords)
-
-
 def write_to_badlist(filename, reason):
     global batch_dump_dir
     with open(join(batch_dump_dir, 'bad.list'), 'a+') as f:
         f.write(filename + '\t' + reason + '\n')
+
 
 def crawl_without_cap(url, filename, s):
     # try to launch driver
@@ -209,10 +187,10 @@ def crawl_without_cap(url, filename, s):
             if s:
                 driver.get_screenshot_as_file(filename + '.png')
             time.sleep(1)
-            if check_conn_error(driver):
-                write_to_badlist(filename+'.cell', "ConnError")
-            elif check_captcha(driver.page_source.encode('utf-8').strip().lower()):
-                write_to_badlist(filename+'.cell', "HasCaptcha")
+            if ut.check_conn_error(driver):
+                write_to_badlist(filename + '.cell', "ConnError")
+            elif ut.check_captcha(driver.page_source.strip().lower()):
+                write_to_badlist(filename + '.cell', "HasCaptcha")
     except (ut.HardTimeoutException, TimeoutException):
         logger.warning("{} got timeout".format(url))
         write_to_badlist(filename + '.cell', "Timeout")
@@ -400,27 +378,27 @@ if __name__ == "__main__":
         msg = "'Crawler Message: An error occurred:\n{}'".format(e)
         sendmail(msg)
     # finally:
-        # clean up bad webs
-        # pydir = join(Pardir, "AlexaCrawler", "clean.py")
-        # clean_cmd = "python3 " + pydir + " " + batch_dump_dir
-        # subprocess.call(clean_cmd, shell=True)
-        # logger.info("Clean up bad loads.")
-        # subprocess.call("sudo killall tor", shell=True)
-        # logger.info("Tor killed!")
-        # if args.p and args.c:
-        #     # parse raw traffic
-        #     logger.info("Parsing the traffic...")
-        #     if args.u:
-        #         suffix = " -u"
-        #     else:
-        #         suffix = ""
-        #     if args.mode == 'clean':
-        #         # use sanity check
-        #         cmd = "python3 parser.py " + batch_dump_dir + " -s -mode clean -proc_num 1" + suffix
-        #         subprocess.call(cmd, shell=True)
-        #
-        #     elif args.mode == 'burst':
-        #         cmd = "python3 parser.py " + batch_dump_dir + " -mode burst -proc_num 1" + suffix
-        #         subprocess.call(cmd, shell=True)
-        #     else:
-        #         pass
+    # clean up bad webs
+    # pydir = join(Pardir, "AlexaCrawler", "clean.py")
+    # clean_cmd = "python3 " + pydir + " " + batch_dump_dir
+    # subprocess.call(clean_cmd, shell=True)
+    # logger.info("Clean up bad loads.")
+    # subprocess.call("sudo killall tor", shell=True)
+    # logger.info("Tor killed!")
+    # if args.p and args.c:
+    #     # parse raw traffic
+    #     logger.info("Parsing the traffic...")
+    #     if args.u:
+    #         suffix = " -u"
+    #     else:
+    #         suffix = ""
+    #     if args.mode == 'clean':
+    #         # use sanity check
+    #         cmd = "python3 parser.py " + batch_dump_dir + " -s -mode clean -proc_num 1" + suffix
+    #         subprocess.call(cmd, shell=True)
+    #
+    #     elif args.mode == 'burst':
+    #         cmd = "python3 parser.py " + batch_dump_dir + " -mode burst -proc_num 1" + suffix
+    #         subprocess.call(cmd, shell=True)
+    #     else:
+    #         pass

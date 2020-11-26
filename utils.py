@@ -1,9 +1,12 @@
 import signal
 from contextlib import contextmanager
 import psutil
+
+
 @contextmanager
 def timeout(seconds):
     """From: http://stackoverflow.com/a/601168/1336939"""
+
     def signal_handler(signum, frame):
         raise HardTimeoutException("Hard Timed out after {}s!".format(seconds))
 
@@ -13,6 +16,7 @@ def timeout(seconds):
         yield
     finally:
         signal.alarm(0)
+
 
 class TimeoutException(Exception):
     pass
@@ -53,9 +57,38 @@ class TcpdumpTimeoutError(Exception):
 
 def pick_specific_webs(listdir):
     l = []
-    with open(listdir,"r") as f:
+    with open(listdir, "r") as f:
         lines = f.readlines()
     for line in lines:
         line = int(line.split("\n")[0])
         l.append(line)
     return l
+
+
+# from https://github.com/onionpop/tor-browser-crawler/blob/master/tbcrawler/crawler.py
+def is_connection_error_page(page_source):
+    """Check if we get a connection error, i.e. 'Problem loading page'."""
+    return "entity connectionFailure.title" in page_source
+
+
+def has_captcha(page_source):
+    keywords = ['recaptcha_submit',
+                'manual_recaptcha_challenge_field']
+    return any(keyword in page_source for keyword in keywords)
+
+
+def check_conn_error(driver):
+    if driver.current_url == "about:newtab":
+        print('Stuck in about:newtab')
+        return True
+    if is_connection_error_page(driver.page_source.strip().lower()):
+        print('Connection Error')
+        return True
+    return False
+
+
+def check_captcha(page_source):
+    if has_captcha(page_source):
+        print('captcha found')
+        return True
+    return False
