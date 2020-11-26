@@ -224,9 +224,9 @@ def crawl_without_cap(url, filename, s):
     for i in range(tries):
         try:
             pid = None
-            with ut.timeout(BROWSER_LAUNCH_TIMEOUT):
-                driver = get_driver()
-                pid = driver.service.process.pid
+            # with ut.timeout(BROWSER_LAUNCH_TIMEOUT):
+            driver = get_driver()
+            pid = driver.service.process.pid
         except Exception as exc:
             if i < tries - 1:
                 logger.error("Fail to launch browser, retry {} times, Err msg:{}".format(tries - (i + 1), exc))
