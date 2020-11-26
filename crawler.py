@@ -143,8 +143,35 @@ def get_driver():
     return driver
 
 
-def crawl_without_cap(url, filename, s):
+def check_conn_error(driver):
+    if driver.current_url == "about:newtab":
+        logger.warning('Stuck in about:newtab')
+        return True
+    if driver.is_connection_error_page:
+        logger.warning('Connection Error')
+        return True
+    return False
+
+
+def check_captcha(page_source):
+    if has_captcha(page_source):
+        logger.warning('captcha found')
+        return True
+    return False
+
+
+def has_captcha(page_source):
+    keywords = ['recaptcha_submit',
+                'manual_recaptcha_challenge_field']
+    return any(keyword in page_source for keyword in keywords)
+
+
+def write_to_badlist(filename, reason):
     global batch_dump_dir
+    with open(join(batch_dump_dir, 'bad.list'), 'a+') as f:
+        f.write(filename + '\t' + reason + '\n')
+
+def crawl_without_cap(url, filename, s):
     # try to launch driver
     tries = 3
     for i in range(tries):
@@ -171,21 +198,23 @@ def crawl_without_cap(url, filename, s):
             with open(golang_communication_path, 'w') as f:
                 f.write('StartRecord\n')
                 f.write('{}.cell'.format(filename))
-            time.sleep(0.05) # the golang process scan the switch file every 50 millisecond
+            time.sleep(0.05)  # the golang process scan the switch file every 50 millisecond
             logger.info("Start capturing.")
             start = time.time()
             driver.get(url)
             if s:
                 driver.get_screenshot_as_file(filename + '.png')
             time.sleep(1)
+            if check_conn_error(driver):
+                write_to_badlist(filename+'.cell', "ConnError")
+            elif check_captcha(driver.page_source.encode('utf-8').strip().lower()):
+                write_to_badlist(filename+'.cell', "HasCaptcha")
     except (ut.HardTimeoutException, TimeoutException):
         logger.warning("{} got timeout".format(url))
-        with open(join(batch_dump_dir, 'bad.list'), 'a+') as f:
-            f.write(filename + '.cell' + '\n')
+        write_to_badlist(filename + '.cell', "Timeout")
     except Exception as exc:
         logger.warning("Unknow error:{}".format(exc))
-        with open(join(batch_dump_dir, 'bad.list'), 'a+') as f:
-            f.write(filename + '.cell' + '\n')
+        write_to_badlist(filename + '.cell', "OtherError")
     finally:
         t = time.time() - start
         # kill firefox
@@ -289,7 +318,6 @@ def main(args):
         l_inds = ut.pick_specific_webs(l)
         assert len(l_inds) > 0
 
-
     batch_dump_dir = init_directories(args.mode, args.u)
     controller = TorController(torrc_path=torrc_path)
 
@@ -348,7 +376,6 @@ def main(args):
                 time.sleep(GAP_BETWEEN_BATCHES)
 
 
-
 def sendmail(msg):
     cmd = "python3 " + SendMailPyDir + " -m " + msg
     subprocess.call(cmd, shell=True)
@@ -368,12 +395,12 @@ if __name__ == "__main__":
     except Exception as e:
         msg = "'Crawler Message: An error occurred:\n{}'".format(e)
         sendmail(msg)
-    finally:
+    # finally:
         # clean up bad webs
-        pydir = join(Pardir, "AlexaCrawler", "clean.py")
-        clean_cmd = "python3 "+ pydir + " " + batch_dump_dir
-        subprocess.call(clean_cmd, shell=True)
-        logger.info("Clean up bad loads.")
+        # pydir = join(Pardir, "AlexaCrawler", "clean.py")
+        # clean_cmd = "python3 " + pydir + " " + batch_dump_dir
+        # subprocess.call(clean_cmd, shell=True)
+        # logger.info("Clean up bad loads.")
         # subprocess.call("sudo killall tor", shell=True)
         # logger.info("Tor killed!")
         # if args.p and args.c:
