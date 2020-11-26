@@ -205,7 +205,7 @@ def crawl_without_cap(url, filename, s):
         with open(golang_communication_path, 'w') as f:
             f.write('StopRecord')
         logger.info("Stop capturing, save to {}.cell.".format(filename))
-        logger.info("Webpage loaded {:.2f}s".format(t))
+        logger.info("Loaded {:.2f}s".format(t))
         time.sleep(GAP_BETWEEN_SITES)
 
 
