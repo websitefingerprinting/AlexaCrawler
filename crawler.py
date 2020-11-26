@@ -135,6 +135,10 @@ def get_driver():
     profile.set_preference("browser.cache.memory.enable", False)
     profile.set_preference("browser.cache.offline.enable", False)
     profile.set_preference("network.http.use-cache", False)
+    profile.set_preference("network.http.pipelining.max - optimistic - requests", 5000)
+    profile.set_preference("network.http.pipelining.maxrequests",15000)
+    profile.set_preference("network.http.pipelining",False)
+    
     profile.update_preferences()
     opts = Options()
     opts.headless = True
