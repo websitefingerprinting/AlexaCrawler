@@ -117,18 +117,23 @@ def parse_arguments():
                         type=str,
                         default=None,
                         help='Crawl specific unmon sites, given a list')
-    parser.add_argument('-log',
+    parser.add_argument('-crawllog',
                         type=str,
                         metavar='<log path>',
                         default=None,
-                        help='path to the log file. It will print to stdout by default.')
-
+                        help='path to the crawler log file. It will print to stdout by default.')
+    parser.add_argument('-tbblog',
+                        type=str,
+                        metavar='<log path>',
+                        default=None,
+                        help='path to the tbb log file. It will print to stdout by default.')
     # Parse arguments
     args = parser.parse_args()
     return args
 
 
 def get_driver():
+    global tbblog
     # profile = webdriver.FirefoxProfile()
     # profile.set_preference("network.proxy.type", 1)
     # profile.set_preference("network.proxy.socks", "127.0.0.1")
@@ -154,7 +159,8 @@ def get_driver():
     }
     caps = DesiredCapabilities().FIREFOX
     caps['pageLoadStrategy'] = 'normal'
-    driver = TorBrowserDriver(tbb_path=cm.TBB_PATH, tor_cfg=1, pref_dict=ffprefs,\
+    driver = TorBrowserDriver(tbb_path=cm.TBB_PATH, tor_cfg=1, pref_dict=ffprefs, \
+                              tbb_logfile_path=tbblog,\
                               socks_port=9050, capabilities=caps, headless=True)
     driver.set_page_load_timeout(SOFT_VISIT_TIMEOUT)
     return driver
@@ -335,7 +341,8 @@ def crawl(url, filename, guards, s, device):
 
 
 def main(args):
-    global batch_dump_dir
+    global batch_dump_dir, tbblog
+    tbblog = args.tbblog
     start, end, m, s, b = args.start, args.end, args.m, args.s, args.b
     assert end > start
     torrc_path = args.torrc
@@ -427,7 +434,7 @@ def sendmail(msg):
 if __name__ == "__main__":
     try:
         args = parse_arguments()
-        logger = config_logger(args.log)
+        logger = config_logger(args.crawllog)
         logger.info(args)
         main(args)
         msg = "'Crawler Message:Crawl done at {}!'".format(datetime.datetime.now())
