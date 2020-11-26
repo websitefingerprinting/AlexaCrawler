@@ -144,7 +144,7 @@ def get_driver():
 
 
 def crawl_without_cap(url, filename, s):
-    global bad_list
+    global batch_dump_dir
     # try to launch driver
     tries = 3
     for i in range(tries):
@@ -180,10 +180,12 @@ def crawl_without_cap(url, filename, s):
             time.sleep(1)
     except (ut.HardTimeoutException, TimeoutException):
         logger.warning("{} got timeout".format(url))
-        bad_list.append(filename+'.cell')
+        with open(join(batch_dump_dir, 'bad.list'), 'a+') as f:
+            f.write(filename + '.cell' + '\n')
     except Exception as exc:
         logger.warning("Unknow error:{}".format(exc))
-        bad_list.append(filename+'.cell')
+        with open(join(batch_dump_dir, 'bad.list'), 'a+') as f:
+            f.write(filename + '.cell' + '\n')
     finally:
         t = time.time() - start
         # kill firefox
@@ -261,7 +263,7 @@ def crawl(url, filename, guards, s, device):
 
 
 def main(args):
-    global batch_dump_dir, bad_list
+    global batch_dump_dir
     start, end, m, s, b = args.start, args.end, args.m, args.s, args.b
     assert end > start
     torrc_path = args.torrc
@@ -287,7 +289,7 @@ def main(args):
         l_inds = ut.pick_specific_webs(l)
         assert len(l_inds) > 0
 
-    bad_list = []
+
     batch_dump_dir = init_directories(args.mode, args.u)
     controller = TorController(torrc_path=torrc_path)
 
@@ -344,9 +346,7 @@ def main(args):
                             crawl_without_cap(website, filename, s)
                 logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
                 time.sleep(GAP_BETWEEN_BATCHES)
-    with open(join(batch_dump_dir,'bad.list'),'w') as f:
-        for w in bad_list:
-            f.write(w+'\n')
+
 
 
 def sendmail(msg):
