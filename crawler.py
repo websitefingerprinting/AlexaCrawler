@@ -13,6 +13,7 @@ from torcontroller import *
 import logging
 import math
 import datetime
+import glob
 
 
 def config_logger(log_file):
@@ -151,6 +152,47 @@ def write_to_badlist(filename, reason):
     global batch_dump_dir
     with open(join(batch_dump_dir, 'bad.list'), 'a+') as f:
         f.write(filename + '\t' + reason + '\n')
+
+
+def clean_up(take_screenshot):
+    global batch_dump_dir
+    ConnError = 1
+    HasCaptcha = 1
+    Timeout = 1
+    OtherError = 1
+    NoScreenshot = 1
+
+    bad_list = set()
+    if os.path.exists(join(batch_dump_dir, 'bad.list')):
+        with open(join(batch_dump_dir, 'bad.list'), 'r') as f:
+            tmp = f.readlines()
+            for entry in tmp:
+                entry = entry.rstrip('\n').split('\t')
+                bad_list.add((entry[0], entry[1]))
+    error_num = len(bad_list)
+    if take_screenshot:
+        trace_list = glob.glob(join(batch_dump_dir, "*.cell"))
+        for trace in trace_list:
+            screenshot_filename = trace.replace(".cell", ".png")
+            if not os.path.exists(screenshot_filename):
+                bad_list.add((trace, "NoScreenshot"))
+
+    no_screenshot_num = len(bad_list) - error_num
+    logger.info("Found {} (error) + {} (screenshot) bad loadings.".format(error_num, no_screenshot_num))
+    for bad_item in bad_list:
+        w, reason = bad_item[0], bad_item[1]
+        if reason == 'ConnError' and ConnError:
+            subprocess.call("rm " + w, shell=True)
+        elif reason == 'HasCaptcha' and HasCaptcha:
+            subprocess.call("rm " + w, shell=True)
+        elif reason == 'Timeout' and Timeout:
+            subprocess.call("rm " + w, shell=True)
+        elif reason == 'OtherError' and OtherError:
+            subprocess.call("rm " + w, shell=True)
+        elif reason == 'NoScreenshot' and NoScreenshot:
+            subprocess.call("rm " + w, shell=True)
+        else:
+            logger.warning("Unknown reason:{}".format(reason))
 
 
 def crawl_without_cap(url, filename, s):
@@ -364,7 +406,6 @@ def sendmail(msg):
 
 
 if __name__ == "__main__":
-    global batch_dump_dir
     try:
         args = parse_arguments()
         logger = config_logger(args.log)
@@ -377,8 +418,9 @@ if __name__ == "__main__":
     except Exception as e:
         msg = "'Crawler Message: An error occurred:\n{}'".format(e)
         sendmail(msg)
-    # finally:
-    # clean up bad webs
+    finally:
+        # clean up bad webs
+        clean_up(args.s)
     # pydir = join(Pardir, "AlexaCrawler", "clean.py")
     # clean_cmd = "python3 " + pydir + " " + batch_dump_dir
     # subprocess.call(clean_cmd, shell=True)
