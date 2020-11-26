@@ -241,9 +241,16 @@ def crawl_without_cap(url, filename, s):
         write_to_badlist(filename + '.cell', "OtherError")
     finally:
         t = time.time() - start
-        # kill firefox
-        ut.kill_all_children(pid)
-        subprocess.call('rm -rf /tmp/*', shell=True)  # since we use pid to kill firefox, we should clean up tmp too
+        try:
+            # kill firefox
+            with ut.timeout(5):
+                driver.quit()
+        except Exception as exc:
+            # if driver.quit() cann't kill, use pid instead
+            logger.error("Error when kill firefox: {}".format(exc))
+            ut.kill_all_children(pid)
+            subprocess.call('rm -rf /tmp/*', shell=True)  # since we use pid to kill firefox, we should clean up tmp too
+            logger.info("Firefox killed by pid.")
         with open(golang_communication_path, 'w') as f:
             f.write('StopRecord')
         logger.info("Stop capturing, save to {}.cell.".format(filename))
