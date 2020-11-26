@@ -9,6 +9,7 @@ from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from tbselenium.tbdriver import TorBrowserDriver
+from tbselenium.utils import start_xvfb, stop_xvfb
 import utils as ut
 from common import *
 from torcontroller import *
@@ -155,13 +156,16 @@ def get_driver():
         "browser.cache.disk.enable":False,
         "browser.cache.memory.enable":False,
         "browser.cache.offline.enable":False,
-        "network.http.use-cache": False
+        "network.http.use-cache": False,
+        "network.http.pipelining.max-optimistic-requests": 5000,
+        "network.http.pipelining.maxrequests": 15000,
+        "network.http.pipelining": False
     }
     caps = DesiredCapabilities().FIREFOX
     caps['pageLoadStrategy'] = 'normal'
     driver = TorBrowserDriver(tbb_path=cm.TBB_PATH, tor_cfg=1, pref_dict=ffprefs, \
                               tbb_logfile_path=tbblog,\
-                              socks_port=9050, capabilities=caps, headless=True)
+                              socks_port=9050, capabilities=caps)
     driver.set_page_load_timeout(SOFT_VISIT_TIMEOUT)
     return driver
 
@@ -266,14 +270,14 @@ def crawl_without_cap(url, filename, s):
         t = time.time() - start
         try:
             # kill firefox
-            with ut.timeout(5):
+            with ut.timeout(10):
                 driver.quit()
                 logger.info("Firefox quit successfully.")
         except Exception as exc:
             # if driver.quit() cann't kill, use pid instead
             logger.error("Error when kill firefox: {}".format(exc))
             ut.kill_all_children(pid)
-            subprocess.call('rm -rf /tmp/*', shell=True)  # since we use pid to kill firefox, we should clean up tmp too
+            # subprocess.call('rm -rf /tmp/*', shell=True)  # since we use pid to kill firefox, we should clean up tmp too
             logger.info("Firefox killed by pid.")
         with open(golang_communication_path, 'w') as f:
             f.write('StopRecord')
@@ -439,6 +443,7 @@ def sendmail(msg):
 
 if __name__ == "__main__":
     try:
+        xvfb_display = start_xvfb(1280, 800)
         args = parse_arguments()
         logger = config_logger(args.crawllog)
         logger.info(args)
@@ -451,6 +456,7 @@ if __name__ == "__main__":
         msg = "'Crawler Message: An error occurred:\n{}'".format(e)
         sendmail(msg)
     finally:
+        stop_xvfb(xvfb_display)
         # clean up bad webs
         clean_up(args.s)
     # pydir = join(Pardir, "AlexaCrawler", "clean.py")
