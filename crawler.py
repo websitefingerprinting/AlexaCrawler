@@ -153,13 +153,13 @@ def get_driver():
     # opts.headless = True
     # driver = webdriver.Firefox(firefox_profile=profile, options=opts)
     ffprefs = {
-        "browser.cache.disk.enable":False,
-        "browser.cache.memory.enable":False,
-        "browser.cache.offline.enable":False,
-        "network.http.use-cache": False,
-        "network.http.pipelining.max-optimistic-requests": 5000,
-        "network.http.pipelining.maxrequests": 15000,
-        "network.http.pipelining": False
+        # "browser.cache.disk.enable":False,
+        # "browser.cache.memory.enable":False,
+        # "browser.cache.offline.enable":False,
+        # "network.http.use-cache": False,
+        # "network.http.pipelining.max-optimistic-requests": 5000,
+        # "network.http.pipelining.maxrequests": 15000,
+        # "network.http.pipelining": False
     }
     caps = DesiredCapabilities().FIREFOX
     caps['pageLoadStrategy'] = 'normal'
