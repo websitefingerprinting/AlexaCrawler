@@ -167,7 +167,7 @@ def get_driver():
     }
     caps = DesiredCapabilities().FIREFOX
     caps['pageLoadStrategy'] = 'normal'
-    driver = TorBrowserDriver(tbb_path=cm.TBB_PATH, tor_cfg=1, pref_dict=ffprefs, \
+    driver = TorBrowserDriver(tbb_path=TBB_PATH, tor_cfg=1, pref_dict=ffprefs, \
                               tbb_logfile_path=tbblog,\
                               socks_port=9050, capabilities=caps)
     driver.set_page_load_timeout(SOFT_VISIT_TIMEOUT)
