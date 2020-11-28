@@ -18,6 +18,10 @@ import math
 import datetime
 import glob
 
+# do remember to change this when use host or docker container to crawl
+golang_communication_path = '/home/docker/switch.txt'
+TBB_PATH = '/home/docker/tor-browser_en-US/'
+
 
 def config_logger(log_file):
     logger = logging.getLogger("crawler")

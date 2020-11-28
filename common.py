@@ -1,6 +1,5 @@
 from os.path import join, abspath, dirname, pardir
 import logging
-from os.path import expanduser
 logger = logging.getLogger("crawler")
 
 
@@ -10,9 +9,8 @@ Pardir = abspath(join(dirname(__file__), pardir))
 DumpDir = join( Pardir , "AlexaCrawler/dump")
 ListDir = join( Pardir, "AlexaCrawler/list")
 SendMailPyDir = join(Pardir, "AlexaCrawler/private/sendmail.py")
-golang_communication_path = join(expanduser("~"), 'switch.txt')
 
-TBB_PATH = '/home/docker/tor-browser_en-US/'
+
 
 BROWSER_LAUNCH_TIMEOUT = 10
 SOFT_VISIT_TIMEOUT = 70
