@@ -40,13 +40,20 @@ def check(fdir):
 if __name__ == '__main__':
     args = parse_arguments()
     flist = glob(join(args.dir, "*.png"))
-
-    with mp.Pool(10) as p:
-        filter = p.map(check, flist)
+    # with mp.Pool(10) as p:
+    #     filter = p.map(check, flist)
+    filter = []
+    for i,fdir in enumerate(flist):
+        if i % 200 == 0:
+            print("Complete {}/{}".format(i, len(flist)))
+        filter.append(check(fdir))
     res = list(compress(flist, filter))
     subprocess.call("chmod -R 777 "+args.dir, shell=True)
+    cnt = 0
     for sdir in res:
         subprocess.call("rm "+sdir, shell=True)
         fdir = sdir.replace(".png",".cell")
-        subprocess.call("rm " + fdir, shell=True)
-    print("Remove {}/{} bad loadings.".format(len(res), len(flist)))
+        if os.path.exists(fdir):
+            cnt += 1
+            subprocess.call("rm " + fdir, shell=True)
+    print("Remove {}/{} bad loadings.".format(cnt, len(flist)))
