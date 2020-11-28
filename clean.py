@@ -1,14 +1,24 @@
 from os.path import join
 import numpy as np
 import subprocess
+import multiprocessing as mp
 import argparse
-from scapy.all import *
-
-docker_home_path = '/home/docker'
-host_home_path = '/home/jgongac'
+from PIL import Image
+from pytesseract import image_to_string
+from glob import glob
+from itertools import compress
+import re
+keywords = ['accessdenied',
+            'troubleshoot',
+            'requestblock',
+            'dnserror',
+            'notarobot',
+            'recaptcha',
+            '[0-9][0-9][0-9]error',
+            'error[0-9][0-9][0-9]']
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description='Filter out error or timeout pages.')
+    parser = argparse.ArgumentParser(description='Filter out error or captcha check by screenshot')
 
     parser.add_argument('dir',
                         type=str,
@@ -19,19 +29,24 @@ def parse_arguments():
     args = parser.parse_args()
     return args
 
+def check(fdir):
+    txt = image_to_string(Image.open(fdir))
+    txt = txt.replace(" ","").replace("\n"," ").lower()
+    for keyword in keywords:
+        if bool(re.search(keyword, txt)):
+            return True
+    return False
+
 if __name__ == '__main__':
     args = parse_arguments()
-    badlistdir = join(args.dir, 'bad.list')
-    if not os.path.exists(badlistdir):
-        print("Bad list not exists.")
-        exit(0)
-    subprocess.call("sudo chmod -R 777 "+args.dir, shell=True)
-    with open(badlistdir,'r') as f:
-        bad_websites = f.readlines()
-    cnt = 0
-    for w in bad_websites:
-        w = w.rstrip('\n')
-        w = w.replace(docker_home_path, host_home_path)
-        subprocess.call("rm "+w, shell=True)
-        cnt += 1
-    print("Successfully removed {} traces.".format(cnt))
+    flist = glob(join(args.dir, "*.png"))
+
+    with mp.Pool(10) as p:
+        filter = p.map(check, flist)
+    res = list(compress(flist, filter))
+    subprocess.call("chmod -R 777 "+args.dir, shell=True)
+    for sdir in res:
+        subprocess.call("rm "+sdir, shell=True)
+        fdir = sdir.replace(".png",".cell")
+        subprocess.call("rm " + fdir, shell=True)
+    print("Remove {}/{} bad loadings.".format(len(res), len(flist)))
