@@ -1,4 +1,5 @@
 from os.path import join
+import os
 import numpy as np
 import subprocess
 import multiprocessing as mp
@@ -48,7 +49,7 @@ if __name__ == '__main__':
             print("Complete {}/{}".format(i, len(flist)))
         filter.append(check(fdir))
     res = list(compress(flist, filter))
-    subprocess.call("chmod -R 777 "+args.dir, shell=True)
+    subprocess.call("sudo chmod -R 777 "+args.dir, shell=True)
     cnt = 0
     for sdir in res:
         subprocess.call("rm "+sdir, shell=True)
