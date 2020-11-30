@@ -180,13 +180,17 @@ def write_to_badlist(filename, reason):
         f.write(filename + '\t' + reason + '\n')
 
 
-def clean_up(take_screenshot):
+def clean_up():
     global batch_dump_dir
     ConnError = 1
     HasCaptcha = 1
-    Timeout = 1
+    Timeout = 0
     OtherError = 1
-    NoScreenshot = 1
+
+    err_type_cnt = {'ConnError':0,
+                    'HasCptcha':0,
+                    'Timeout':0,
+                    'OtherError':0,}
 
     bad_list = set()
     if os.path.exists(join(batch_dump_dir, 'bad.list')):
@@ -196,15 +200,7 @@ def clean_up(take_screenshot):
                 entry = entry.rstrip('\n').split('\t')
                 bad_list.add((entry[0], entry[1]))
     error_num = len(bad_list)
-    if take_screenshot:
-        trace_list = glob.glob(join(batch_dump_dir, "*.cell"))
-        for trace in trace_list:
-            screenshot_filename = trace.replace(".cell", ".png")
-            if not os.path.exists(screenshot_filename):
-                bad_list.add((trace, "NoScreenshot"))
-
-    no_screenshot_num = len(bad_list) - error_num
-    logger.info("Found {} (error) + {} (screenshot) bad loadings.".format(error_num, no_screenshot_num))
+    logger.info("Found {} bad (including Timeout) loadings.".format(error_num))
     removed_list = set()
     for bad_item in bad_list:
         w, reason = bad_item[0], bad_item[1]
@@ -213,17 +209,20 @@ def clean_up(take_screenshot):
         else:
             removed_list.add(w)
         if reason == 'ConnError' and ConnError:
+            err_type_cnt['ConnError'] += 1
             subprocess.call("rm " + w, shell=True)
         elif reason == 'HasCaptcha' and HasCaptcha:
+            err_type_cnt['HasCptcha'] += 1
             subprocess.call("rm " + w, shell=True)
         elif reason == 'Timeout' and Timeout:
+            err_type_cnt['Timeout'] += 1
             subprocess.call("rm " + w, shell=True)
         elif reason == 'OtherError' and OtherError:
-            subprocess.call("rm " + w, shell=True)
-        elif reason == 'NoScreenshot' and NoScreenshot:
+            err_type_cnt['OtherError'] += 1
             subprocess.call("rm " + w, shell=True)
         else:
             logger.warning("Unknown reason:{}".format(reason))
+    logger.info(err_type_cnt)
 
 
 def crawl_without_cap(url, filename, s):
@@ -462,7 +461,7 @@ if __name__ == "__main__":
     finally:
         stop_xvfb(xvfb_display)
         # clean up bad webs
-        clean_up(args.s)
+        clean_up()
     # pydir = join(Pardir, "AlexaCrawler", "clean.py")
     # clean_cmd = "python3 " + pydir + " " + batch_dump_dir
     # subprocess.call(clean_cmd, shell=True)
