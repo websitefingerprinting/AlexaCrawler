@@ -313,7 +313,8 @@ def crawl(url, filename, guards, s, device):
             src = ' or '.join(guards)
             # start tcpdump
             # cmd = "tcpdump host \(" + src + "\) and tcp -i eth0 -w " + filename+'.pcap'
-            pcap_filter = "tcp and (host " + src + ") and not tcp port 22 and not tcp port 20 "
+            # pcap_filter = "tcp and (host " + src + ") and not tcp port 22 and not tcp port 20 "
+            pcap_filter = ""
             cmd = 'dumpcap -P -a duration:{} -a filesize:{} -i {} -s 0 -f \'{}\' -w {}' \
                 .format(HARD_VISIT_TIMEOUT, MAXDUMPSIZE, device,
                         pcap_filter, filename + '.pcap')
@@ -500,7 +501,7 @@ if __name__ == "__main__":
                 suffix = ""
             if args.mode == 'clean':
                 # use sanity check
-                cmd = "python3 /home/docker/AlexaCrawler/parser.py " + batch_dump_dir + " -s -mode clean -proc_num 1" + suffix
+                cmd = "python3 /home/docker/AlexaCrawler/parser.py " + batch_dump_dir + " -mode clean -proc_num 1" + suffix
                 subprocess.call(cmd, shell=True)
 
             elif args.mode == 'burst':
