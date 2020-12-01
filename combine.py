@@ -40,6 +40,10 @@ def parse_arguments():
 	parser.add_argument('-o',
 						default=None,
 						help='Output combined results to which folder? ')
+	parser.add_argument('-gap',
+						type=int,
+						default=1,
+						help='Should be 1 in most cases, but if you represent one class with several webpages, change it to the correct number.')
 	parser.add_argument('-suffix',
 						type=str,
 						metavar='<suffix>',
@@ -50,7 +54,7 @@ def parse_arguments():
 	args = parser.parse_args()
 	return args
 
-def init_directories(start,end, u):
+def init_directories(start,end,gap,u):
 	global DumpDir
 	# Create a results dir if it doesn't exist yet
 	if not os.path.exists(DumpDir):
@@ -61,7 +65,7 @@ def init_directories(start,end, u):
 		prefix = ""
 	# Define output directory
 	timestamp = time.strftime('%m%d_%H%M%S')
-	output_dir = join(DumpDir, prefix+'dataset'+str(start)+'_'+str(end-1)+'_'+timestamp)
+	output_dir = join(DumpDir, prefix+'dataset'+str(start)+'_'+str(end)+'_'+str(gap)+'_'+timestamp)
 	makedirs(output_dir)
 
 	return output_dir
@@ -79,8 +83,9 @@ if __name__ == '__main__':
 	for folder in folders:
 		raw += glob.glob(join(folder, "*"+args.suffix))
 	print("Total:{}".format(len(raw)))
-	output_dir = init_directories(args.start,args.end, args.u)
-	counter = [0]*args.end
+	output_dir = init_directories(args.start, args.end, args.gap, args.u)
+	cls_num = args.end // args.gap
+	counter = [0]* cls_num
 	# print(raw)
 	for r in raw:
 		filename = r.split("/")[-1].split(args.suffix)[0]
@@ -89,6 +94,7 @@ if __name__ == '__main__':
 			newfilename = filename + args.suffix
 		else:
 			web_id,inst_id = filename.split("-")
+			web_id = str(int(web_id) // args.gap)
 			new_inst_id = str(counter[int(web_id)])
 			newfilename = web_id + "-" + new_inst_id + args.suffix
 		if args.c:
