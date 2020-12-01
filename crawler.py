@@ -220,8 +220,6 @@ def clean_up():
         elif reason == 'OtherError' and OtherError:
             err_type_cnt['OtherError'] += 1
             subprocess.call("rm " + w, shell=True)
-        else:
-            logger.warning("Unknown reason:{}".format(reason))
     logger.info(err_type_cnt)
 
 
