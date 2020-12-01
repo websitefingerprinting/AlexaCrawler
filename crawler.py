@@ -184,7 +184,7 @@ def clean_up():
     global batch_dump_dir
     ConnError = 1
     HasCaptcha = 1
-    Timeout = 0
+    Timeout = 1
     OtherError = 1
 
     err_type_cnt = {'ConnError':0,
@@ -289,8 +289,27 @@ def crawl_without_cap(url, filename, s):
 
 def crawl(url, filename, guards, s, device):
     try:
+        # try to launch driver
+        tries = 5
+        for i in range(tries):
+            try:
+                pid = None
+                # with ut.timeout(BROWSER_LAUNCH_TIMEOUT):
+                driver = get_driver()
+                pid = driver.service.process.pid
+            except Exception as exc:
+                if i < tries - 1:
+                    logger.error("Fail to launch browser, retry {} times, Err msg:{}".format(tries - (i + 1), exc))
+                    if pid:
+                        logger.info("Kill remaining browser process")
+                        ut.kill_all_children(pid)
+                    time.sleep(5)
+                    continue
+                else:
+                    raise OSError("Fail to launch browser after {} tries".format(tries))
+            break
+
         with ut.timeout(HARD_VISIT_TIMEOUT):
-            driver = get_driver()
             src = ' or '.join(guards)
             # start tcpdump
             # cmd = "tcpdump host \(" + src + "\) and tcp -i eth0 -w " + filename+'.pcap'
@@ -312,35 +331,38 @@ def crawl(url, filename, guards, s, device):
             time.sleep(1)
             if s:
                 driver.get_screenshot_as_file(filename + '.png')
+            if ut.check_conn_error(driver):
+                write_to_badlist(filename + '.pcap.filtered', "ConnError")
+            elif ut.check_captcha(driver.page_source.strip().lower()):
+                write_to_badlist(filename + '.pcap.filtered', "HasCaptcha")
     except (ut.HardTimeoutException, TimeoutException):
         logger.warning("{} got timeout".format(url))
+        write_to_badlist(filename + '.pcap.filtered', "Timeout")
     except ut.TcpdumpTimeoutError:
         logger.warning("Fail to launch dumpcap")
     except Exception as exc:
         logger.warning("Unknow error:{}".format(exc))
+        write_to_badlist(filename + '.pcap.filtered', "OtherError")
     finally:
-        # post visit
-        # Log loading time
-        if 'driver' in locals():
-            # avoid exception happens before driver is declared and assigned
-            # which triggers exception here
-            driver.quit()
-        if 'start' in locals():
-            # avoid exception happens before start is declared and assigned
-            # which triggers exception here
-            t = time.time() - start
-            logger.info("Load {:.2f}s".format(t))
-            # with open(filename + '.time', 'w') as f:
-            #     f.write("{:.4f}".format(t))
-        time.sleep(GAP_BETWEEN_SITES)
+        t = time.time() - start
+        try:
+            # kill firefox
+            with ut.timeout(10):
+                driver.quit()
+                logger.info("Firefox quit successfully.")
+        except Exception as exc:
+            # if driver.quit() cann't kill, use pid instead
+            logger.error("Error when kill firefox: {}".format(exc))
+            ut.kill_all_children(pid)
+            psutil.Process(pid).kill()
+            logger.info("Firefox killed by pid.")
+        logger.info("Load {:.2f}s".format(t))
         ut.kill_all_children(pro.pid)
         pro.kill()
-        # subprocess.call("killall dumpcap", shell=True)
         logger.info("Sleep {}s and capture killed, capture {:.2f} MB.".format(GAP_BETWEEN_SITES,
                                                                               os.path.getsize(filename + ".pcap") / (
                                                                                       1024 * 1024)))
-
-        # filter ACKs and retransmission
+        time.sleep(GAP_BETWEEN_SITES)
         if os.path.exists(filename + '.pcap'):
             cmd = 'tshark -r ' + filename + '.pcap' + ' -Y "not(tcp.analysis.retransmission or tcp.len == 0 )" -w ' + filename + ".pcap.filtered"
             subprocess.call(cmd, shell=True)
@@ -349,6 +371,9 @@ def crawl(url, filename, guards, s, device):
             subprocess.call(cmd, shell=True)
         else:
             logger.warning("{} not captured for site {}".format(filename + '.pcap', url))
+
+
+
 
 
 def main(args):
@@ -466,20 +491,20 @@ if __name__ == "__main__":
     # logger.info("Clean up bad loads.")
     # subprocess.call("sudo killall tor", shell=True)
     # logger.info("Tor killed!")
-    # if args.p and args.c:
-    #     # parse raw traffic
-    #     logger.info("Parsing the traffic...")
-    #     if args.u:
-    #         suffix = " -u"
-    #     else:
-    #         suffix = ""
-    #     if args.mode == 'clean':
-    #         # use sanity check
-    #         cmd = "python3 parser.py " + batch_dump_dir + " -s -mode clean -proc_num 1" + suffix
-    #         subprocess.call(cmd, shell=True)
-    #
-    #     elif args.mode == 'burst':
-    #         cmd = "python3 parser.py " + batch_dump_dir + " -mode burst -proc_num 1" + suffix
-    #         subprocess.call(cmd, shell=True)
-    #     else:
-    #         pass
+        if args.p and args.c:
+            # parse raw traffic
+            logger.info("Parsing the traffic...")
+            if args.u:
+                suffix = " -u"
+            else:
+                suffix = ""
+            if args.mode == 'clean':
+                # use sanity check
+                cmd = "python3 parser.py " + batch_dump_dir + " -s -mode clean -proc_num 1" + suffix
+                subprocess.call(cmd, shell=True)
+
+            elif args.mode == 'burst':
+                cmd = "python3 parser.py " + batch_dump_dir + " -mode burst -proc_num 1" + suffix
+                subprocess.call(cmd, shell=True)
+            else:
+                pass
