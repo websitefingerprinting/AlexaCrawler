@@ -9,15 +9,18 @@ from pytesseract import image_to_string
 from glob import glob
 from itertools import compress
 import re
-keywords = ['accessdenied',
+keywords = ['access denied',
             'troubleshoot',
-            'requestblock',
-            'dnserror',
-            'notarobot',
+            'request block',
+            'dns error',
+            'not a robot',
             'recaptcha',
             '[0-9][0-9][0-9]error',
             'error[0-9][0-9][0-9]',
-            'oursystemshavedetectedunusualtraffic']
+            'our systems have detected unusual traffic',
+            'blocked access to this website',
+            'unusual activity from your IP',
+            'please wait for a short time and retry your request again']
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Filter out error or captcha check by screenshot')
@@ -35,7 +38,7 @@ def check(fdir):
     txt = image_to_string(Image.open(fdir))
     txt = txt.replace(" ","").replace("\n"," ").lower()
     for keyword in keywords:
-        if bool(re.search(keyword, txt)):
+        if bool(re.search(keyword.replace(" ",""), txt)):
             return True
     return False
 
