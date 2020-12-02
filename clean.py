@@ -16,7 +16,8 @@ keywords = ['accessdenied',
             'notarobot',
             'recaptcha',
             '[0-9][0-9][0-9]error',
-            'error[0-9][0-9][0-9]']
+            'error[0-9][0-9][0-9]',
+            'oursystemshavedetectedunusualtraffic']
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Filter out error or captcha check by screenshot')
