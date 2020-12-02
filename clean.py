@@ -37,6 +37,9 @@ def parse_arguments():
 def check(fdir):
     txt = image_to_string(Image.open(fdir))
     txt = txt.replace(" ","").replace("\n"," ").lower()
+    if len(txt) == 'loading...':
+        # for some specific websites
+        return True
     for keyword in keywords:
         if bool(re.search(keyword.replace(" ",""), txt)):
             return True
