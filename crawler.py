@@ -398,7 +398,7 @@ def main(args):
     websites = []
     for w in wlist:
         if "https" not in w:
-            websites.append("https://www." + w.rstrip("\n"))
+            websites.append("https://" + w.rstrip("\n"))
         else:
             websites.append(w.rstrip("\n"))
     if u and l:
