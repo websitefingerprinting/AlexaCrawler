@@ -8,7 +8,9 @@ from PIL import Image
 from pytesseract import image_to_string
 from glob import glob
 from itertools import compress
+from difflib import SequenceMatcher
 import re
+
 keywords = ['access denied',
             'troubleshoot',
             'request block',
@@ -22,6 +24,7 @@ keywords = ['access denied',
             'unusual activity from your IP',
             'please wait for a short time and retry your request again']
 
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Filter out error or captcha check by screenshot')
 
@@ -34,16 +37,26 @@ def parse_arguments():
     args = parser.parse_args()
     return args
 
+
+def similar(a, b):
+    # compute similarity of two str
+    return SequenceMatcher(None, a, b).ratio()
+
+
 def check(fdir):
     txt = image_to_string(Image.open(fdir))
-    txt = txt.replace(" ","").replace("\n"," ").lower()
-    if len(txt) == 'loading...':
+    txt = txt.replace(" ", "").replace("\n", " ").lower()
+
+    if similar(txt, 'loading...') >= 0.9:
         # for some specific websites
         return True
     for keyword in keywords:
-        if bool(re.search(keyword.replace(" ",""), txt)):
+        if bool(re.search(keyword.replace(" ", ""), txt)):
+            return True
+        if similar(txt, keyword) >= 0.9:
             return True
     return False
+
 
 if __name__ == '__main__':
     args = parse_arguments()
@@ -51,16 +64,16 @@ if __name__ == '__main__':
     # with mp.Pool(10) as p:
     #     filter = p.map(check, flist)
     filter = []
-    for i,fdir in enumerate(flist):
+    for i, fdir in enumerate(flist):
         if i % 200 == 0:
             print("Complete {}/{}".format(i, len(flist)))
         filter.append(check(fdir))
     res = list(compress(flist, filter))
-    subprocess.call("sudo chmod -R 777 "+args.dir, shell=True)
+    subprocess.call("sudo chmod -R 777 " + args.dir, shell=True)
     cnt = 0
     for sdir in res:
-        subprocess.call("rm "+sdir, shell=True)
-        fdir = sdir.replace(".png",".cell")
+        subprocess.call("rm " + sdir, shell=True)
+        fdir = sdir.replace(".png", ".cell")
         if os.path.exists(fdir):
             cnt += 1
             subprocess.call("rm " + fdir, shell=True)
