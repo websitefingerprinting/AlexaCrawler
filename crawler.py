@@ -401,7 +401,7 @@ def main(args):
             websites.append("https://" + w.rstrip("\n"))
         else:
             websites.append(w.rstrip("\n"))
-    if u and l:
+    if l:
         l_inds = ut.pick_specific_webs(l)
         assert len(l_inds) > 0
 
@@ -450,6 +450,9 @@ def main(args):
                 # print(guards)
                 for wid, website in enumerate(websites):
                     wid = wid + start
+                    if l:
+                        if wid not in l_inds:
+                            continue
                     for mm in range(m):
                         i = bb * m + mm
                         filename = join(batch_dump_dir, str(wid) + '-' + str(i))
