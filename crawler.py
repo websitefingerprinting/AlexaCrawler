@@ -121,7 +121,7 @@ def parse_arguments():
     parser.add_argument('-l',
                         type=str,
                         default=None,
-                        help='Crawl specific unmon sites, given a list')
+                        help='Crawl specific sites, given a list')
     parser.add_argument('-crawllog',
                         type=str,
                         metavar='<log path>',
