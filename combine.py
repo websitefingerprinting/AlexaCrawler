@@ -33,6 +33,10 @@ def parse_arguments():
 						action='store_true',
 						default=False,
 						help='Keep a copy of original dataset? (default:False)')
+	parser.add_argument('-s',
+						action='store_true',
+						default=False,
+						help='Keep a copy of original screenshots? (default:False)')
 	parser.add_argument('-u',
 						action='store_true',
 						default=False,
@@ -106,7 +110,7 @@ if __name__ == '__main__':
 		subprocess.call(cmd, shell=True)
 
 		origin_screen_dir = r.replace(args.suffix, ".png")
-		if os.path.exists(origin_screen_dir):
+		if args.s and os.path.exists(origin_screen_dir):
 			new_screen_dir = join(output_dir, newfilename).replace(args.suffix, ".png")
 			cmd = command + origin_screen_dir + " " + new_screen_dir
 			subprocess.call(cmd,shell=True)
