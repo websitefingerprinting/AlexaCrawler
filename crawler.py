@@ -225,7 +225,8 @@ def clean_up():
 
 def crawl_without_cap(url, filename, s):
     # try to launch driver
-    tries = 5
+    tries = 3
+    sleeptime = 5
     for i in range(tries):
         try:
             pid = None
@@ -238,7 +239,8 @@ def crawl_without_cap(url, filename, s):
                 if pid:
                     logger.info("Kill remaining browser process")
                     ut.kill_all_children(pid)
-                time.sleep(5)
+                time.sleep(sleeptime)
+                sleeptime += 10
                 continue
             else:
                 raise OSError("Fail to launch browser after {} tries".format(tries))
