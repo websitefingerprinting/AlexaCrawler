@@ -476,7 +476,7 @@ def main(args):
 
 
 def sendmail(who, msg):
-    cmd = "python3 " + SendMailPyDir + " -m " + msg + "-w " + who
+    cmd = "python3 " + SendMailPyDir + " -m " + msg + " -w " + who
     subprocess.call(cmd, shell=True)
 
 
