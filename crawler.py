@@ -132,6 +132,11 @@ def parse_arguments():
                         metavar='<log path>',
                         default=None,
                         help='path to the tbb log file. It will print to stdout by default.')
+    parser.add_argument('-who',
+                        type=str,
+                        metavar='<email sender>',
+                        default='',
+                        help='The name of the sender that will send an email after finishing crawling.')
     # Parse arguments
     args = parser.parse_args()
     return args
@@ -483,12 +488,12 @@ if __name__ == "__main__":
         logger.info(args)
         main(args)
         msg = "'Crawler Message:Crawl done at {}!'".format(datetime.datetime.now())
-        sendmail(msg)
+        sendmail(args.who, msg)
     except KeyboardInterrupt:
         sys.exit(-1)
     except Exception as e:
         msg = "'Crawler Message: An error occurred:\n{}'".format(e)
-        sendmail(msg)
+        sendmail(args.who, msg)
     finally:
         stop_xvfb(xvfb_display)
         # clean up bad webs
@@ -499,20 +504,20 @@ if __name__ == "__main__":
     # logger.info("Clean up bad loads.")
     # subprocess.call("sudo killall tor", shell=True)
     # logger.info("Tor killed!")
-        if args.p and args.c:
-            # parse raw traffic
-            logger.info("Parsing the traffic...")
-            if args.u:
-                suffix = " -u"
-            else:
-                suffix = ""
-            if args.mode == 'clean':
-                # use sanity check
-                cmd = "python3 /home/docker/AlexaCrawler/parser.py " + batch_dump_dir + " -mode clean -proc_num 1" + suffix
-                subprocess.call(cmd, shell=True)
+        # if args.p and args.c:
+        #     # parse raw traffic
+        #     logger.info("Parsing the traffic...")
+        #     if args.u:
+        #         suffix = " -u"
+        #     else:
+        #         suffix = ""
+        #     if args.mode == 'clean':
+        #         # use sanity check
+        #         cmd = "python3 /home/docker/AlexaCrawler/parser.py " + batch_dump_dir + " -mode clean -proc_num 1" + suffix
+        #         subprocess.call(cmd, shell=True)
 
-            elif args.mode == 'burst':
-                cmd = "python3 /home/docker/AlexaCrawler/parser.py " + batch_dump_dir + " -mode burst -proc_num 1" + suffix
-                subprocess.call(cmd, shell=True)
-            else:
-                pass
+        #     elif args.mode == 'burst':
+        #         cmd = "python3 /home/docker/AlexaCrawler/parser.py " + batch_dump_dir + " -mode burst -proc_num 1" + suffix
+        #         subprocess.call(cmd, shell=True)
+        #     else:
+        #         pass
