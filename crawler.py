@@ -475,8 +475,8 @@ def main(args):
                 time.sleep(GAP_BETWEEN_BATCHES)
 
 
-def sendmail(msg):
-    cmd = "python3 " + SendMailPyDir + " -m " + msg
+def sendmail(who, msg):
+    cmd = "python3 " + SendMailPyDir + " -m " + msg + "-w " + who
     subprocess.call(cmd, shell=True)
 
 
