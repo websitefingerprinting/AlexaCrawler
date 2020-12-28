@@ -30,9 +30,13 @@ def parse_arguments():
 						default=50,
 						help='End to which site in the list (exclude this ind).')
 	parser.add_argument('-c',
-						action='store_true',
-						default=False,
-						help='Keep a copy of original dataset? (default:False)')
+						action='store_false',
+						default=True,
+						help='Keep a copy of original dataset? (default:True)')
+	parser.add_argument('-d',
+						action='store_false',
+						default=True,
+						help='Delete original folders after the merge? (default:True)')
 	parser.add_argument('-s',
 						action='store_true',
 						default=False,
@@ -43,7 +47,7 @@ def parse_arguments():
 						help='is monitored webpage or unmonitored? (default:is monitored, False)')
 	parser.add_argument('-o',
 						default=None,
-						help='Output combined results to which folder? ')
+						help='Output combined results to which parent folder? ')
 	parser.add_argument('-gap',
 						type=int,
 						default=1,
@@ -58,7 +62,7 @@ def parse_arguments():
 	args = parser.parse_args()
 	return args
 
-def init_directories(start,end,gap,u):
+def init_directories(start, end, gap, u):
 	global DumpDir
 	# Create a results dir if it doesn't exist yet
 	if not os.path.exists(DumpDir):
@@ -69,20 +73,24 @@ def init_directories(start,end,gap,u):
 		prefix = ""
 	# Define output directory
 	timestamp = time.strftime('%m%d_%H%M%S')
-	output_dir = join(DumpDir, prefix+'dataset'+str(start)+'_'+str(end)+'_'+str(gap)+'_'+timestamp)
+	if gap != 1:
+		output_dir = join(DumpDir, prefix+'dataset'+str(start)+'_'+str(end)+'_'+str(gap)+'_'+timestamp)
+	else:
+		output_dir = join(DumpDir, prefix + 'dataset' + str(start) + '_' + str(end) + '_' + timestamp)
 	makedirs(output_dir)
 
 	return output_dir
 
 if __name__ == '__main__':
 	global DumpDir
+
 	args = parse_arguments()
 	if args.o:
 		DumpDir = args.o
 	else:
 		#default
 		DumpDir = join(Pardir, "AlexaCrawler/parsed")
-	folders = args.dirlist
+	folders = list(set(args.dirlist)) # remove duplicates
 	raw = []
 	for folder in folders:
 		raw += glob.glob(join(folder, "*"+args.suffix))
@@ -121,4 +129,7 @@ if __name__ == '__main__':
 			print("#{}:{}".format(i, counter[i]))
 	print("Merged to {}".format(output_dir))
 
-
+	if args.d:
+		for folder in folders:
+			subprocess.call("rm -r " + folder, shell = True)
+		print("Remove original folders.")
