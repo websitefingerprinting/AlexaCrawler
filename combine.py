@@ -27,12 +27,8 @@ def parse_arguments():
 	parser.add_argument('-end',
 						type=int,
 						metavar='<end ind>',
-						default=50,
+						default=100,
 						help='End to which site in the list (exclude this ind).')
-	parser.add_argument('-c',
-						action='store_false',
-						default=True,
-						help='Keep a copy of original dataset? (default:True)')
 	parser.add_argument('-d',
 						action='store_false',
 						default=True,
@@ -46,7 +42,7 @@ def parse_arguments():
 						default=False,
 						help='is monitored webpage or unmonitored? (default:is monitored, False)')
 	parser.add_argument('-o',
-						default=None,
+						default='./',
 						help='Output combined results to which parent folder? ')
 	parser.add_argument('-gap',
 						type=int,
@@ -109,10 +105,10 @@ if __name__ == '__main__':
 			web_id = str(int(web_id) // args.gap)
 			new_inst_id = str(counter[int(web_id)])
 			newfilename = web_id + "-" + new_inst_id + args.suffix
-		if args.c:
-			command = "cp "
-		else:
+		if args.d:
 			command = "mv "
+		else:
+			command = "cp "
 
 		cmd = command + r + " " +join(output_dir, newfilename)
 		subprocess.call(cmd, shell=True)
