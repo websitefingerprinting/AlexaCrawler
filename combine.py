@@ -105,10 +105,8 @@ if __name__ == '__main__':
 			web_id = str(int(web_id) // args.gap)
 			new_inst_id = str(counter[int(web_id)])
 			newfilename = web_id + "-" + new_inst_id + args.suffix
-		if args.d:
-			command = "mv "
-		else:
-			command = "cp "
+
+		command = "cp "
 
 		cmd = command + r + " " +join(output_dir, newfilename)
 		subprocess.call(cmd, shell=True)
