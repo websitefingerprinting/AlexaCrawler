@@ -49,6 +49,7 @@ def kill_all_children(parent_pid):
             child.kill()
         except psutil.NoSuchProcess:
             continue
+    psutil.Process(parent_pid).kill()
 
 
 class TcpdumpTimeoutError(Exception):

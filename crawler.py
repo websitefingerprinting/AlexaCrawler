@@ -363,8 +363,7 @@ def crawl(url, filename, guards, s, device):
         except Exception as exc:
             # if driver.quit() cann't kill, use pid instead
             logger.error("Error when kill firefox: {}".format(exc))
-            ut.kill_all_children(pid)
-            psutil.Process(pid).kill()
+            ut.kill_all_children(pid)            
             logger.info("Firefox killed by pid.")
         logger.info("Load {:.2f}s".format(t))
         ut.kill_all_children(pro.pid)
@@ -397,13 +396,13 @@ def main(args):
     l = args.l
 
     if u:
-        WebListDir = unmon_list
+        web_list_dir = unmon_list
     else:
-        WebListDir = mon_list
+        web_list_dir = mon_list
     if args.w:
-        WebListDir = args.w
-    with open(WebListDir, 'r') as f:
-        wlist = f.readlines()[start:end]
+        web_list_dir = args.w
+    with open(web_list_dir, 'r') as f:
+        wlist = f.readlines()[start : end]
     websites = []
     for w in wlist:
         if "https" not in w:
