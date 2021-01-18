@@ -42,7 +42,16 @@ def parse_arguments():
 
 def analyse(fdir):
 	with open(fdir , 'r') as f:
-		l = len(f.readlines())
+		tmp = f.readlines()
+		tmp = pd.Series(tmp).str.slice(0,-1).str.split('\t',expand=True).astype(float)
+	trace = np.array(tmp)
+	real_trace = trace[abs(trace[:,1])==1]
+	try:
+		l = real_trace[int(len(real_trace)*0.8)][0]
+	except:
+		# all dummy packets, give a large fake loading time so that hopefully 
+		# this one will not be picked
+		l = 99
 	name = fdir.split("/")[-1]
 	if '-' in name:
 		label = int(name.split("-")[0])
@@ -66,8 +75,7 @@ if __name__ == "__main__":
 	for name, group in grouped:
 		length = len(group)
 		if length > args.m:
-			selected = group.iloc[length//2+args.m//2 - args.m :length//2+args.m//2,:].fdir
-			print("[{},{}] out of [0,{}]".format(length//2+args.m//2 - args.m, length//2+args.m//2,length))
+			selected = group.iloc[length//2 + args.m//2 - args.m : length//2 + args.m//2].fdir
 		else:
 			selected = group.fdir
 		for f in selected:
