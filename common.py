@@ -3,8 +3,8 @@ import logging
 logger = logging.getLogger("crawler")
 
 
-unmon_list = './sites/unmon_sites_1m.list'
-mon_list = './sites/good_mon_sites.list'
+unmon_list = './sites/unmon_sites.txt'
+mon_list = './sites/mon_sites.txt'
 Pardir = abspath(join(dirname(__file__), pardir))
 DumpDir = join( Pardir , "AlexaCrawler/dump")
 ListDir = join( Pardir, "AlexaCrawler/list")
