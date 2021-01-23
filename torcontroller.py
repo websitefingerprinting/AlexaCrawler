@@ -83,7 +83,7 @@ class TorController(object):
     def change_identity(self):
         self.controller.signal(Signal.NEWNYM)
         tmp_t = self.controller.get_newnym_wait()
-        print("[Controller] New Identity, sleep {}".format(tmp_t))
+        print("[Controller] New Identity, sleep {:.0f}s".format(tmp_t))
         time.sleep(tmp_t)
 
     # def close_all_streams(self):
