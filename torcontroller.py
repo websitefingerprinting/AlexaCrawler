@@ -65,7 +65,7 @@ class TorController(object):
     def quit(self):
         """Kill Tor process."""
         if self.tor_process:
-            print("Killing tor process")
+            print("[Controller] Killing tor process")
             self.tor_process.kill()
 
     def launch_tor_service(self):
@@ -82,7 +82,9 @@ class TorController(object):
 
     def change_identity(self):
         self.controller.signal(Signal.NEWNYM)
-        time.sleep(self.controller.get_newnym_wait())
+        tmp_t = self.controller.get_newnym_wait()
+        print("[Controller] New Identity, sleep {}".format(tmp_t))
+        time.sleep(tmp_t)
 
     # def close_all_streams(self):
     #     """Close all streams of a controller."""
