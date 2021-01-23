@@ -3,8 +3,8 @@ import logging
 logger = logging.getLogger("crawler")
 
 
-unmon_list = './sites/unmon_sites.txt'
-mon_list = './sites/mon_sites.txt'
+unmon_list = './sites/Tranco_23Dec_21Jan_2021_top30k_filtered_cp.list'
+mon_list = './sites/Tranco_23Dec_21Jan_2021_top30k_filtered_cp.list'
 Pardir = abspath(join(dirname(__file__), pardir))
 DumpDir = join( Pardir , "AlexaCrawler/dump")
 ListDir = join( Pardir, "AlexaCrawler/list")
@@ -13,7 +13,7 @@ SendMailPyDir = join(Pardir, "AlexaCrawler/private/sendmail.py")
 
 
 BROWSER_LAUNCH_TIMEOUT = 10
-SOFT_VISIT_TIMEOUT = 85
+SOFT_VISIT_TIMEOUT = 90
 HARD_VISIT_TIMEOUT = SOFT_VISIT_TIMEOUT + 10
 MAXDUMPSIZE = 20000 #KB
 GAP_BETWEEN_BATCHES = 5

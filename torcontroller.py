@@ -6,9 +6,10 @@ from os.path import join, isfile, isdir, dirname
 import stem.process
 from stem import CircStatus
 from stem.control import Controller
+from stem import Signal
 from stem.util import term
 import common as cm
-
+import time
 
 class TorController(object):
     def __init__(self,
@@ -78,6 +79,10 @@ class TorController(object):
         self.controller = Controller.from_port(port=self.control_port)
         self.controller.authenticate()
         return self.tor_process
+
+    def change_identity(self):
+        self.controller.signal(Signal.NEWNYM)
+        time.sleep(self.controller.get_newnym_wait())
 
     # def close_all_streams(self):
     #     """Close all streams of a controller."""

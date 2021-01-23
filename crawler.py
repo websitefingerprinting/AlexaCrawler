@@ -445,6 +445,9 @@ def main(args):
                         crawl(website, filename, guards, s, device)
                     else:
                         crawl_without_cap(website, filename, s)
+                    # change identity
+                    controller.change_identity()
+
                 logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
                 time.sleep(GAP_BETWEEN_BATCHES)
     else:
@@ -470,6 +473,9 @@ def main(args):
                             crawl(website, filename, guards, s, device)
                         else:
                             crawl_without_cap(website, filename, s)
+                        # change identity
+                        controller.change_identity()
+
                 logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
                 time.sleep(GAP_BETWEEN_BATCHES)
 
