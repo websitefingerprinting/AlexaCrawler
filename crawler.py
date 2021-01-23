@@ -9,7 +9,7 @@ from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from tbselenium.tbdriver import TorBrowserDriver
-from tbselenium.utils import start_xvfb, stop_xvfb
+# from tbselenium.utils import start_xvfb, stop_xvfb
 import utils as ut
 from common import *
 from torcontroller import *
@@ -19,9 +19,10 @@ import datetime
 import glob
 
 # do remember to change this when use host or docker container to crawl
-golang_communication_path = '/home/docker/switch.txt'
-TBB_PATH = '/home/docker/tor-browser_en-US/'
-
+# golang_communication_path = '/home/docker/switch.txt'
+golang_communication_path = '/Users/aaron/switch.txt'
+# TBB_PATH = '/home/docker/tor-browser_en-US/'
+TBB_PATH = '/Applications/Tor\ Browser.app/Contents/MacOS/firefox'
 
 def config_logger(log_file):
     logger = logging.getLogger("crawler")
@@ -73,7 +74,7 @@ def parse_arguments():
     parser.add_argument('-end',
                         type=int,
                         metavar='<end ind>',
-                        default=50,
+                        default=100,
                         help='End to which site in the list (exclude this ind).')
     parser.add_argument('-b',
                         type=int,
@@ -144,37 +145,23 @@ def parse_arguments():
 
 def get_driver():
     global tbblog
-    # profile = webdriver.FirefoxProfile()
-    # profile.set_preference("network.proxy.type", 1)
-    # profile.set_preference("network.proxy.socks", "127.0.0.1")
-    # profile.set_preference("network.proxy.socks_port", 9050)
-    # profile.set_preference("network.proxy.socks_version", 5)
-    # profile.set_preference("browser.cache.disk.enable", False)
-    # profile.set_preference("browser.cache.memory.enable", False)
-    # profile.set_preference("browser.cache.offline.enable", False)
-    # profile.set_preference("network.http.use-cache", False)
-    # profile.set_preference("network.http.pipelining.max - optimistic - requests", 5000)
-    # profile.set_preference("network.http.pipelining.maxrequests", 15000)
-    # profile.set_preference("network.http.pipelining", False)
-    #
-    # profile.update_preferences()
-    # opts = Options()
-    # opts.headless = True
-    # driver = webdriver.Firefox(firefox_profile=profile, options=opts)
-    ffprefs = {
-        # "browser.cache.disk.enable":False,
-        # "browser.cache.memory.enable":False,
-        # "browser.cache.offline.enable":False,
-        # "network.http.use-cache": False,
-        # "network.http.pipelining.max-optimistic-requests": 5000,
-        # "network.http.pipelining.maxrequests": 15000,
-        # "network.http.pipelining": False
-    }
-    caps = DesiredCapabilities().FIREFOX
-    caps['pageLoadStrategy'] = 'normal'
-    driver = TorBrowserDriver(tbb_path=TBB_PATH, tor_cfg=1, pref_dict=ffprefs, \
-                              tbb_logfile_path=tbblog,\
-                              socks_port=9050, capabilities=caps)
+    profile = webdriver.FirefoxProfile()
+    profile.set_preference("network.proxy.type", 1)
+    profile.set_preference("network.proxy.socks", "127.0.0.1")
+    profile.set_preference("network.proxy.socks_port", 9050)
+    profile.set_preference("network.proxy.socks_version", 5)
+    profile.set_preference("browser.cache.disk.enable", False)
+    profile.set_preference("browser.cache.memory.enable", False)
+    profile.set_preference("browser.cache.offline.enable", False)
+    profile.set_preference("network.http.use-cache", False)
+    profile.set_preference("network.http.pipelining.max - optimistic - requests", 5000)
+    profile.set_preference("network.http.pipelining.maxrequests", 15000)
+    profile.set_preference("network.http.pipelining", False)
+
+    profile.update_preferences()
+    opts = Options()
+    opts.headless = False
+    driver = webdriver.Firefox(firefox_profile=profile, options=opts)
     driver.set_page_load_timeout(SOFT_VISIT_TIMEOUT)
     return driver
 
@@ -487,7 +474,7 @@ def sendmail(who, msg):
 
 if __name__ == "__main__":
     try:
-        xvfb_display = start_xvfb(1280, 800)
+        # xvfb_display = start_xvfb(1280, 800)
         args = parse_arguments()
         logger = config_logger(args.crawllog)
         logger.info(args)
@@ -500,7 +487,7 @@ if __name__ == "__main__":
         msg = "'Crawler Message: An error occurred:\n{}'".format(e)
         sendmail(args.who, msg)
     finally:
-        stop_xvfb(xvfb_display)
+        # stop_xvfb(xvfb_display)
         # clean up bad webs
         clean_up()
     # pydir = join(Pardir, "AlexaCrawler", "clean.py")
