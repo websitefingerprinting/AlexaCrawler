@@ -160,7 +160,7 @@ def get_driver():
 
     profile.update_preferences()
     opts = Options()
-    opts.headless = False
+    opts.headless = True
     driver = webdriver.Firefox(firefox_profile=profile, options=opts)
     driver.set_page_load_timeout(SOFT_VISIT_TIMEOUT)
     return driver
