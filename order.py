@@ -35,7 +35,7 @@ def parse_arguments():
                         action='store_true',
                         default=False,
                         help='is monitored webpage or unmonitored? (default:is monitored, False)')
-    parser.add_argument('-num', '-n',
+    parser.add_argument('--num', '-n',
                         type=int,
                         metavar='<inst num>',
                         default=1,
