@@ -51,7 +51,7 @@ def parse_arguments():
     return args
 
 
-def init_directories(start, end,u):
+def init_directories(start, end, u):
     # Create a results dir if it doesn't exist yet
     if not os.path.exists(DumpDir):
         makedirs(DumpDir)
@@ -61,7 +61,7 @@ def init_directories(start, end,u):
         prefix = ""
     # Define output directory
     timestamp = time.strftime('%m%d_%H%M%S')
-    output_dir = join(DumpDir, prefix + 'dataset' + str(start) + '_' + str(end - 1) + '_' + timestamp)
+    output_dir = join(DumpDir, prefix + 'dataset' + str(start) + '_' + str(end) + '_' + timestamp)
     makedirs(output_dir)
 
     return output_dir
