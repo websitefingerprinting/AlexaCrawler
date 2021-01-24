@@ -50,6 +50,10 @@ def get_incoming_num(fdir):
     with open(fdir, 'r') as f:
         tmp = f.readlines()
     trace = pd.Series(tmp).str.slice(0, -1).str.split('\t', expand=True).astype(float)
+    if len(trace) == 0:
+        print("[Warning] No packet in trace {}".format(fdir))
+        return 0
+
     trace = np.array(trace)[:, 1]
     return len(trace[trace < 0])
 
@@ -92,6 +96,9 @@ if __name__ == '__main__':
             if os.path.exists(fdir):
                 flist_cls.append(fdir)
                 total_file_num += 1
+        if len(flist_cls) == 0:
+            print("[Warning] no trace for class {}".format(i))
+            continue
         flist.append(flist_cls)
 
     res = parallel(flist)
