@@ -189,7 +189,7 @@ def clean_up():
     global batch_dump_dir
     ConnError = 1
     HasCaptcha = 1
-    Timeout = 1
+    Timeout = 0
     OtherError = 1
 
     err_type_cnt = {'ConnError':0,
