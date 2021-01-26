@@ -9,7 +9,7 @@ from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from tbselenium.tbdriver import TorBrowserDriver
-from tbselenium.utils import start_xvfb, stop_xvfb
+#from tbselenium.utils import start_xvfb, stop_xvfb
 import utils as ut
 from common import *
 from torcontroller import *
@@ -19,8 +19,8 @@ import datetime
 import glob
 
 # do remember to change this when use host or docker container to crawl
-golang_communication_path = '/home/docker/switch.txt'
-TBB_PATH = '/home/docker/tor-browser_en-US/'
+golang_communication_path = '/home/jack/Desktop/tor-config/no_use.txt'
+TBB_PATH = '/home/jack/Documents/tor-browser_en-US'
 
 
 def config_logger(log_file):
@@ -487,22 +487,18 @@ def sendmail(who, msg):
 
 if __name__ == "__main__":
     try:
-        xvfb_display = start_xvfb(1280, 800)
+        #xvfb_display = start_xvfb(1280, 800)
         args = parse_arguments()
         logger = config_logger(args.crawllog)
         logger.info(args)
         main(args)
         msg = "'Crawler Message:Crawl done at {}!'".format(datetime.datetime.now())
-        sendmail(args.who, msg)
+        #sendmail(args.who, msg)
     except KeyboardInterrupt:
         sys.exit(-1)
     except Exception as e:
         msg = "'Crawler Message: An error occurred:\n{}'".format(e)
-        sendmail(args.who, msg)
-    finally:
-        stop_xvfb(xvfb_display)
-        # clean up bad webs
-        clean_up()
+        #sendmail(args.who, msg)
     # pydir = join(Pardir, "AlexaCrawler", "clean.py")
     # clean_cmd = "python3 " + pydir + " " + batch_dump_dir
     # subprocess.call(clean_cmd, shell=True)
