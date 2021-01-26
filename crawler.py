@@ -19,7 +19,7 @@ import datetime
 import glob
 
 # do remember to change this when use host or docker container to crawl
-golang_communication_path = '/home/jack/Desktop/tor-config/no_use.txt'
+golang_communication_path = '/home/jack/Documents/tor-config/no_use.txt'
 TBB_PATH = '/home/jack/Documents/tor-browser_en-US'
 
 
@@ -498,6 +498,7 @@ if __name__ == "__main__":
         sys.exit(-1)
     except Exception as e:
         msg = "'Crawler Message: An error occurred:\n{}'".format(e)
+        print(msg)
         #sendmail(args.who, msg)
     # pydir = join(Pardir, "AlexaCrawler", "clean.py")
     # clean_cmd = "python3 " + pydir + " " + batch_dump_dir
