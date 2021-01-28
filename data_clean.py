@@ -4,7 +4,7 @@ import time
 removeList = []
 
 # Process the badlist to extract the entry num of bad link
-with open('dump/clean_0126_013744/bad.list', 'r') as badList:
+with open('dump/clean_0128_004818/bad.list', 'r') as badList:
     for line in badList:
         elements = line.split('/')
         entryNum = elements[-1].split('-')
