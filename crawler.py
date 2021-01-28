@@ -166,10 +166,10 @@ def get_driver():
     return driver
 
 
-def write_to_badlist(filename, reason):
+def write_to_badlist(filename, url, reason):
     global batch_dump_dir
     with open(join(batch_dump_dir, 'bad.list'), 'a+') as f:
-        f.write(filename + '\t' + reason + '\n')
+        f.write(filename + '\t' + url + '\t' + reason + '\n')
 
 
 def clean_up():
@@ -190,12 +190,12 @@ def clean_up():
             tmp = f.readlines()
             for entry in tmp:
                 entry = entry.rstrip('\n').split('\t')
-                bad_list.add((entry[0], entry[1]))
+                bad_list.add((entry[0], entry[1], entry[2]))
     error_num = len(bad_list)
     logger.info("Found {} bad (including Timeout) loadings.".format(error_num))
     removed_list = set()
     for bad_item in bad_list:
-        w, reason = bad_item[0], bad_item[1]
+        w, url, reason = bad_item[0], bad_item[1], bad_item[2]
         if w in removed_list:
             continue
         else:
@@ -252,15 +252,15 @@ def crawl_without_cap(url, filename, s):
                 driver.get_screenshot_as_file(filename + '.png')
             time.sleep(1)
             if ut.check_conn_error(driver):
-                write_to_badlist(filename + '.cell', "ConnError")
+                write_to_badlist(filename + '.cell', url, "ConnError")
             elif ut.check_captcha(driver.page_source.strip().lower()):
-                write_to_badlist(filename + '.cell', "HasCaptcha")
+                write_to_badlist(filename + '.cell', url,  "HasCaptcha")
     except (ut.HardTimeoutException, TimeoutException):
         logger.warning("{} got timeout".format(url))
-        write_to_badlist(filename + '.cell', "Timeout")
+        write_to_badlist(filename + '.cell', url, "Timeout")
     except Exception as exc:
         logger.warning("Unknow error:{}".format(exc))
-        write_to_badlist(filename + '.cell', "OtherError")
+        write_to_badlist(filename + '.cell', url,  "OtherError")
     finally:
         t = time.time() - start
         try:
@@ -329,17 +329,17 @@ def crawl(url, filename, guards, s, device):
             if s:
                 driver.get_screenshot_as_file(filename + '.png')
             if ut.check_conn_error(driver):
-                write_to_badlist(filename + '.pcap.filtered', "ConnError")
+                write_to_badlist(filename + '.pcap.filtered', url, "ConnError")
             elif ut.check_captcha(driver.page_source.strip().lower()):
-                write_to_badlist(filename + '.pcap.filtered', "HasCaptcha")
+                write_to_badlist(filename + '.pcap.filtered', url, "HasCaptcha")
     except (ut.HardTimeoutException, TimeoutException):
         logger.warning("{} got timeout".format(url))
-        write_to_badlist(filename + '.pcap.filtered', "Timeout")
+        write_to_badlist(filename + '.pcap.filtered', url, "Timeout")
     except ut.TcpdumpTimeoutError:
         logger.warning("Fail to launch dumpcap")
     except Exception as exc:
         logger.warning("Unknow error:{}".format(exc))
-        write_to_badlist(filename + '.pcap.filtered', "OtherError")
+        write_to_badlist(filename + '.pcap.filtered', url, "OtherError")
     finally:
         t = time.time() - start
         try:
