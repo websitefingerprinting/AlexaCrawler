@@ -11,7 +11,7 @@ ListDir = join( Pardir, "AlexaCrawler/list")
 SendMailPyDir = join(Pardir, "AlexaCrawler/private/sendmail.py")
 
 
-
+gRPCAddr = "localhost:10086"
 BROWSER_LAUNCH_TIMEOUT = 10
 SOFT_VISIT_TIMEOUT = 100
 HARD_VISIT_TIMEOUT = SOFT_VISIT_TIMEOUT + 10
