@@ -234,7 +234,6 @@ class WFCrawler:
                 driver.get(url)
                 if self.s:
                     driver.get_screenshot_as_file(filename + '.png')
-                time.sleep(2)
                 if ut.check_conn_error(driver):
                     self.write_to_badlist(filename + '.cell', url, "ConnError")
                 elif ut.check_captcha(driver.page_source.strip().lower()):
@@ -261,6 +260,7 @@ class WFCrawler:
                 logger.info("Firefox killed by pid.")
             # We don't care about the err here since if something goes wrong, we will find it next time send a True
             # Request in next loop
+            time.sleep(GAP_BETWEEN_SITES)
             self.gRPCClient.sendRequest(turn_on=False, file_path='')
             logger.info("Stop capturing, save to {}.cell.".format(filename))
             logger.info("Loaded {:.2f}s".format(t))
@@ -283,7 +283,6 @@ class WFCrawler:
                         self.crawl(website, filename)
                         # change identity
                         self.controller.change_identity()
-                        time.sleep(GAP_BETWEEN_SITES)
 
                 logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
                 time.sleep(GAP_BETWEEN_BATCHES)
