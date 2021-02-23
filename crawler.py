@@ -198,6 +198,7 @@ class WFCrawler:
         return driver
 
     def crawl(self, url, filename):
+        """This method corresponds to a single loading for url"""
         # try to launch driver
         tries = 3
         sleeptime = 5
@@ -227,13 +228,13 @@ class WFCrawler:
                 if err != None:
                     logger.error(err)
                     return
-                time.sleep(0.05)  # the golang process scan the switch file every 50 millisecond
+                time.sleep(1)  # the golang process scan the switch file every 50 millisecond
                 logger.info("Start capturing.")
                 start = time.time()
                 driver.get(url)
                 if self.s:
                     driver.get_screenshot_as_file(filename + '.png')
-                time.sleep(1)
+                time.sleep(2)
                 if ut.check_conn_error(driver):
                     self.write_to_badlist(filename + '.cell', url, "ConnError")
                 elif ut.check_captcha(driver.page_source.strip().lower()):
@@ -263,9 +264,9 @@ class WFCrawler:
             self.gRPCClient.sendRequest(turn_on=False, file_path='')
             logger.info("Stop capturing, save to {}.cell.".format(filename))
             logger.info("Loaded {:.2f}s".format(t))
-            time.sleep(GAP_BETWEEN_SITES)
 
     def crawl_task(self):
+        """This method corresponds to one crawl task over all the websites"""
         # crawl monitored webpages, round-robin fashion, restart Tor every m visits of a whole list
         for bb in range(self.batch):
             with self.controller.launch():
@@ -282,6 +283,8 @@ class WFCrawler:
                         self.crawl(website, filename)
                         # change identity
                         self.controller.change_identity()
+                        time.sleep(GAP_BETWEEN_SITES)
+
                 logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
                 time.sleep(GAP_BETWEEN_BATCHES)
 
