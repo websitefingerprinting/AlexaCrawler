@@ -1,6 +1,7 @@
 import subprocess
 import os
 import sys
+sys.path.append('./gRPC')
 from os import makedirs
 import argparse
 import time
