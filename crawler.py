@@ -223,7 +223,7 @@ class WFCrawler:
         # try to crawl website
         try:
             with ut.timeout(HARD_VISIT_TIMEOUT):
-                err = self.gRPCClient.sendRequest(turn_on='True', file_path='{}.cell'.format(filename))
+                err = self.gRPCClient.sendRequest(turn_on=True, file_path='{}.cell'.format(filename))
                 if err != None:
                     logger.error(err)
                     return
@@ -260,7 +260,7 @@ class WFCrawler:
                 logger.info("Firefox killed by pid.")
             # We don't care about the err here since if something goes wrong, we will find it next time send a True
             # Request in next loop
-            self.gRPCClient.sendRequest(turn_on='False', file_path='')
+            self.gRPCClient.sendRequest(turn_on=False, file_path='')
             logger.info("Stop capturing, save to {}.cell.".format(filename))
             logger.info("Loaded {:.2f}s".format(t))
             time.sleep(GAP_BETWEEN_SITES)
