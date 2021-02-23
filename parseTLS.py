@@ -78,6 +78,7 @@ def parse(fdir):
         tmp = pd.Series(tmp)
     tmp = tmp.str.slice(0,-1).str.split(' +|\t',expand=True).astype(np.int64)
     trace = np.array(tmp)
+    trace = trace[trace[:,0].argsort()]
     refTime = trace[0,0]
 
 
@@ -129,6 +130,7 @@ def parse_clean(fdir):
         tmp = pd.Series(tmp)
     tmp = tmp.str.slice(0,-1).str.split(' +|\t',expand=True).astype(np.int64)
     trace = np.array(tmp)
+    trace = trace[trace[:,0].argsort()]
     refTime = trace[0,0]
 
     with open(savefiledir, 'w') as f:
