@@ -158,6 +158,8 @@ class WFCrawler:
         self.picked_inds = picked_inds
         self.gRPCClient = gRPCClient
 
+        self.last_crawl_time = time.time()
+
     def write_to_badlist(self, filename, url, reason):
         with open(join(self.outputdir, 'bad.list'), 'a+') as f:
             f.write(filename + '\t' + url + '\t' + reason + '\n')
@@ -230,7 +232,7 @@ class WFCrawler:
                     return
                 time.sleep(1)  # the golang process scan the switch file every 50 millisecond
                 logger.info("Start capturing.")
-                start = time.time()
+                self.last_crawl_time = time.time()
                 driver.get(url)
                 if self.s:
                     driver.get_screenshot_as_file(filename + '.png')
@@ -245,7 +247,7 @@ class WFCrawler:
             logger.warning("Unknow error:{}".format(exc))
             self.write_to_badlist(filename + '.cell', url, "OtherError")
         finally:
-            t = time.time() - start
+            t = time.time() - self.last_crawl_time
             try:
                 # kill firefox
                 with ut.timeout(10):
