@@ -10,10 +10,16 @@ DumpDir = join( Pardir , "AlexaCrawler/dump")
 ListDir = join( Pardir, "AlexaCrawler/list")
 SendMailPyDir = join(Pardir, "AlexaCrawler/private/sendmail.py")
 
+# crawl remarks
+ConnError = 1
+HasCaptcha = 1
+Timeout = 1
+OtherError = 1
+
 
 gRPCAddr = "localhost:10086"
 BROWSER_LAUNCH_TIMEOUT = 10
-SOFT_VISIT_TIMEOUT = 100
+SOFT_VISIT_TIMEOUT = 90
 HARD_VISIT_TIMEOUT = SOFT_VISIT_TIMEOUT + 10
 MAXDUMPSIZE = 20000 #KB
 GAP_BETWEEN_BATCHES = 5

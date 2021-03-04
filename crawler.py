@@ -19,6 +19,8 @@ import math
 import datetime
 from gRPC import client
 import glob
+from common import ConnError, HasCaptcha, Timeout, OtherError
+
 
 # do remember to change this when use host or docker container to crawl
 TBB_PATH = '/home/docker/tor-browser_en-US/'
@@ -290,11 +292,6 @@ class WFCrawler:
                 time.sleep(GAP_BETWEEN_BATCHES)
 
     def clean_up(self):
-        ConnError = 1
-        HasCaptcha = 1
-        Timeout = 1
-        OtherError = 1
-
         err_type_cnt = {'ConnError': 0,
                         'HasCptcha': 0,
                         'Timeout': 0,
