@@ -135,6 +135,10 @@ def parse_arguments():
                         metavar='<log path>',
                         default=None,
                         help='path to the tbb log file. It will print to stdout by default.')
+    parser.add_argument('--headless',
+                        action='store_false',
+                        default=True,
+                        help='Whether to use xvfb, false by default. (Make sure use customed headless tbb if true)')
     parser.add_argument('--who',
                         type=str,
                         metavar='<email sender>',
@@ -152,6 +156,7 @@ class WFCrawler:
         self.m = args.m
         self.start = args.start
         self.tbblog = args.tbblog
+        self.headless = args.headless
         self.driver = None
         self.controller = controller
         self.outputdir = outputdir
@@ -161,6 +166,11 @@ class WFCrawler:
         self.gRPCClient = gRPCClient
 
         self.last_crawl_time = time.time()
+
+        if self.headless:
+            logger.info("Run in headless mode.")
+        else:
+            logger.info("Run in non-headless mode.")
 
     def write_to_badlist(self, filename, url, reason):
         with open(join(self.outputdir, 'bad.list'), 'a+') as f:
@@ -193,11 +203,17 @@ class WFCrawler:
             # "network.http.pipelining.maxrequests": 15000,
             # "network.http.pipelining": False
         }
+        if self.headless:
+            # actually this is not working since set_option is deprecated which is used in tbselenium
+            # instead, export MOZ_HEADLESS=1 is working
+            headless = True
+        else:
+            headless = False
         caps = DesiredCapabilities().FIREFOX
         caps['pageLoadStrategy'] = 'normal'
         driver = TorBrowserDriver(tbb_path=TBB_PATH, tor_cfg=1, pref_dict=ffprefs, \
                                   tbb_logfile_path=self.tbblog, \
-                                  socks_port=9050, capabilities=caps)
+                                  socks_port=9050, capabilities=caps, headless=headless)
         driver.set_page_load_timeout(SOFT_VISIT_TIMEOUT)
         return driver
 
@@ -330,6 +346,7 @@ class WFCrawler:
 
 def main():
     args = parse_arguments()
+    logger = config_logger(args.crawllog)
     assert args.end > args.start
 
     if args.u:
@@ -359,9 +376,9 @@ def main():
     gRPCClient = client.GRPCClient(cm.gRPCAddr)
     wfcrawler = WFCrawler(args, websites, controller, gRPCClient, outputdir, picked_inds=l_inds)
 
-    xvfb_display = start_xvfb(1280, 800)
+    if not args.headless:
+        xvfb_display = start_xvfb(1280, 800)
     try:
-        logger = config_logger(args.crawllog)
         logger.info(args)
         wfcrawler.crawl_task()
         ut.sendmail(args.who, "'Crawler Message:Crawl done at {}!'".format(datetime.datetime.now()))
@@ -370,7 +387,8 @@ def main():
     except Exception as e:
         ut.sendmail(args.who, "'Crawler Message: An error occurred:\n{}'".format(e))
     finally:
-        stop_xvfb(xvfb_display)
+        if not args.headless and (xvfb_display is not None):
+            stop_xvfb(xvfb_display)
         # clean up bad webs
         wfcrawler.clean_up()
 
