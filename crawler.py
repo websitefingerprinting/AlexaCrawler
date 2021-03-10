@@ -275,8 +275,7 @@ class WFCrawler:
                 # if driver.quit() cann't kill, use pid instead
                 logger.error("Error when kill firefox: {}".format(exc))
                 ut.kill_all_children(pid)
-                subprocess.call('rm -rf /tmp/*',
-                                shell=True)  # since we use pid to kill firefox, we should clean up tmp too
+                driver.clean_up_profile_dirs()
                 logger.info("Firefox killed by pid.")
             # We don't care about the err here since if something goes wrong, we will find it next time send a True
             # Request in next loop
