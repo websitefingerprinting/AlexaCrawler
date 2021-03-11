@@ -234,6 +234,7 @@ class WFCrawler:
                     if pid:
                         logger.info("Kill remaining browser process")
                         ut.kill_all_children(pid)
+                        driver.clean_up_profile_dirs()
                     time.sleep(sleeptime)
                     sleeptime += 10
                     continue
