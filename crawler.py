@@ -266,17 +266,18 @@ class WFCrawler:
             self.write_to_badlist(filename + '.cell', url, "OtherError")
         finally:
             t = time.time() - self.last_crawl_time
-            try:
-                # kill firefox
-                with ut.timeout(10):
-                    driver.quit()
-                    logger.info("Firefox quit successfully.")
-            except Exception as exc:
+            # try:
+            #     # kill firefox
+            #     with ut.timeout(10):
+            #         driver.quit()
+            #         logger.info("Firefox quit successfully.")
+            # except Exception as exc:
                 # if driver.quit() cann't kill, use pid instead
-                logger.error("Error when kill firefox: {}".format(exc))
-                ut.kill_all_children(pid)
-                driver.clean_up_profile_dirs()
-                logger.info("Firefox killed by pid.")
+                # logger.error("Error when kill firefox: {}".format(exc))
+            ut.kill_all_children(pid)
+            driver.clean_up_profile_dirs()
+            logger.info("Firefox killed by pid. Clean up tmp folders: {}, {}".format(
+                driver.profile.tempfolder, driver.profile.path))
             # We don't care about the err here since if something goes wrong, we will find it next time send a True
             # Request in next loop
             time.sleep(GAP_BETWEEN_SITES)
