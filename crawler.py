@@ -277,8 +277,8 @@ class WFCrawler:
                 # logger.error("Error when kill firefox: {}".format(exc))
             ut.kill_all_children(pid)
             driver.clean_up_profile_dirs()
-            logger.info("Firefox killed by pid. Clean up tmp folders: {}, {}".format(
-                driver.profile.tempfolder, driver.profile.path))
+            subprocess.call("rm -r /tmp/*", shell=True)
+            logger.info("Firefox killed by pid. Clean up tmp folders")
             # We don't care about the err here since if something goes wrong, we will find it next time send a True
             # Request in next loop
             time.sleep(GAP_BETWEEN_SITES)
