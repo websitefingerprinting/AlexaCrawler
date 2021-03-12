@@ -70,7 +70,9 @@ def pick_specific_webs(listdir):
     with open(listdir, "r") as f:
         lines = f.readlines()
     for line in lines:
-        line = int(line.split("\n")[0])
+        line = line.rstrip('\n')
+        if len(line) > 0:
+            line = int(line.split("\n")[0])
         l.append(line)
     return l
 

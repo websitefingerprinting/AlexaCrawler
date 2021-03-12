@@ -62,82 +62,89 @@ def parse_arguments():
 
 def parse(fdir):
     global savedir, suffix, isunmon
-    if isunmon:
-        site = fdir.split("/")[-1].split(captured_file_name)[0]
-        savefiledir = join(savedir, site+suffix)
-    else:
-        site,inst = fdir.split("/")[-1].split(captured_file_name)[0].split("-")
-        savefiledir = join(savedir, site+"-"+inst+suffix)
-    # Format: timestamp, realbytes, dummybytes
-    # Task: turn tls -> cells, normalize timestamps
-    res = []
-    with open(fdir,"r") as f:
-        tmp = f.readlines()
-        if tmp[-1] == '\n':
-            tmp = tmp[:-1]
-        tmp = pd.Series(tmp)
-    tmp = tmp.str.slice(0,-1).str.split(' +|\t',expand=True).astype(np.int64)
-    trace = np.array(tmp)
-    trace = trace[trace[:,0].argsort()]
-    refTime = trace[0,0]
+    try:
+        if isunmon:
+            site = fdir.split("/")[-1].split(captured_file_name)[0]
+            savefiledir = join(savedir, site+suffix)
+        else:
+            site,inst = fdir.split("/")[-1].split(captured_file_name)[0].split("-")
+            savefiledir = join(savedir, site+"-"+inst+suffix)
+        # Format: timestamp, realbytes, dummybytes
+        # Task: turn tls -> cells, normalize timestamps
+        res = []
+        with open(fdir,"r") as f:
+            tmp = f.readlines()
+            if tmp[-1] == '\n':
+                tmp = tmp[:-1]
+            tmp = pd.Series(tmp)
+        tmp = tmp.str.slice(0,-1).str.split(' +|\t',expand=True).astype(np.int64)
+        trace = np.array(tmp)
+        trace = trace[trace[:,0].argsort()]
+        refTime = trace[0,0]
 
 
-    lastTime = trace[0,0]
-    lastDirection = np.sign(trace[0,1]+trace[0,2])
-    lastRealBytes = 0
-    lastDummyBytes = 0
-    with open(savefiledir, 'w') as f:
-        for tls in trace:
-            curTime = tls[0]
-            curDirection = np.sign(tls[1]+tls[2])
-            if (curTime - lastTime)*1.0/1e6 < 1 and lastDirection == curDirection:
-                lastRealBytes += tls[1]
-                lastDummyBytes += tls[2]
-                continue
-            # else
+        lastTime = trace[0,0]
+        lastDirection = np.sign(trace[0,1]+trace[0,2])
+        lastRealBytes = 0
+        lastDummyBytes = 0
+        with open(savefiledir, 'w') as f:
+            for tls in trace:
+                curTime = tls[0]
+                curDirection = np.sign(tls[1]+tls[2])
+                if (curTime - lastTime)*1.0/1e6 < 1 and lastDirection == curDirection:
+                    lastRealBytes += tls[1]
+                    lastDummyBytes += tls[2]
+                    continue
+                # else
+                # print(lastTime, lastRealBytes, lastDummyBytes)
+                relTime = (lastTime-refTime)/1e9
+                for _ in range(int(np.round(abs(lastRealBytes)/MY_CELL_SIZE))):
+                    f.write('{:.4f}\t{:.0f}\n'.format(relTime, lastDirection))
+                for _ in range(int(np.round(abs(lastDummyBytes)/MY_CELL_SIZE))):
+                    f.write('{:.4f}\t{:.0f}\n'.format(relTime, lastDirection*isDummy))
+                lastTime = curTime
+                lastDirection = curDirection
+                lastRealBytes = tls[1]
+                lastDummyBytes = tls[2]
             # print(lastTime, lastRealBytes, lastDummyBytes)
-            relTime = (lastTime-refTime)/1e9
-            for _ in range(int(np.round(abs(lastRealBytes)/MY_CELL_SIZE))):
+            relTime = (lastTime - refTime) / 1e9
+            for _ in range(int(np.round(abs(lastRealBytes) / MY_CELL_SIZE))):
                 f.write('{:.4f}\t{:.0f}\n'.format(relTime, lastDirection))
-            for _ in range(int(np.round(abs(lastDummyBytes)/MY_CELL_SIZE))):
-                f.write('{:.4f}\t{:.0f}\n'.format(relTime, lastDirection*isDummy))
-            lastTime = curTime
-            lastDirection = curDirection
-            lastRealBytes = tls[1]
-            lastDummyBytes = tls[2]
-        # print(lastTime, lastRealBytes, lastDummyBytes)
-        relTime = (lastTime - refTime) / 1e9
-        for _ in range(int(np.round(abs(lastRealBytes) / MY_CELL_SIZE))):
-            f.write('{:.4f}\t{:.0f}\n'.format(relTime, lastDirection))
-        for _ in range(int(np.round(abs(lastDummyBytes) / MY_CELL_SIZE))):
-            f.write('{:.4f}\t{:.0f}\n'.format(relTime, lastDirection * isDummy))
+            for _ in range(int(np.round(abs(lastDummyBytes) / MY_CELL_SIZE))):
+                f.write('{:.4f}\t{:.0f}\n'.format(relTime, lastDirection * isDummy))
+    except Exception as e:
+        print("Error {} when parse {}".format(e, fdir))
+
 
 def parse_clean(fdir):
     global savedir, suffix, isunmon
-    if isunmon:
-        site = fdir.split("/")[-1].split(captured_file_name)[0]
-        savefiledir = join(savedir, site+suffix)
-    else:
-        site,inst = fdir.split("/")[-1].split(captured_file_name)[0].split("-")
-        savefiledir = join(savedir, site+"-"+inst+suffix)
-    # Format: timestamp, realbytes, dummybytes
-    # Task: turn tls -> cells, normalize timestamps
-    res = []
-    with open(fdir,"r") as f:
-        tmp = f.readlines()
-        if tmp[-1] == '\n':
-            tmp = tmp[:-1]
-        tmp = pd.Series(tmp)
-    tmp = tmp.str.slice(0,-1).str.split(' +|\t',expand=True).astype(np.int64)
-    trace = np.array(tmp)
-    trace = trace[trace[:,0].argsort()]
-    refTime = trace[0,0]
+    try:
+        if isunmon:
+            site = fdir.split("/")[-1].split(captured_file_name)[0]
+            savefiledir = join(savedir, site+suffix)
+        else:
+            site,inst = fdir.split("/")[-1].split(captured_file_name)[0].split("-")
+            savefiledir = join(savedir, site+"-"+inst+suffix)
+        # Format: timestamp, realbytes, dummybytes
+        # Task: turn tls -> cells, normalize timestamps
+        res = []
+        with open(fdir,"r") as f:
+            tmp = f.readlines()
+            if tmp[-1] == '\n':
+                tmp = tmp[:-1]
+            tmp = pd.Series(tmp)
+        tmp = tmp.str.slice(0,-1).str.split(' +|\t',expand=True).astype(np.int64)
+        trace = np.array(tmp)
+        trace = trace[trace[:,0].argsort()]
+        refTime = trace[0,0]
 
-    with open(savefiledir, 'w') as f:
-        for tls in trace:
-            t = (tls[0] - refTime)*1.0/1e9
-            for _ in range(int(np.round(abs(tls[1])/MY_CELL_SIZE))):
-                f.write('{:.4f}\t{:.0f}\n'.format(t, np.sign(tls[1])))
+        with open(savefiledir, 'w') as f:
+            for tls in trace:
+                t = (tls[0] - refTime)*1.0/1e9
+                for _ in range(int(np.round(abs(tls[1])/MY_CELL_SIZE))):
+                    f.write('{:.4f}\t{:.0f}\n'.format(t, np.sign(tls[1])))
+    except Exception as e:
+        print("Error {} when parse {}".format(e, fdir))
 
 if __name__ == "__main__":
     global savedir, suffix, isunmon

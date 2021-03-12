@@ -55,7 +55,7 @@ def get_incoming_num(fdir):
         return 0
 
     trace = np.array(trace)[:, 1]
-    return len(trace[trace < 0])
+    return len(trace[trace == -1])
 
 def detect_outliers(flist):
     num_incoming_list = []
@@ -117,4 +117,5 @@ if __name__ == '__main__':
             dst_fdir = join(dst_dir, '{}-{}{}'.format(cls_ind, cnt, args.format))
             subprocess.call('cp ' + fdir + ' ' + dst_fdir, shell =True)
             cnt += 1
-        print("{}:{}".format(cls_ind, cnt))
+        if cnt < 100:
+            print("{:-2d}:{:-3d}".format(cls_ind, cnt))
