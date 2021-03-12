@@ -208,7 +208,7 @@ class WFCrawler:
                     logger.error(err)
                     # send a stop record request anyway
                     self.gRPCClient.sendRequest(turn_on=False, file_path='')
-                    return
+                    return err
                 time.sleep(1)
                 logger.info("Start capturing.")
                 self.last_crawl_time = time.time()
@@ -240,14 +240,18 @@ class WFCrawler:
             logger.info("Loaded {:.2f}s".format(t))
             time.sleep(np.random.uniform(0, GAP_BETWEEN_SITES_MAX))
 
+
     def crawl_task(self):
         """This method corresponds to one crawl task over all the websites"""
         # crawl monitored webpages, round-robin fashion, restart Tor every m visits of a whole list
         for bb in range(self.batch):
             with self.controller.launch():
+                should_restart_tor = False
                 logger.info("Start Tor and sleep {}s".format(GAP_AFTER_LAUNCH))
                 time.sleep(GAP_AFTER_LAUNCH)
                 for wid, website in enumerate(self.wlist):
+                    if should_restart_tor:
+                        break
                     wid = wid + self.start
                     if (self.picked_inds is not None) and (wid not in self.picked_inds):
                         continue
@@ -255,7 +259,11 @@ class WFCrawler:
                         i = bb * self.m + mm
                         filename = join(self.outputdir, str(wid) + '-' + str(i))
                         logger.info("{:d}-{:d}: {}".format(wid, i, website))
-                        self.crawl(website, filename)
+                        err = self.crawl(website, filename)
+                        if err is not None:
+                            logger.error("Grpc server break down. Try to restart Tor.")
+                            should_restart_tor = True
+                            break
                         # change identity
                         self.controller.change_identity()
 
