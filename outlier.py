@@ -118,4 +118,4 @@ if __name__ == '__main__':
             subprocess.call('cp ' + fdir + ' ' + dst_fdir, shell =True)
             cnt += 1
         if cnt < 100:
-            print("{:-2d}:{:-3d}".format(cls_ind, cnt))
+            print("{:-2d}:{:-3d}".format(int(cls_ind), cnt))
