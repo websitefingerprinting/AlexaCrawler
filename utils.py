@@ -3,6 +3,13 @@ from contextlib import contextmanager
 import psutil
 from common import SendMailPyDir
 import subprocess
+import logging
+import sys
+import os
+from os import makedirs
+from os.path import join
+from common import DumpDir
+import datetime
 
 
 @contextmanager
@@ -96,6 +103,47 @@ def check_captcha(page_source):
         return True
     return False
 
+
 def sendmail(who, msg):
     cmd = "python3 " + SendMailPyDir + " -m " + msg + " -w " + who
     subprocess.call(cmd, shell=True)
+
+
+def config_logger(log_file):
+    logger = logging.getLogger("crawler")
+    # Set logging format
+    LOG_FORMAT = "%(asctime)s %(name)-12s %(levelname)-8s %(message)s"
+    # Set file
+    ch1 = logging.StreamHandler(sys.stdout)
+    ch1.setFormatter(logging.Formatter(LOG_FORMAT))
+    ch1.setLevel(logging.INFO)
+    logger.addHandler(ch1)
+
+    if log_file is not None:
+        pardir = os.path.split(log_file)[0]
+        f = open(log_file, "w")
+        f.close()
+        if not os.path.exists(pardir):
+            os.makedirs(pardir)
+        ch2 = logging.FileHandler(log_file)
+        ch2.setFormatter(logging.Formatter(LOG_FORMAT))
+        ch2.setLevel(logging.DEBUG)
+        logger.addHandler(ch2)
+    logger.setLevel(logging.INFO)
+    return logger
+
+
+def init_directories(mode, u):
+    # Create a results dir if it doesn't exist yet
+    if not os.path.exists(DumpDir):
+        makedirs(DumpDir)
+
+    # Define output directory
+    timestamp = datetime.datetime.now().strftime('%m%d_%H%M_%S%f')[:-4]
+    if u:
+        output_dir = join(DumpDir, 'u' + mode + '_' + timestamp)
+    else:
+        output_dir = join(DumpDir, mode + '_' + timestamp)
+    makedirs(output_dir)
+
+    return output_dir

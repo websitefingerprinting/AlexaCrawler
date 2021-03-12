@@ -1,12 +1,8 @@
-import subprocess
 import os
+import subprocess
 import sys
 sys.path.append('./gRPC')
-from os import makedirs
 import argparse
-import time
-from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from tbselenium.tbdriver import TorBrowserDriver
@@ -14,56 +10,13 @@ from tbselenium.utils import start_xvfb, stop_xvfb
 import utils as ut
 from common import *
 from torcontroller import *
-import logging
-import math
 import datetime
 from gRPC import client
-import glob
 from common import ConnError, HasCaptcha, Timeout, OtherError
-
+import utils
 
 # do remember to change this when use host or docker container to crawl
 TBB_PATH = '/home/docker/tor-browser_en-US/'
-
-
-def config_logger(log_file):
-    logger = logging.getLogger("crawler")
-    # Set logging format
-    LOG_FORMAT = "%(asctime)s %(name)-12s %(levelname)-8s %(message)s"
-    # Set file
-    ch1 = logging.StreamHandler(sys.stdout)
-    ch1.setFormatter(logging.Formatter(LOG_FORMAT))
-    ch1.setLevel(logging.INFO)
-    logger.addHandler(ch1)
-
-    if log_file is not None:
-        pardir = os.path.split(log_file)[0]
-        f = open(log_file, "w")
-        f.close()
-        if not os.path.exists(pardir):
-            os.makedirs(pardir)
-        ch2 = logging.FileHandler(log_file)
-        ch2.setFormatter(logging.Formatter(LOG_FORMAT))
-        ch2.setLevel(logging.DEBUG)
-        logger.addHandler(ch2)
-    logger.setLevel(logging.INFO)
-    return logger
-
-
-def init_directories(mode, u):
-    # Create a results dir if it doesn't exist yet
-    if not os.path.exists(DumpDir):
-        makedirs(DumpDir)
-
-    # Define output directory
-    timestamp = time.strftime('%m%d_%H%M_%S%S')
-    if u:
-        output_dir = join(DumpDir, 'u' + mode + '_' + timestamp)
-    else:
-        output_dir = join(DumpDir, mode + '_' + timestamp)
-    makedirs(output_dir)
-
-    return output_dir
 
 
 def parse_arguments():
@@ -273,8 +226,8 @@ class WFCrawler:
             #         driver.quit()
             #         logger.info("Firefox quit successfully.")
             # except Exception as exc:
-                # if driver.quit() cann't kill, use pid instead
-                # logger.error("Error when kill firefox: {}".format(exc))
+            # if driver.quit() cann't kill, use pid instead
+            # logger.error("Error when kill firefox: {}".format(exc))
             ut.kill_all_children(pid)
             driver.clean_up_profile_dirs()
             subprocess.call("rm -r /tmp/*", shell=True)
@@ -347,7 +300,7 @@ class WFCrawler:
 
 def main():
     args = parse_arguments()
-    logger = config_logger(args.crawllog)
+    logger = utils.config_logger(args.crawllog)
     assert args.end > args.start
 
     if args.u:
@@ -371,7 +324,7 @@ def main():
     else:
         l_inds = None
 
-    outputdir = init_directories(args.mode, args.u)
+    outputdir = utils.init_directories(args.mode, args.u)
     controller = TorController(torrc_path=args.torrc)
 
     gRPCClient = client.GRPCClient(cm.gRPCAddr)
