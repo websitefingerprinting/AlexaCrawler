@@ -134,7 +134,7 @@ def parse_clean(fdir):
             if tmp[-1] == '\n':
                 tmp = tmp[:-1]
             tmp = pd.Series(tmp)
-        tmp = tmp.str.slice(0,-1).str.split(' +|\t',expand=True).astype(np.int64)
+        tmp = tmp.str.slice(0,-1).str.split(' +|\t',expand=True).astype(np.int64)[:,:2]
         trace = np.array(tmp)
         trace = trace[trace[:,0].argsort()]
         refTime = trace[0,0]

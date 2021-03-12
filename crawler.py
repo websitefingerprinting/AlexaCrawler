@@ -3,6 +3,7 @@ import subprocess
 import sys
 sys.path.append('./gRPC')
 import argparse
+import numpy as np
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from tbselenium.tbdriver import TorBrowserDriver
@@ -167,6 +168,10 @@ class WFCrawler:
         driver = TorBrowserDriver(tbb_path=TBB_PATH, tor_cfg=1, pref_dict=ffprefs, \
                                   tbb_logfile_path=self.tbblog, \
                                   socks_port=9050, capabilities=caps, headless=headless)
+        driver.profile.set_preference("dom.webdriver.enabled", False)
+        driver.profile.set_preference('useAutomationExtension', False)
+        driver.profile.update_preferences()
+        logger.info("profile dir: {}".format(driver.profile.profile_dir))
         driver.set_page_load_timeout(SOFT_VISIT_TIMEOUT)
         return driver
 
@@ -201,11 +206,14 @@ class WFCrawler:
                 err = self.gRPCClient.sendRequest(turn_on=True, file_path='{}.cell'.format(filename))
                 if err != None:
                     logger.error(err)
+                    # send a stop record request anyway
+                    self.gRPCClient.sendRequest(turn_on=False, file_path='')
                     return
-                time.sleep(1)  # the golang process scan the switch file every 50 millisecond
+                time.sleep(1)
                 logger.info("Start capturing.")
                 self.last_crawl_time = time.time()
                 driver.get(url)
+                time.sleep(1)
                 if self.s:
                     driver.get_screenshot_as_file(filename + '.png')
                 if ut.check_conn_error(driver):
@@ -220,24 +228,17 @@ class WFCrawler:
             self.write_to_badlist(filename + '.cell', url, "OtherError")
         finally:
             t = time.time() - self.last_crawl_time
-            # try:
-            #     # kill firefox
-            #     with ut.timeout(10):
-            #         driver.quit()
-            #         logger.info("Firefox quit successfully.")
-            # except Exception as exc:
-            # if driver.quit() cann't kill, use pid instead
-            # logger.error("Error when kill firefox: {}".format(exc))
             ut.kill_all_children(pid)
             driver.clean_up_profile_dirs()
             subprocess.call("rm -r /tmp/*", shell=True)
             logger.info("Firefox killed by pid. Clean up tmp folders")
             # We don't care about the err here since if something goes wrong, we will find it next time send a True
             # Request in next loop
-            time.sleep(GAP_BETWEEN_SITES)
+            time.sleep(CRAWLER_DWELL_TIME)
             self.gRPCClient.sendRequest(turn_on=False, file_path='')
             logger.info("Stop capturing, save to {}.cell.".format(filename))
             logger.info("Loaded {:.2f}s".format(t))
+            time.sleep(np.random.uniform(0, GAP_BETWEEN_SITES_MAX))
 
     def crawl_task(self):
         """This method corresponds to one crawl task over all the websites"""
