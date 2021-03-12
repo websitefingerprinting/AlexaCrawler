@@ -37,6 +37,7 @@ def parse_arguments():
     parser.add_argument('-mode',
                         type=str,
                         metavar='<parse mode>',
+                        default='burst',
                         help='The type of dataset: clean, burst?.')
     parser.add_argument('-u',
                         action='store_true',
