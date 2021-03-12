@@ -276,6 +276,7 @@ def crawl_without_cap(url, filename, s):
         write_to_badlist(filename + '.cell', "OtherError")
     finally:
         t = time.time() - start
+        '''
         try:
             # kill firefox
             with ut.timeout(10):
@@ -292,6 +293,15 @@ def crawl_without_cap(url, filename, s):
         logger.info("Stop capturing, save to {}.cell.".format(filename))
         logger.info("Loaded {:.2f}s".format(t))
         time.sleep(GAP_BETWEEN_SITES)
+        '''
+        ut.kill_all_children(pid)
+        driver.clean_up_profile_dirs()
+        #subprocess.call("rm -r /tmp/*", shell=True)
+        logger.info("Tor Killed by pid.")
+        time.sleep(GAP_BETWEEN_SITES)
+        #self.gRPCClient.sendRequest(turn_on=False, file_path='')
+        logger.info("Stop captureing, save to {}.cell.".format(filename))
+        logger.info("Loaded {:.2f}s".format(t))
 
 
 def crawl(url, filename, guards, s, device):
