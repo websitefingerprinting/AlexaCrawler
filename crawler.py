@@ -276,7 +276,6 @@ def crawl_without_cap(url, filename, s):
         write_to_badlist(filename + '.cell', "OtherError")
     finally:
         t = time.time() - start
-        '''
         try:
             # kill firefox
             with ut.timeout(10):
@@ -302,6 +301,7 @@ def crawl_without_cap(url, filename, s):
         #self.gRPCClient.sendRequest(turn_on=False, file_path='')
         logger.info("Stop captureing, save to {}.cell.".format(filename))
         logger.info("Loaded {:.2f}s".format(t))
+        '''
 
 
 def crawl(url, filename, guards, s, device):
