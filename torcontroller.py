@@ -11,18 +11,18 @@ from stem.util import term
 import common as cm
 import time
 
+
 class TorController(object):
     def __init__(self,
                  torrc_path=None,
                  control_port=9051,
-                 socks_port = 9050,):
+                 socks_port=9050, ):
 
         self.controller = None
-        self.tor_process = None 
+        self.tor_process = None
         self.torrc_path = torrc_path
         self.control_port = control_port
         self.socks_port = socks_port
-
 
     def get_guard_ip(self):
         addresses = set()
@@ -37,6 +37,7 @@ class TorController(object):
         if len(addresses) == 0:
             addresses = set(cm.My_Bridge_Ips)
         return list(addresses)
+
     # def get_guard_ips(self):
     #     ips = []
     #     for circ in self.controller.get_circuits():
@@ -61,12 +62,13 @@ class TorController(object):
         self.quit()
         self.launch_tor_service()
 
-
     def quit(self):
         """Kill Tor process."""
         if self.tor_process:
-            print("[Controller] Killing tor process")
             self.tor_process.kill()
+            self.tor_process.wait()
+            print("[Controller] tor process killed")
+
 
     def launch_tor_service(self):
         """Launch Tor service and return the process."""
@@ -105,5 +107,3 @@ class TorController(object):
         self.launch_tor_service()
         yield
         self.quit()
-
-

@@ -267,7 +267,7 @@ class WFCrawler:
                         # change identity
                         self.controller.change_identity()
 
-                logger.info("Finish batch #{}, sleep {}s.".format(bb, GAP_BETWEEN_BATCHES))
+                logger.info("Finish batch #{}, sleep {}s.".format(bb + 1, GAP_BETWEEN_BATCHES))
                 time.sleep(GAP_BETWEEN_BATCHES)
 
     def clean_up(self):

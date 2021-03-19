@@ -9,6 +9,7 @@ import subprocess
 '''This script is to remove outliers in the dataset based on the method in CUMUL paper'''
 '''Only for monitored dataset format. The traces should be parsed cell sequences'''
 
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Remove outliers in the dataset.')
     parser.add_argument('--dir',
@@ -30,6 +31,10 @@ def parse_arguments():
                         default=100,
                         metavar='<Num of examples wanted>',
                         help='The number of instances for each class')
+    parser.add_argument('-n',
+                        type=int,
+                        default=120,
+                        help='The number of instances we have at most for each class')
     parser.add_argument('--format',
                         type=str,
                         default='.cell',
@@ -46,6 +51,7 @@ def init_directories(original_dir):
         os.makedirs(outputdir)
     return outputdir
 
+
 def get_incoming_num(fdir):
     with open(fdir, 'r') as f:
         tmp = f.readlines()
@@ -56,6 +62,7 @@ def get_incoming_num(fdir):
 
     trace = np.array(trace)[:, 1]
     return len(trace[trace == -1])
+
 
 def detect_outliers(flist):
     num_incoming_list = []
@@ -75,14 +82,10 @@ def detect_outliers(flist):
     return list(outliers)
 
 
-def parallel(flist, n_workers = 10):
+def parallel(flist, n_workers=20):
     with multiprocessing.Pool(n_workers) as p:
         res = p.map(detect_outliers, flist)
     return res
-
-
-
-
 
 
 if __name__ == '__main__':
@@ -91,7 +94,7 @@ if __name__ == '__main__':
     total_file_num = 0
     for i in range(args.start, args.end):
         flist_cls = []
-        for j in range(args.m):
+        for j in range(args.n):
             fdir = join(args.dir, '{}-{}{}'.format(i, j, args.format))
             if os.path.exists(fdir):
                 flist_cls.append(fdir)
@@ -105,17 +108,29 @@ if __name__ == '__main__':
     flattened_res = []
     for cls in range(len(res)):
         flattened_res.extend(res[cls])
-    print("Found {}/{} = {:.2f}% outliers.".format(len(flattened_res), total_file_num, len(flattened_res)/total_file_num * 100))
+    print("Found {}/{} = {:.2f}% outliers.".format(len(flattened_res), total_file_num,
+                                                   len(flattened_res) / total_file_num * 100))
 
     dst_dir = init_directories(args.dir)
     for flist_cls in flist:
         cnt = 0
+        cls_id_int = -1
         for fdir in flist_cls:
             if fdir in flattened_res:
                 continue
             cls_ind = fdir.split('/')[-1].split(args.format)[0].split('-')[0]
+            if cls_id_int < 0:
+                cls_id_int = int(cls_ind)
+            assert cls_id_int == int(cls_ind)
             dst_fdir = join(dst_dir, '{}-{}{}'.format(cls_ind, cnt, args.format))
-            subprocess.call('cp ' + fdir + ' ' + dst_fdir, shell =True)
+            subprocess.call('cp ' + fdir + ' ' + dst_fdir, shell=True)
             cnt += 1
-        if cnt < 100:
-            print("{:-2d}:{:-3d}".format(int(cls_ind), cnt))
+        if cls_id_int != -1 and cnt < args.m:
+            print("[Warning] {:-2d}:{:-3d}, pad {} outliers.".format(cls_id_int, cnt, args.m - cnt))
+            res_cls = res[cls_id_int].copy()
+            np.random.shuffle(res_cls)
+            for k in range(args.m - cnt):
+                dst_fdir = join(dst_dir, '{}-{}{}'.format(str(cls_id_int), cnt, args.format))
+                subprocess.call('cp ' + res_cls[k] + ' ' + dst_fdir, shell=True)
+                cnt += 1
+        assert cnt >= args.m
