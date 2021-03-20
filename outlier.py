@@ -7,7 +7,7 @@ import multiprocessing
 import subprocess
 
 '''This script is to remove outliers in the dataset based on the method in CUMUL paper'''
-'''Only for monitored dataset format. The traces should be parsed cell sequences'''
+'''Only for monitored dataset format. The traces should be parsed into cell sequences'''
 
 
 def parse_arguments():
@@ -65,6 +65,8 @@ def get_incoming_num(fdir):
 
 
 def detect_outliers(flist):
+    if len(flist) == 0:
+        return []
     num_incoming_list = []
     for fdir in flist:
         num_incoming_list.append(get_incoming_num(fdir))
@@ -101,10 +103,11 @@ if __name__ == '__main__':
                 total_file_num += 1
         if len(flist_cls) == 0:
             print("[Warning] no trace for class {}".format(i))
-            continue
         flist.append(flist_cls)
 
     res = parallel(flist)
+    assert len(res) == len(flist)
+    assert len(flist) == args.end - args.start
     flattened_res = []
     for cls in range(len(res)):
         flattened_res.extend(res[cls])
@@ -113,6 +116,8 @@ if __name__ == '__main__':
 
     dst_dir = init_directories(args.dir)
     for flist_cls in flist:
+        if len(flist_cls) == 0:
+            continue
         cnt = 0
         cls_id_int = -1
         for fdir in flist_cls:
@@ -127,10 +132,11 @@ if __name__ == '__main__':
             cnt += 1
         if cls_id_int != -1 and cnt < args.m:
             print("[Warning] {:-2d}:{:-3d}, pad {} outliers.".format(cls_id_int, cnt, args.m - cnt))
-            res_cls = res[cls_id_int].copy()
+            res_cls = res[cls_id_int - args.start].copy()
             np.random.shuffle(res_cls)
             for k in range(args.m - cnt):
                 dst_fdir = join(dst_dir, '{}-{}{}'.format(str(cls_id_int), cnt, args.format))
+                # print('cp ' + res_cls[k] + ' ' + dst_fdir)
                 subprocess.call('cp ' + res_cls[k] + ' ' + dst_fdir, shell=True)
                 cnt += 1
         assert cnt >= args.m
