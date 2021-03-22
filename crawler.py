@@ -12,12 +12,12 @@ import utils as ut
 from common import *
 from torcontroller import *
 import datetime
-from gRPC import client
+# from gRPC import client
 from common import ConnError, HasCaptcha, Timeout, OtherError
 import utils
 
 # do remember to change this when use host or docker container to crawl
-TBB_PATH = '/home/docker/tor-browser_en-US/'
+TBB_PATH = '/home/jgongac/tor-browser_en-US/'
 
 
 def parse_arguments():
@@ -203,11 +203,12 @@ class WFCrawler:
         # try to crawl website
         try:
             with ut.timeout(HARD_VISIT_TIMEOUT):
-                err = self.gRPCClient.sendRequest(turn_on=True, file_path='{}.cell'.format(filename))
+                # err = self.gRPCClient.sendRequest(turn_on=True, file_path='{}.cell'.format(filename))
+                err = None
                 if err != None:
                     logger.error(err)
                     # send a stop record request anyway
-                    self.gRPCClient.sendRequest(turn_on=False, file_path='')
+                    # self.gRPCClient.sendRequest(turn_on=False, file_path='')
                     return err
                 time.sleep(1)
                 logger.info("Start capturing.")
@@ -228,14 +229,11 @@ class WFCrawler:
             self.write_to_badlist(filename + '.cell', url, "OtherError")
         finally:
             t = time.time() - self.last_crawl_time
-            ut.kill_all_children(pid)
-            driver.clean_up_profile_dirs()
-            subprocess.call("rm -r /tmp/*", shell=True)
-            logger.info("Firefox killed by pid. Clean up tmp folders")
+            driver.quit()
             # We don't care about the err here since if something goes wrong, we will find it next time send a True
             # Request in next loop
             time.sleep(CRAWLER_DWELL_TIME)
-            self.gRPCClient.sendRequest(turn_on=False, file_path='')
+            # self.gRPCClient.sendRequest(turn_on=False, file_path='')
             logger.info("Stop capturing, save to {}.cell.".format(filename))
             logger.info("Loaded {:.2f}s".format(t))
             time.sleep(np.random.uniform(0, GAP_BETWEEN_SITES_MAX))
@@ -336,11 +334,10 @@ def main():
     outputdir = utils.init_directories(args.mode, args.u)
     controller = TorController(torrc_path=args.torrc)
 
-    gRPCClient = client.GRPCClient(cm.gRPCAddr)
+    gRPCClient = None
     wfcrawler = WFCrawler(args, websites, controller, gRPCClient, outputdir, picked_inds=l_inds)
 
-    if not args.headless:
-        xvfb_display = start_xvfb(1280, 800)
+
     try:
         logger.info(args)
         wfcrawler.crawl_task()
@@ -350,8 +347,6 @@ def main():
     except Exception as e:
         ut.sendmail(args.who, "'Crawler Message: An error occurred:\n{}'".format(e))
     finally:
-        if not args.headless and (xvfb_display is not None):
-            stop_xvfb(xvfb_display)
         # clean up bad webs
         wfcrawler.clean_up()
 
