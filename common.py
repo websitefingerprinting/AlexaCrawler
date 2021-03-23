@@ -13,7 +13,7 @@ SendMailPyDir = join(Pardir, "AlexaCrawler/private/sendmail.py")
 # crawl remarks
 ConnError = 1
 HasCaptcha = 1
-Timeout = 1
+Timeout = 0
 OtherError = 1
 
 
