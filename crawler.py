@@ -51,22 +51,10 @@ def parse_arguments():
                         required=True,
                         metavar='<parse mode>',
                         help='The type of dataset: clean, burst?.')
-    parser.add_argument('--device',
-                        type=str,
-                        default='eth0',
-                        help='Network device name.')
     parser.add_argument('-s',
                         action='store_true',
                         default=False,
                         help='Take a screenshot? (default:False)')
-    parser.add_argument('-p',
-                        action='store_false',
-                        default=True,
-                        help='Parse file after crawl? (default:true)')
-    parser.add_argument('-c',
-                        action='store_true',
-                        default=False,
-                        help='Whether use dumpcap to capture network traffic? (default: is false)')
     parser.add_argument('-w',
                         type=str,
                         default=None,
@@ -106,7 +94,6 @@ def parse_arguments():
 class WFCrawler:
     def __init__(self, args, wlist, controller, gRPCClient, outputdir, picked_inds=None):
         self.batch = args.batch
-        self.batch = args.batch
         self.m = args.m
         self.start = args.start
         self.tbblog = args.tbblog
@@ -131,31 +118,7 @@ class WFCrawler:
             f.write(filename + '\t' + url + '\t' + reason + '\n')
 
     def get_driver(self):
-        # profile = webdriver.FirefoxProfile()
-        # profile.set_preference("network.proxy.type", 1)
-        # profile.set_preference("network.proxy.socks", "127.0.0.1")
-        # profile.set_preference("network.proxy.socks_port", 9050)
-        # profile.set_preference("network.proxy.socks_version", 5)
-        # profile.set_preference("browser.cache.disk.enable", False)
-        # profile.set_preference("browser.cache.memory.enable", False)
-        # profile.set_preference("browser.cache.offline.enable", False)
-        # profile.set_preference("network.http.use-cache", False)
-        # profile.set_preference("network.http.pipelining.max - optimistic - requests", 5000)
-        # profile.set_preference("network.http.pipelining.maxrequests", 15000)
-        # profile.set_preference("network.http.pipelining", False)
-        #
-        # profile.update_preferences()
-        # opts = Options()
-        # opts.headless = True
-        # driver = webdriver.Firefox(firefox_profile=profile, options=opts)
         ffprefs = {
-            # "browser.cache.disk.enable":False,
-            # "browser.cache.memory.enable":False,
-            # "browser.cache.offline.enable":False,
-            # "network.http.use-cache": False,
-            # "network.http.pipelining.max-optimistic-requests": 5000,
-            # "network.http.pipelining.maxrequests": 15000,
-            # "network.http.pipelining": False
         }
         if self.headless:
             # actually this is not working since set_option is deprecated which is used in tbselenium
@@ -165,8 +128,8 @@ class WFCrawler:
             headless = False
         caps = DesiredCapabilities().FIREFOX
         caps['pageLoadStrategy'] = 'normal'
-        driver = TorBrowserDriver(tbb_path=TBB_PATH, tor_cfg=1, pref_dict=ffprefs, \
-                                  tbb_logfile_path=self.tbblog, \
+        driver = TorBrowserDriver(tbb_path=TBB_PATH, tor_cfg=1, pref_dict=ffprefs,
+                                  tbb_logfile_path=self.tbblog,
                                   socks_port=9050, capabilities=caps, headless=headless)
         driver.profile.set_preference("dom.webdriver.enabled", False)
         driver.profile.set_preference('useAutomationExtension', False)
