@@ -42,6 +42,14 @@ def parse_arguments():
                         metavar='<Num of instances in each batch>',
                         default=5,
                         help='Number of instances for each website in each batch to crawl. In unmon mode, for every m instances, restart tor.')
+    parser.add_argument('--open',
+                        type=int,
+                        default=0,
+                        help='Crawl monitored sites or unmonitored sites (default:0, monitored).')
+    parser.add_argument('--offset',
+                        type=int,
+                        default=200,
+                        help='Index of first unmonsite in the crawllist, before that is monsites.')
     parser.add_argument('--torrc',
                         type=str,
                         default=None,
@@ -238,9 +246,8 @@ class WFCrawler:
             logger.info("Loaded {:.2f}s".format(t))
             time.sleep(np.random.uniform(0, GAP_BETWEEN_SITES_MAX))
 
-
-    def crawl_task(self):
-        """This method corresponds to one crawl task over all the websites"""
+    def crawl_mon(self):
+        """This method corresponds to one crawl task over all the monitored websites"""
         # crawl monitored webpages, round-robin fashion, restart Tor every m visits of a whole list
         for bb in range(self.batch):
             with self.controller.launch():
@@ -267,6 +274,32 @@ class WFCrawler:
 
                 logger.info("Finish batch #{}, sleep {}s.".format(bb + 1, GAP_BETWEEN_BATCHES))
                 time.sleep(GAP_BETWEEN_BATCHES)
+
+    def crawl_unmon(self):
+        """This method corresponds to one crawl task over all the unmonitored websites"""
+        # crawl unmonitored webpages, round-robin fashion, restart Tor every m sites each once
+        should_restart_tor = False
+        for raw_wid, website in enumerate(self.wlist):
+            if raw_wid % self.m == 0 or should_restart_tor:
+                logger.info("Restart Tor now.")
+                self.controller.restart_tor()
+                should_restart_tor = False
+                time.sleep(GAP_BETWEEN_BATCHES)
+
+            assert self.controller.tor_process is not None
+            wid2list = raw_wid + self.start
+            wid2file = raw_wid + self.start - self.offset
+            if (self.picked_inds is not None) and (wid2list not in self.picked_inds):
+                continue
+            filename = join(self.outputdir, str(wid2file))
+            logger.info("{:d}: {}".format(wid2list, website))
+            err = self.crawl(website, filename)
+            if err is not None:
+                logger.error("Grpc server break down. Try to restart Tor.")
+                should_restart_tor = True
+            else:
+                self.controller.change_identity()
+
 
     def clean_up(self):
         err_type_cnt = {'ConnError': 0,
@@ -340,7 +373,10 @@ def main():
 
     try:
         logger.info(args)
-        wfcrawler.crawl_task()
+        if args.open:
+            wfcrawler.crawl_unmon()
+        else:
+            wfcrawler.crawl_mon()
         ut.sendmail(args.who, "'Crawler Message:Crawl done at {}!'".format(datetime.datetime.now()))
     except KeyboardInterrupt:
         sys.exit(-1)
