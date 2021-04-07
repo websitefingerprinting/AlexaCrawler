@@ -142,9 +142,9 @@ class WFCrawler:
             with ut.timeout(HARD_VISIT_TIMEOUT):
                 tb = os.path.join(self.tbbdir, "Browser", "firefox")
                 if self.headless:
-                    cmd = f"timeout -k 2 {str(30)} {tb} --headless {url}"
+                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb} --headless {url}"
                 else:
-                    cmd = f"timeout -k 2 {str(30)} {tb} {url}"
+                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb} {url}"
                 logger.info(f"{cmd}")
                 subprocess.check_call(cmd, shell=True)
         except Exception as exc:
@@ -170,13 +170,13 @@ class WFCrawler:
                 logger.info("Start capturing.")
                 self.last_crawl_time = time.time()
 
-                tb = os.path.join(tb, "Browser", "firefox")
+                tb_firefox = os.path.join(tb, "Browser", "firefox")
                 url = url.replace("'", "\\'")
                 url = url.replace(";", "\;")
                 if self.headless:
-                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb} --headless {url}"
+                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb_firefox} --headless {url}"
                 else:
-                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb} {url}"
+                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb_firefox} {url}"
                 logger.info(f"{cmd}")
                 subprocess.check_call(cmd, shell=True)
         except subprocess.CalledProcessError as exc:
