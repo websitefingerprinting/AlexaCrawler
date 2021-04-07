@@ -73,11 +73,11 @@ def parse_arguments():
                         type=str,
                         default=None,
                         help='Crawl specific sites, given a list')
-    # parser.add_argument('--crawllog',
-    #                     type=str,
-    #                     metavar='<log path>',
-    #                     default=None,
-    #                     help='path to the crawler log file. It will print to stdout by default.')
+    parser.add_argument('--crawllog',
+                        type=str,
+                        metavar='<log path>',
+                        default=None,
+                        help='path to the crawler log file. It will print to stdout by default.')
     # parser.add_argument('--tbblog',
     #                     type=str,
     #                     metavar='<log path>',
