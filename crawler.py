@@ -15,7 +15,7 @@ from common import ConnError, HasCaptcha, Timeout, OtherError
 import utils
 
 # do remember to change this when use host or docker container to crawl
-TBB_PATH = '/home/docker/dockersetup/tor-browser_en-US/'
+TBB_PATH = '/home/docker/tor-browser_en-US/'
 
 
 def parse_arguments():
@@ -104,7 +104,6 @@ class WFCrawler:
         self.offset = args.offset
         self.start = args.start
         self.end = args.end
-        self.tbblog = args.tbblog
         self.headless = args.headless
         self.driver = None
         self.outputdir = outputdir
@@ -121,33 +120,31 @@ class WFCrawler:
             logger.info("Run in non-headless mode.")
 
         self.tmpdir = tempfile.mkdtemp()
-        dst = utils.make_tb_copy(TBB_PATH)
+        dst = utils.make_tb_copy(self.tmpdir, TBB_PATH)
         self.tbbdir = dst
 
         # from https://github.com/pylls/padding-machines-for-tor/blob/master/collect-traces/client/exp/collect.py
         logger.info("Two warm up visits for fresh consensus and whatnot update checks")
-        err = self.test_crawl('https://google.com')
-        err = self.test_crawl('https://facebook.com')
+        err = self.warm_up("https://google.com")
+        err = self.warm_up("https://facebook.com")
         if err is not None:
             logger.error("Fail to launch TBB:{}".format(err))
-            raise err
+            raise ConnectionError
 
     def write_to_badlist(self, filename, url, reason):
         with open(join(self.outputdir, 'bad.list'), 'a+') as f:
             f.write(filename + '\t' + url + '\t' + reason + '\n')
 
-    def test_crawl(self, url):
+    def warm_up(self, url):
         """test crawl function"""
         err = None
         try:
             with ut.timeout(HARD_VISIT_TIMEOUT):
                 tb = os.path.join(self.tbbdir, "Browser", "firefox")
-                url = url.replace("'", "\\'")
-                url = url.replace(";", "\;")
                 if self.headless:
-                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb} --headless {url}"
+                    cmd = f"timeout -k 2 {str(30)} {tb} --headless {url}"
                 else:
-                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb} {url}"
+                    cmd = f"timeout -k 2 {str(30)} {tb} {url}"
                 logger.info(f"{cmd}")
                 subprocess.check_call(cmd, shell=True)
         except Exception as exc:
@@ -160,7 +157,7 @@ class WFCrawler:
     def crawl(self, url, filename):
         """This method corresponds to a single loading for url"""
         # try to crawl website
-        tb = utils.make_tb_copy(self.tbbdir)
+        tb = utils.make_tb_copy(self.tmpdir, self.tbbdir)
         try:
             with ut.timeout(HARD_VISIT_TIMEOUT):
                 err = self.gRPCClient.sendRequest(turn_on=True, file_path='{}.cell'.format(filename))
@@ -309,7 +306,7 @@ def main():
     except KeyboardInterrupt:
         sys.exit(-1)
     except Exception as e:
-        ut.sendmail(args.who, "'Crawler Message: An error occurred:\n{}'".format(e))
+        ut.sendmail(args.who, "Crawler Message: An error occurred:\n'{}'".format(e))
     finally:
         # clean up bad webs
         if wfcrawler:

@@ -23,7 +23,7 @@ def make_tb_copy(tmpdir, src):
 
     # ibus breaks on multiple copies that move location, need to ignore
     shutil.copytree(src, dst, ignore=shutil.ignore_patterns('ibus'))
-    return tmpdir, dst
+    return dst
 
 
 @contextmanager
