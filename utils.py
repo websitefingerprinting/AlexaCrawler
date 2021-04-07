@@ -1,4 +1,8 @@
 import signal
+import random
+import tempfile
+import string
+import shutil
 from contextlib import contextmanager
 import psutil
 from common import SendMailPyDir
@@ -10,6 +14,16 @@ from os import makedirs
 from os.path import join
 from common import DumpDir
 import datetime
+
+
+def make_tb_copy(tmpdir, src):
+    """from https://github.com/pylls/padding-machines-for-tor/blob/master/collect-traces/client/exp/collect.py"""
+    dst = os.path.join(tmpdir,
+    ''.join(random.choices(string.ascii_uppercase + string.digits, k=24)))
+
+    # ibus breaks on multiple copies that move location, need to ignore
+    shutil.copytree(src, dst, ignore=shutil.ignore_patterns('ibus'))
+    return tmpdir, dst
 
 
 @contextmanager

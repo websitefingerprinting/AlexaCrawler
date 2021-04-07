@@ -2,7 +2,6 @@ from os.path import join, abspath, dirname, pardir
 import logging
 logger = logging.getLogger("crawler")
 
-
 unmon_list = './sites/Tranco_23Dec_21Jan_2021_top30k_filtered_cp.list'
 mon_list = './sites/Tranco_23Dec_21Jan_2021_top30k_filtered_cp.list'
 Pardir = abspath(join(dirname(__file__), pardir))

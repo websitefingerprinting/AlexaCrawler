@@ -4,11 +4,8 @@ import sys
 
 sys.path.append('./gRPC')
 import argparse
+import tempfile
 import numpy as np
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from tbselenium.tbdriver import TorBrowserDriver
-from tbselenium.utils import start_xvfb, stop_xvfb
 import utils as ut
 from common import *
 from torcontroller import *
@@ -18,7 +15,7 @@ from common import ConnError, HasCaptcha, Timeout, OtherError
 import utils
 
 # do remember to change this when use host or docker container to crawl
-TBB_PATH = '/home/docker/tor-browser_en-US/'
+TBB_PATH = '/home/docker/dockersetup/tor-browser_en-US/'
 
 
 def parse_arguments():
@@ -51,10 +48,10 @@ def parse_arguments():
                         type=int,
                         default=200,
                         help='Index of first unmonsite in the crawllist, before that is monsites.')
-    parser.add_argument('--torrc',
-                        type=str,
-                        default=None,
-                        help='Torrc file path.')
+    # parser.add_argument('--torrc',
+    #                     type=str,
+    #                     default=None,
+    #                     help='Torrc file path.')
     parser.add_argument('--mode',
                         type=str,
                         required=True,
@@ -76,16 +73,16 @@ def parse_arguments():
                         type=str,
                         default=None,
                         help='Crawl specific sites, given a list')
-    parser.add_argument('--crawllog',
-                        type=str,
-                        metavar='<log path>',
-                        default=None,
-                        help='path to the crawler log file. It will print to stdout by default.')
-    parser.add_argument('--tbblog',
-                        type=str,
-                        metavar='<log path>',
-                        default=None,
-                        help='path to the tbb log file. It will print to stdout by default.')
+    # parser.add_argument('--crawllog',
+    #                     type=str,
+    #                     metavar='<log path>',
+    #                     default=None,
+    #                     help='path to the crawler log file. It will print to stdout by default.')
+    # parser.add_argument('--tbblog',
+    #                     type=str,
+    #                     metavar='<log path>',
+    #                     default=None,
+    #                     help='path to the tbb log file. It will print to stdout by default.')
     parser.add_argument('--headless',
                         action='store_false',
                         default=True,
@@ -101,7 +98,7 @@ def parse_arguments():
 
 
 class WFCrawler:
-    def __init__(self, args, wlist, controller, gRPCClient, outputdir, picked_inds=None):
+    def __init__(self, args, wlist, gRPCClient, outputdir, picked_inds=None):
         self.batch = args.batch
         self.m = args.m
         self.offset = args.offset
@@ -110,7 +107,6 @@ class WFCrawler:
         self.tbblog = args.tbblog
         self.headless = args.headless
         self.driver = None
-        self.controller = controller
         self.outputdir = outputdir
         self.wlist = wlist
         self.s = args.s
@@ -124,57 +120,47 @@ class WFCrawler:
         else:
             logger.info("Run in non-headless mode.")
 
+        self.tmpdir = tempfile.mkdtemp()
+        dst = utils.make_tb_copy(TBB_PATH)
+        self.tbbdir = dst
+
+        # from https://github.com/pylls/padding-machines-for-tor/blob/master/collect-traces/client/exp/collect.py
+        logger.info("Two warm up visits for fresh consensus and whatnot update checks")
+        err = self.test_crawl('https://google.com')
+        err = self.test_crawl('https://facebook.com')
+        if err is not None:
+            logger.error("Fail to launch TBB:{}".format(err))
+            raise err
+
     def write_to_badlist(self, filename, url, reason):
         with open(join(self.outputdir, 'bad.list'), 'a+') as f:
             f.write(filename + '\t' + url + '\t' + reason + '\n')
 
-    def get_driver(self):
-        ffprefs = {
-        }
-        if self.headless:
-            # actually this is not working since set_option is deprecated which is used in tbselenium
-            # instead, export MOZ_HEADLESS=1 is working
-            headless = True
-        else:
-            headless = False
-        caps = DesiredCapabilities().FIREFOX
-        caps['pageLoadStrategy'] = 'normal'
-        driver = TorBrowserDriver(tbb_path=TBB_PATH, tor_cfg=1, pref_dict=ffprefs,
-                                  tbb_logfile_path=self.tbblog,
-                                  socks_port=9050, capabilities=caps, headless=headless)
-        driver.profile.set_preference("dom.webdriver.enabled", False)
-        driver.profile.set_preference('useAutomationExtension', False)
-        driver.profile.update_preferences()
-        logger.info("profile dir: {}".format(driver.profile.profile_dir))
-        driver.set_page_load_timeout(SOFT_VISIT_TIMEOUT)
-        return driver
+    def test_crawl(self, url):
+        """test crawl function"""
+        err = None
+        try:
+            with ut.timeout(HARD_VISIT_TIMEOUT):
+                tb = os.path.join(self.tbbdir, "Browser", "firefox")
+                url = url.replace("'", "\\'")
+                url = url.replace(";", "\;")
+                if self.headless:
+                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb} --headless {url}"
+                else:
+                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb} {url}"
+                logger.info(f"{cmd}")
+                subprocess.check_call(cmd, shell=True)
+        except Exception as exc:
+            logger.warning("Unknow error:{}".format(exc))
+            err = exc
+        finally:
+            time.sleep(np.random.uniform(0, GAP_BETWEEN_SITES_MAX))
+        return err
 
     def crawl(self, url, filename):
         """This method corresponds to a single loading for url"""
-        # try to launch driver
-        tries = 3
-        sleeptime = 5
-        for i in range(tries):
-            pid = None
-            try:
-                # with ut.timeout(BROWSER_LAUNCH_TIMEOUT):
-                driver = self.get_driver()
-                pid = driver.service.process.pid
-            except Exception as exc:
-                if i < tries - 1:
-                    logger.error("Fail to launch browser, retry {} times, Err msg:{}".format(tries - (i + 1), exc))
-                    if pid:
-                        logger.info("Kill remaining browser process")
-                        ut.kill_all_children(pid)
-                        driver.clean_up_profile_dirs()
-                    time.sleep(sleeptime)
-                    sleeptime += 10
-                    continue
-                else:
-                    raise OSError("Fail to launch browser after {} tries".format(tries))
-            break
-
         # try to crawl website
+        tb = utils.make_tb_copy(self.tbbdir)
         try:
             with ut.timeout(HARD_VISIT_TIMEOUT):
                 err = self.gRPCClient.sendRequest(turn_on=True, file_path='{}.cell'.format(filename))
@@ -186,15 +172,21 @@ class WFCrawler:
                 time.sleep(1)
                 logger.info("Start capturing.")
                 self.last_crawl_time = time.time()
-                driver.get(url)
-                time.sleep(1)
-                if self.s:
-                    driver.get_screenshot_as_file(filename + '.png')
-                if ut.check_conn_error(driver):
-                    self.write_to_badlist(filename + '.cell', url, "ConnError")
-                elif ut.check_captcha(driver.page_source.strip().lower()):
-                    self.write_to_badlist(filename + '.cell', url, "HasCaptcha")
-        except (ut.HardTimeoutException, TimeoutException):
+
+                tb = os.path.join(tb, "Browser", "firefox")
+                url = url.replace("'", "\\'")
+                url = url.replace(";", "\;")
+                if self.headless:
+                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb} --headless {url}"
+                else:
+                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb} {url}"
+                logger.info(f"{cmd}")
+                subprocess.check_call(cmd, shell=True)
+        except subprocess.CalledProcessError as exc:
+            logger.error(
+                "Got error in cmd, return code:{}, cmd:{}, output:{}".format(exc.returncode, exc.cmd, exc.output))
+            self.write_to_badlist(filename + '.cell', url, "OtherError")
+        except ut.HardTimeoutException:
             logger.warning("{} got timeout".format(url))
             self.write_to_badlist(filename + '.cell', url, "Timeout")
         except Exception as exc:
@@ -202,72 +194,42 @@ class WFCrawler:
             self.write_to_badlist(filename + '.cell', url, "OtherError")
         finally:
             t = time.time() - self.last_crawl_time
-            ut.kill_all_children(pid)
-            driver.clean_up_profile_dirs()
-            subprocess.call("rm -r /tmp/*", shell=True)
-            logger.info("Firefox killed by pid. Clean up tmp folders")
-            # We don't care about the err here since if something goes wrong, we will find it next time send a True
-            # Request in next loop
-            time.sleep(CRAWLER_DWELL_TIME)
             self.gRPCClient.sendRequest(turn_on=False, file_path='')
             logger.info("Stop capturing, save to {}.cell.".format(filename))
             logger.info("Loaded {:.2f}s".format(t))
+
+            #clean our TB copy
+            shutil.rmtree(tb)
             time.sleep(np.random.uniform(0, GAP_BETWEEN_SITES_MAX))
+            time.sleep(CRAWLER_DWELL_TIME)
 
     def crawl_mon(self):
         """This method corresponds to one crawl task over all the monitored websites"""
-        # crawl monitored webpages, round-robin fashion, restart Tor every m visits of a whole list
+        # crawl monitored webpages, round-robin fashion
         for bb in range(self.batch):
-            with self.controller.launch():
-                should_restart_tor = False
-                logger.info("Start Tor and sleep {}s".format(GAP_AFTER_LAUNCH))
-                time.sleep(GAP_AFTER_LAUNCH)
-                for wid, website in enumerate(self.wlist):
-                    if should_restart_tor:
-                        break
-                    wid = wid + self.start
-                    if (self.picked_inds is not None) and (wid not in self.picked_inds):
-                        continue
-                    for mm in range(self.m):
-                        i = bb * self.m + mm
-                        filename = join(self.outputdir, str(wid) + '-' + str(i))
-                        logger.info("{:d}-{:d}: {}".format(wid, i, website))
-                        err = self.crawl(website, filename)
-                        if err is not None:
-                            logger.error("Grpc server break down. Try to restart Tor.")
-                            should_restart_tor = True
-                            break
-                        # change identity
-                        self.controller.change_identity()
-
-                logger.info("Finish batch #{}, sleep {}s.".format(bb + 1, GAP_BETWEEN_BATCHES))
-                time.sleep(GAP_BETWEEN_BATCHES)
+            for wid, website in enumerate(self.wlist):
+                wid = wid + self.start
+                if (self.picked_inds is not None) and (wid not in self.picked_inds):
+                    continue
+                for mm in range(self.m):
+                    i = bb * self.m + mm
+                    filename = join(self.outputdir, str(wid) + '-' + str(i))
+                    logger.info("{:d}-{:d}: {}".format(wid, i, website))
+                    self.crawl(website, filename)
+            logger.info("Finish batch #{}, sleep {}s.".format(bb + 1, GAP_BETWEEN_BATCHES))
+            time.sleep(GAP_BETWEEN_BATCHES)
 
     def crawl_unmon(self):
         """This method corresponds to one crawl task over all the unmonitored websites"""
-        # crawl unmonitored webpages, round-robin fashion, restart Tor every m sites each once
-        should_restart_tor = False
+        # crawl unmonitored webpages, round-robin fashion
         for raw_wid, website in enumerate(self.wlist):
-            if raw_wid % self.m == 0 or should_restart_tor:
-                logger.info("Restart Tor now.")
-                self.controller.restart_tor()
-                should_restart_tor = False
-                time.sleep(GAP_BETWEEN_BATCHES)
-
-            assert self.controller.tor_process is not None
             wid2list = raw_wid + self.start
             wid2file = raw_wid + self.start - self.offset
             if (self.picked_inds is not None) and (wid2list not in self.picked_inds):
                 continue
             filename = join(self.outputdir, str(wid2file))
             logger.info("{:d}: {}".format(wid2list, website))
-            err = self.crawl(website, filename)
-            if err is not None:
-                logger.error("Grpc server break down. Try to restart Tor.")
-                should_restart_tor = True
-            else:
-                self.controller.change_identity()
-
+            self.crawl(website, filename)
 
     def clean_up(self):
         err_type_cnt = {'ConnError': 0,
@@ -333,14 +295,11 @@ def main():
         l_inds = None
 
     outputdir = utils.init_directories(args.mode, args.u)
-    controller = TorController(torrc_path=args.torrc)
 
-    gRPCClient = client.GRPCClient(cm.gRPCAddr)
-    wfcrawler = WFCrawler(args, websites, controller, gRPCClient, outputdir, picked_inds=l_inds)
-
-    if not args.headless:
-        xvfb_display = start_xvfb(1280, 800)
+    wfcrawler = None
     try:
+        gRPCClient = client.GRPCClient(cm.gRPCAddr)
+        wfcrawler = WFCrawler(args, websites, gRPCClient, outputdir, picked_inds=l_inds)
         logger.info(args)
         if args.open:
             wfcrawler.crawl_unmon()
@@ -352,13 +311,10 @@ def main():
     except Exception as e:
         ut.sendmail(args.who, "'Crawler Message: An error occurred:\n{}'".format(e))
     finally:
-        if not args.headless and (xvfb_display is not None):
-            stop_xvfb(xvfb_display)
-
-        wfcrawler.controller.quit()
         # clean up bad webs
-        wfcrawler.clean_up()
-
+        if wfcrawler:
+            wfcrawler.clean_up()
+            shutil.rmtree(wfcrawler.tmpdir)
 
 if __name__ == "__main__":
     main()
