@@ -1,7 +1,6 @@
 import os
 import subprocess
 import sys
-
 sys.path.append('./gRPC')
 import argparse
 import tempfile
@@ -39,7 +38,8 @@ def parse_arguments():
                         type=int,
                         metavar='<Num of instances in each batch>',
                         default=5,
-                        help='Number of instances for each website in each batch to crawl. In unmon mode, for every m instances, restart tor.')
+                        help='Number of instances for each website in each batch to crawl. In unmon mode, for every m '
+                             'instances, restart tor.')
     parser.add_argument('--open',
                         type=int,
                         default=0,
@@ -125,8 +125,8 @@ class WFCrawler:
 
         # from https://github.com/pylls/padding-machines-for-tor/blob/master/collect-traces/client/exp/collect.py
         logger.info("Two warm up visits for fresh consensus and whatnot update checks")
-        err = self.warm_up("https://google.com")
-        err = self.warm_up("https://facebook.com")
+        err = self.warm_up("https://python.org")
+        err = self.warm_up("https://python.org")
         if err is not None:
             logger.error("Fail to launch TBB:{}".format(err))
             raise ConnectionError
@@ -160,19 +160,18 @@ class WFCrawler:
         tb = utils.make_tb_copy(self.tmpdir, self.tbbdir)
         try:
             with ut.timeout(HARD_VISIT_TIMEOUT):
-                err = self.gRPCClient.sendRequest(turn_on=True, file_path='{}.cell'.format(filename))
-                if err != None:
-                    logger.error(err)
-                    # send a stop record request anyway
-                    self.gRPCClient.sendRequest(turn_on=False, file_path='')
-                    return err
-                time.sleep(1)
-                logger.info("Start capturing.")
-                self.last_crawl_time = time.time()
-
+                # err = self.gRPCClient.sendRequest(turn_on=True, file_path='{}.cell'.format(filename))
+                # if err is not None:
+                #     logger.error(err)
+                #     # send a stop record request anyway
+                #     self.gRPCClient.sendRequest(turn_on=False, file_path='')
+                #     return err
+                # time.sleep(1)
                 tb_firefox = os.path.join(tb, "Browser", "firefox")
                 url = url.replace("'", "\\'")
                 url = url.replace(";", "\;")
+                logger.info("Start capturing.")
+                self.last_crawl_time = time.time()
                 if self.headless:
                     cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb_firefox} --headless {url}"
                 else:
@@ -195,7 +194,7 @@ class WFCrawler:
             logger.info("Stop capturing, save to {}.cell.".format(filename))
             logger.info("Loaded {:.2f}s".format(t))
 
-            #clean our TB copy
+            # clean our TB copy
             shutil.rmtree(tb)
             time.sleep(np.random.uniform(0, GAP_BETWEEN_SITES_MAX))
             time.sleep(CRAWLER_DWELL_TIME)
@@ -312,6 +311,7 @@ def main():
         if wfcrawler:
             wfcrawler.clean_up()
             shutil.rmtree(wfcrawler.tmpdir)
+
 
 if __name__ == "__main__":
     main()
