@@ -186,7 +186,7 @@ class WFCrawler:
         except subprocess.CalledProcessError as exc:
             logger.error(
                 "Got error in cmd, return code:{}, cmd:{}, output:{}".format(exc.returncode, exc.cmd, exc.output))
-            self.write_to_badlist(filename + '.cell', url, "OtherError")
+            self.write_to_badlist(filename + '.cell', url, "Timeout")
         except ut.HardTimeoutException:
             logger.warning("{} got timeout".format(url))
             self.write_to_badlist(filename + '.cell', url, "Timeout")
@@ -315,7 +315,7 @@ def main():
     except KeyboardInterrupt:
         sys.exit(-1)
     except Exception as e:
-        ut.sendmail(args.who, "Crawler Message: An error occurred:\n'{}'".format(e))
+        ut.sendmail(args.who, "Crawler Message: An error occurred")
     finally:
         # clean up bad webs
         if wfcrawler:
