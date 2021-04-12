@@ -130,6 +130,11 @@ class WFCrawler:
         if err is not None:
             logger.error("Fail to launch TBB:{}".format(err))
             raise ConnectionError
+        else:
+            logger.info("No error in warm up")
+        # clean up two warm up logs
+        pt_log_dir = join(self.tbbdir, "Browser/TorBrowser/Data/Tor/pt_state/obfs4proxy.log")
+        subprocess.call("rm {}".format(pt_log_dir), shell=True)
 
     def write_to_badlist(self, filename, url, reason):
         with open(join(self.outputdir, 'bad.list'), 'a+') as f:
@@ -193,6 +198,10 @@ class WFCrawler:
             self.gRPCClient.sendRequest(turn_on=False, file_path='')
             logger.info("Stop capturing, save to {}.cell.".format(filename))
             logger.info("Loaded {:.2f}s".format(t))
+
+            # copy log from TBB dir to result dir
+            pt_log_dir = join(tb, "Browser/TorBrowser/Data/Tor/pt_state/obfs4proxy.log")
+            subprocess.call("cp {} {}.cell".format(pt_log_dir, filename), shell=True)
 
             # clean our TB copy
             shutil.rmtree(tb)
