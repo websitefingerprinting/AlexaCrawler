@@ -202,6 +202,7 @@ class WFCrawler:
             # copy log from TBB dir to result dir
             pt_log_dir = join(tb, "Browser/TorBrowser/Data/Tor/pt_state/obfs4proxy.log")
             subprocess.call("cp {} {}.cell".format(pt_log_dir, filename), shell=True)
+            subprocess.call("chmod -R 777 {}.cell".format(filename), shell=True)
 
             # clean our TB copy
             shutil.rmtree(tb)
