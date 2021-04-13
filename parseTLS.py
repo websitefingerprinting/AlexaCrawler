@@ -80,39 +80,28 @@ def parse(fdir):
             tmp = pd.Series(tmp)
         tmp = tmp.str.slice(0,-1).str.split(' +|\t',expand=True).astype(np.int64)
         trace = np.array(tmp)
-        trace = trace[trace[:,0].argsort()]
-        refTime = trace[0,0]
-
-
-        lastTime = trace[0,0]
-        lastDirection = np.sign(trace[0,1]+trace[0,2])
-        lastRealBytes = 0
-        lastDummyBytes = 0
+        trace = trace[trace[:, 0].argsort()]
+        refTime = trace[0, 0]
+        cum_real_bytes = 0
+        cum_dummy_bytes = 0
+        cum_real_cells = 0
+        cum_dummy_cells = 0
         with open(savefiledir, 'w') as f:
-            for tls in trace:
-                curTime = tls[0]
-                curDirection = np.sign(tls[1]+tls[2])
-                if (curTime - lastTime)*1.0/1e6 < 1 and lastDirection == curDirection:
-                    lastRealBytes += tls[1]
-                    lastDummyBytes += tls[2]
-                    continue
-                # else
-                # print(lastTime, lastRealBytes, lastDummyBytes)
-                relTime = (lastTime-refTime)/1e9
-                for _ in range(int(np.round(abs(lastRealBytes)/MY_CELL_SIZE))):
-                    f.write('{:.4f}\t{:.0f}\n'.format(relTime, lastDirection))
-                for _ in range(int(np.round(abs(lastDummyBytes)/MY_CELL_SIZE))):
-                    f.write('{:.4f}\t{:.0f}\n'.format(relTime, lastDirection*isDummy))
-                lastTime = curTime
-                lastDirection = curDirection
-                lastRealBytes = tls[1]
-                lastDummyBytes = tls[2]
-            # print(lastTime, lastRealBytes, lastDummyBytes)
-            relTime = (lastTime - refTime) / 1e9
-            for _ in range(int(np.round(abs(lastRealBytes) / MY_CELL_SIZE))):
-                f.write('{:.4f}\t{:.0f}\n'.format(relTime, lastDirection))
-            for _ in range(int(np.round(abs(lastDummyBytes) / MY_CELL_SIZE))):
-                f.write('{:.4f}\t{:.0f}\n'.format(relTime, lastDirection * isDummy))
+            for time, real, dummy in trace:
+                timestamp = (time - refTime) / 1e9
+                direction = np.sign(real + dummy)
+                cum_real_bytes += abs(real)
+                cum_dummy_bytes += abs(dummy)
+
+                for _ in range(int(np.round(abs(real) / MY_CELL_SIZE))):
+                    cum_real_cells += 1
+                    f.write('{:.4f}\t{:.0f}\n'.format(timestamp, direction))
+                for _ in range(int(np.round(abs(dummy) / MY_CELL_SIZE))):
+                    cum_dummy_cells += 1
+                    f.write('{:.4f}\t{:.0f}\n'.format(timestamp, direction * isDummy))
+        print("real cells:{} parsed real cells:{} dummy cells:{} parsed dummy cells:{}"
+              .format(cum_real_bytes / MY_CELL_SIZE, cum_real_cells, cum_dummy_bytes / MY_CELL_SIZE,
+                      cum_dummy_cells))
     except Exception as e:
         print("Error {} when parse {}".format(e, fdir))
 
