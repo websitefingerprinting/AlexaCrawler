@@ -196,7 +196,7 @@ class WFCrawler:
         finally:
             t = time.time() - self.last_crawl_time
             self.gRPCClient.sendRequest(turn_on=False, file_path='')
-            logger.info("Stop capturing, save to {}.cell.".format(filename))
+            logger.info("Stop capturing {}, save to {}.cell.".format(url, filename))
             logger.info("Loaded {:.2f}s".format(t))
 
             # copy log from TBB dir to result dir
@@ -315,6 +315,7 @@ def main():
     except KeyboardInterrupt:
         sys.exit(-1)
     except Exception as e:
+        logger.error(e)
         ut.sendmail(args.who, "Crawler Message: An error occurred")
     finally:
         # clean up bad webs
