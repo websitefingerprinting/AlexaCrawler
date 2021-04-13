@@ -78,11 +78,11 @@ def parse_arguments():
                         metavar='<log path>',
                         default=None,
                         help='path to the crawler log file. It will print to stdout by default.')
-    # parser.add_argument('--tbblog',
-    #                     type=str,
-    #                     metavar='<log path>',
-    #                     default=None,
-    #                     help='path to the tbb log file. It will print to stdout by default.')
+    parser.add_argument('--tbblog',
+                        type=str,
+                        metavar='<log path>',
+                        default=None,
+                        help='path to the tbb log file. It will print to stdout by default.')
     parser.add_argument('--headless',
                         action='store_false',
                         default=True,
@@ -111,7 +111,7 @@ class WFCrawler:
         self.s = args.s
         self.picked_inds = picked_inds
         self.gRPCClient = gRPCClient
-
+        self.tbblog = args.tbblog
         self.last_crawl_time = time.time()
 
         if self.headless:
@@ -150,6 +150,8 @@ class WFCrawler:
                     cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb} --headless {url}"
                 else:
                     cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb} {url}"
+                if self.tbblog:
+                    cmd += " >> {}".format(self.tbblog)
                 logger.info(f"{cmd}")
                 subprocess.check_call(cmd, shell=True)
         except Exception as exc:
@@ -181,6 +183,8 @@ class WFCrawler:
                     cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb_firefox} --headless {url}"
                 else:
                     cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb_firefox} {url}"
+                if self.tbblog:
+                    cmd += " >> {}".format(self.tbblog)
                 logger.info(f"{cmd}")
                 subprocess.check_call(cmd, shell=True)
         except subprocess.CalledProcessError as exc:
