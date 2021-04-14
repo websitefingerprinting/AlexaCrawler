@@ -1,0 +1,5 @@
+DataDirectory /Users/aaron/tor-config/log-tor-client/
+Log notice stdout
+SOCKSPort 9050
+ControlPort 9051
+UseEntryGuards 0
