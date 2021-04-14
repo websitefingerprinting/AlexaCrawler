@@ -320,7 +320,7 @@ def main():
         sys.exit(-1)
     except Exception as e:
         logger.error(e)
-        ut.sendmail(args.who, "Crawler Message: An error occurred")
+        ut.sendmail(args.who, "An error occurred")
     finally:
         # clean up bad webs
         if wfcrawler:
