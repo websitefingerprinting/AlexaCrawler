@@ -91,8 +91,8 @@ def parse(src_dir, dst_dir, suffix, isunmon):
             for _ in range(int(np.round(abs(dummy) / MY_CELL_SIZE))):
                 cum_dummy_cells += 1
                 f.write('{:.4f}\t{:.0f}\n'.format(timestamp, direction * isDummy))
-    print("real cells:{} parsed real cells:{} dummy cells:{} parsed dummy cells:{}"
-          .format(cum_real_bytes/MY_CELL_SIZE, cum_real_cells, cum_dummy_bytes/MY_CELL_SIZE, cum_dummy_cells))
+    print("real:{:5d} parsed real:{:5d} dummy:{:5d} parsed dummy:{:5d}"
+          .format(int(cum_real_bytes/MY_CELL_SIZE), cum_real_cells, int(cum_dummy_bytes/MY_CELL_SIZE), cum_dummy_cells))
 
 @contextmanager
 def poolcontext(*args, **kwargs):
