@@ -1,6 +1,9 @@
 import os
 import subprocess
 import sys
+
+import common
+
 sys.path.append('./gRPC')
 import argparse
 import tempfile
@@ -311,6 +314,8 @@ def main():
         gRPCClient = client.GRPCClient(cm.gRPCAddr)
         wfcrawler = WFCrawler(args, websites, gRPCClient, outputdir, picked_inds=l_inds)
         logger.info(args)
+        # give bridge some time since several dockers launch at nearly the same time.
+        time.sleep(common.GAP_AFTER_LAUNCH)
         if args.open:
             wfcrawler.crawl_unmon()
         else:
