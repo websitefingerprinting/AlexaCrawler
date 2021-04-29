@@ -128,8 +128,8 @@ class WFCrawler:
 
         # from https://github.com/pylls/padding-machines-for-tor/blob/master/collect-traces/client/exp/collect.py
         logger.info("Two warm up visits for fresh consensus and whatnot update checks")
-        err = self.warm_up("https://python.org")
-        err = self.warm_up("https://python.org")
+        err = self.warm_up("https://duckduckgo.com")
+        err = self.warm_up("https://duckduckgo.com")
         if err is not None:
             logger.error("Fail to launch TBB:{}".format(err))
             raise ConnectionError
@@ -325,7 +325,7 @@ def main():
         sys.exit(-1)
     except Exception as e:
         logger.error(e)
-        ut.sendmail(args.who, "An error occurred")
+        ut.sendmail(args.who, "'An error occurred'")
     finally:
         # clean up bad webs
         if wfcrawler:
