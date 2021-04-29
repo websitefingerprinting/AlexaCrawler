@@ -350,8 +350,7 @@ def main():
     except KeyboardInterrupt:
         sys.exit(-1)
     except Exception as e:
-        logger.Error(e)
-        ut.sendmail(args.who, "Crawler Message: An error occurred")
+        ut.sendmail(args.who, "'Crawler Message: An error occurred:\n{}'".format(e))
     finally:
         if not args.headless and (xvfb_display is not None):
             stop_xvfb(xvfb_display)
