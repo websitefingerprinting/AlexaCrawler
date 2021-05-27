@@ -76,7 +76,8 @@ def parse(src_dir, dst_dir, suffix, isunmon):
             assert real_bytes + dummy_bytes != 0
             assert ((real_bytes >= 0 and dummy_bytes >= 0) or (real_bytes <= 0 and dummy_bytes <= 0))
             raw_trace.append([timestamp, real_bytes, dummy_bytes])
-
+    # the timestamp could be unordered in rare cases
+    raw_trace = sorted(raw_trace, key=lambda x: x[0])
     refTime = raw_trace[0][0]
     with open(savefiledir, 'w') as f:
         for time, real, dummy in raw_trace:
