@@ -73,11 +73,25 @@ Instead, each time we copy the log file of the pluggable transport (i.e., WFDefP
 
 To parse the raw traces, remember to use `parse_log.py` this time. The usage is similar as `parseTLS.py` though. 
 
+## Tips and Tricks
+You can modify some constants in `common.py`, such as 
+```angular2html
+gRPCAddr = "localhost:10086"
+BROWSER_LAUNCH_TIMEOUT = 10
+SOFT_VISIT_TIMEOUT = 80
+HARD_VISIT_TIMEOUT = SOFT_VISIT_TIMEOUT + 10
+GAP_BETWEEN_BATCHES = 5
+CRAWLER_DWELL_TIME = 3
+GAP_BETWEEN_SITES_MAX = 2
+GAP_AFTER_LAUNCH = 5
+```
+
 ## Versioning
 The codes are tested in Python 3.7. 
 
 ## Acknowledgments 
 Some of the codes are based on the following works. We thank respective authors for being kind to share their code:
+
 [1] M. Juarez, S. Afroz, G. Acar, C. Diaz, R. Greenstadt, [Tor-Browser-Crawler ](https://github.com/webfp/tor-browser-crawler)
 
 [2] Nate Mathews, [Tor-Browser-Crawler](https://github.com/notem/tor-browser-crawler)
