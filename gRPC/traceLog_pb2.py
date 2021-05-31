@@ -18,9 +18,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='traceLog.proto',
   package='pb',
   syntax='proto3',
-  serialized_options=b'Z8github.com/websitefingerprinting/wfdef.git/transports/pb',
+  serialized_options=b'Z8github.com/anonymous/wfdef.git/transports/pb',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0etraceLog.proto\x12\x02pb\x1a\x1bgoogle/protobuf/empty.proto\"-\n\tSignalMsg\x12\x0e\n\x06turnOn\x18\x01 \x01(\x08\x12\x10\n\x08\x66ilePath\x18\x02 \x01(\t2G\n\x0cTraceLogging\x12\x37\n\x0cSignalLogger\x12\r.pb.SignalMsg\x1a\x16.google.protobuf.Empty\"\x00\x42:Z8github.com/websitefingerprinting/wfdef.git/transports/pbb\x06proto3'
+  serialized_pb=b'\n\x0etraceLog.proto\x12\x02pb\x1a\x1bgoogle/protobuf/empty.proto\"-\n\tSignalMsg\x12\x0e\n\x06turnOn\x18\x01 \x01(\x08\x12\x10\n\x08\x66ilePath\x18\x02 \x01(\t2G\n\x0cTraceLogging\x12\x37\n\x0cSignalLogger\x12\r.pb.SignalMsg\x1a\x16.google.protobuf.Empty\"\x00\x42:Z8github.com/anonymous/wfdef.git/transports/pbb\x06proto3'
   ,
   dependencies=[google_dot_protobuf_dot_empty__pb2.DESCRIPTOR,])
 

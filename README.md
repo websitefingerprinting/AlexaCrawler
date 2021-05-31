@@ -6,6 +6,15 @@ It is customized for [WFDefProxy](https://anonymous.4open.science/r/wfdef-11EF/)
 
 **Only for research purposed, please use carefully!**
 
+## Some Notes
+This branch of repository is specially made for the double-blind review process.
+There are a few differences compared with `master` branch:
+* Some codes related to gRPC communication with WFDefProxy contain github links that may reveal our identity. 
+We therefore replace our github account in the code with word `anonymous`.
+* The hyperlink to [WFDefProxy](https://anonymous.4open.science/r/wfdef-11EF/) has been also anonymized. 
+
+Although the codes in this branch also works, we will publish our `master` branch codes after the paper gets accepted.
+
 ## How to use?
 We use `tbselenium` to launch the tor browser. 
 We use `stem` to control Tor. 
