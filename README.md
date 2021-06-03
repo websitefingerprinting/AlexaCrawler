@@ -2,7 +2,7 @@
 
 This is the repository of WFCrawler. 
 Similar as [Tor Browser Crawler](https://github.com/webfp/tor-browser-crawler), it crawls top sites and parses them into traces for Website Fingerprinting (WF) research. 
-It is customized for [WFDefProxy](https://anonymous.4open.science/r/wfdef-11EF/), a pluggable transport which implements a bunch of WF defenses.
+It is customized for [WFDefProxy](https://github.com/websitefingerprinting/wfdef), a pluggable transport which implements a bunch of WF defenses.
 
 **Only for research purposed, please use carefully!**
 
