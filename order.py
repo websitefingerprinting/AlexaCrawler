@@ -109,6 +109,7 @@ if __name__ == '__main__':
             if flag:
                 cnt_cls += 1
         print("Total:{}".format(len(flist)))
+        assert sum(cnt_inst) == len(flist)
         output_dir = init_directories(0, cnt_cls, args.u)
 
 

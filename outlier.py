@@ -53,16 +53,21 @@ def init_directories(original_dir):
 
 
 def get_incoming_num(fdir):
+    global format
     with open(fdir, 'r') as f:
         tmp = f.readlines()
     trace = pd.Series(tmp).str.slice(0, -1).str.split('\t', expand=True).astype(float)
     if len(trace) == 0:
         print("[Warning] No packet in trace {}".format(fdir))
         return 0
-
     trace = np.array(trace)[:, 1]
-    return len(trace[trace == -1])
-
+    if format == '.cell':
+        return len(trace[trace == -1])
+    elif format == '.pkt':
+        incoming_num = -sum(trace[trace < 0])//514
+        return incoming_num
+    else:
+        pass
 
 def detect_outliers(flist):
     if len(flist) == 0:
@@ -84,14 +89,16 @@ def detect_outliers(flist):
     return list(outliers)
 
 
-def parallel(flist, n_workers=20):
+def parallel(flist, n_workers=60):
     with multiprocessing.Pool(n_workers) as p:
         res = p.map(detect_outliers, flist)
     return res
 
 
 if __name__ == '__main__':
+    global format
     args = parse_arguments()
+    format = args.format
     flist = []
     total_file_num = 0
     for i in range(args.start, args.end):
@@ -121,6 +128,8 @@ if __name__ == '__main__':
         cnt = 0
         cls_id_int = -1
         for fdir in flist_cls:
+            if cnt >= args.m:
+                break
             if fdir in flattened_res:
                 continue
             cls_ind = fdir.split('/')[-1].split(args.format)[0].split('-')[0]
@@ -139,4 +148,4 @@ if __name__ == '__main__':
                 # print('cp ' + res_cls[k] + ' ' + dst_fdir)
                 subprocess.call('cp ' + res_cls[k] + ' ' + dst_fdir, shell=True)
                 cnt += 1
-        assert cnt >= args.m
+        assert cnt == args.m
