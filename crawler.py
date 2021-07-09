@@ -201,7 +201,7 @@ class WFCrawler:
             self.write_to_badlist(filename + '.cell', url, "OtherError")
         finally:
             t = time.time() - self.last_crawl_time
-            self.gRPCClient.sendRequest(turn_on=False, file_path='')
+            # self.gRPCClient.sendRequest(turn_on=False, file_path='')
             logger.info("Stop capturing {}, save to {}.cell.".format(url, filename))
             logger.info("Loaded {:.2f}s".format(t))
 
