@@ -147,12 +147,12 @@ class WFCrawler:
         """test crawl function"""
         err = None
         try:
-            with ut.timeout(HARD_VISIT_TIMEOUT):
+            with ut.timeout(110):
                 tb = os.path.join(self.tbbdir, "Browser", "firefox")
                 if self.headless:
-                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb} --headless {url}"
+                    cmd = f"timeout -k 2 {str(100)} {tb} --headless {url}"
                 else:
-                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb} {url}"
+                    cmd = f"timeout -k 2 {str(100)} {tb} {url}"
                 if self.tbblog:
                     cmd += " >> {}".format(self.tbblog)
                 logger.info(f"{cmd}")
