@@ -155,7 +155,7 @@ def init_directories(mode, u):
         makedirs(DumpDir)
 
     # Define output directory
-    timestamp = datetime.datetime.now().strftime('%m%d_%H%M_%S%f')[:-2]
+    timestamp = datetime.datetime.now().strftime('%m%d_%H%M_%S%f')[:]
     if u:
         output_dir = join(DumpDir, 'u' + mode + '_' + timestamp)
     else:

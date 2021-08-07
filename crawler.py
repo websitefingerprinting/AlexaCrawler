@@ -307,10 +307,9 @@ def main():
     else:
         l_inds = None
 
-    outputdir = utils.init_directories(args.mode, args.u)
-
     wfcrawler = None
     try:
+        outputdir = utils.init_directories(args.mode, args.u)
         gRPCClient = client.GRPCClient(cm.gRPCAddr)
         wfcrawler = WFCrawler(args, websites, gRPCClient, outputdir, picked_inds=l_inds)
         logger.info(args)
@@ -324,7 +323,7 @@ def main():
     except KeyboardInterrupt:
         sys.exit(-1)
     except Exception as e:
-        logger.error(e)
+        logger.error(e, exc_info=True)
         ut.sendmail(args.who, "'An error occurred'")
     finally:
         # clean up bad webs
