@@ -128,8 +128,8 @@ class WFCrawler:
 
         # from https://github.com/pylls/padding-machines-for-tor/blob/master/collect-traces/client/exp/collect.py
         logger.info("Two warm up visits for fresh consensus and whatnot update checks")
-        err = self.warm_up("https://duckduckgo.com")
-        # err = self.warm_up("https://duckduckgo.com")
+        err = self.warm_up("https://duckduckgo.com", 50)
+        err = self.warm_up("https://duckduckgo.com", 100)
         if err is not None:
             logger.error("Fail to launch TBB:{}".format(err))
             raise ConnectionError
@@ -143,16 +143,16 @@ class WFCrawler:
         with open(join(self.outputdir, 'bad.list'), 'a+') as f:
             f.write(filename + '\t' + url + '\t' + reason + '\n')
 
-    def warm_up(self, url):
+    def warm_up(self, url, timeout):
         """test crawl function"""
         err = None
         try:
             with ut.timeout(110):
                 tb = os.path.join(self.tbbdir, "Browser", "firefox")
                 if self.headless:
-                    cmd = f"timeout -k 2 {str(100)} {tb} --headless {url}"
+                    cmd = f"timeout -k 2 {str(timeout)} {tb} --headless {url}"
                 else:
-                    cmd = f"timeout -k 2 {str(100)} {tb} {url}"
+                    cmd = f"timeout -k 2 {str(timeout)} {tb} {url}"
                 if self.tbblog:
                     cmd += " >> {}".format(self.tbblog)
                 logger.info(f"{cmd}")
