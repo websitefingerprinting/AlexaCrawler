@@ -129,7 +129,7 @@ class WFCrawler:
         # from https://github.com/pylls/padding-machines-for-tor/blob/master/collect-traces/client/exp/collect.py
         logger.info("Two warm up visits for fresh consensus and whatnot update checks")
         err = self.warm_up("https://duckduckgo.com")
-        err = self.warm_up("https://duckduckgo.com")
+        # err = self.warm_up("https://duckduckgo.com")
         if err is not None:
             logger.error("Fail to launch TBB:{}".format(err))
             raise ConnectionError
