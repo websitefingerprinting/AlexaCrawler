@@ -129,15 +129,19 @@ class WFCrawler:
         # from https://github.com/pylls/padding-machines-for-tor/blob/master/collect-traces/client/exp/collect.py
         logger.info("Two warm up visits for fresh consensus and whatnot update checks")
         err = self.warm_up("https://duckduckgo.com", 50)
-        if err is not None:
+        trials = 0
+        while (err is not None) and trials < 2:
             # The downloading of the consensus file is not finished
             # do it again
-            err = self.warm_up("https://duckduckgo.com", 100)
-            if err is not None:
-                logger.error("Fail to launch TBB:{}".format(err))
-                raise ConnectionError
-            else:
-                logger.info("No error in warm up")
+            # up to in total 1+2 times trials
+            trials += 1
+            err = self.warm_up("https://duckduckgo.com", 70)
+        if err is None:
+            logger.info("Warm up successfully")
+        else:
+            logger.error("Fail to launch TBB:{}".format(err))
+            raise ConnectionError
+
         # clean up two warm up logs
         pt_log_dir = join(self.tbbdir, "Browser/TorBrowser/Data/Tor/pt_state/obfs4proxy.log")
         subprocess.call("rm {}".format(pt_log_dir), shell=True)

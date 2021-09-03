@@ -119,7 +119,7 @@ if __name__ == '__main__':
 
 		counter[int(web_id)] += 1
 	for i in range(len(counter)):
-		if counter[i] > 0 :
+		if counter[i] > 0:
 			print("#{}:{}".format(i, counter[i]))
 	print("Merged to {}".format(output_dir))
 
