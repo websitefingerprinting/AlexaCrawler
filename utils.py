@@ -10,6 +10,8 @@ from os import makedirs
 from os.path import join
 from common import DumpDir
 import datetime
+import pandas as pd
+import numpy as np
 
 
 @contextmanager
@@ -149,3 +151,10 @@ def init_directories(mode, u):
     makedirs(output_dir)
 
     return output_dir
+
+
+def load_trace(fdir):
+    with open(fdir, 'r') as f:
+        trace = f.readlines()
+    trace = pd.Series(trace).str.slice(0, -1).str.split('\t', expand=True).astype("float")
+    return np.array(trace)
