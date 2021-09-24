@@ -32,7 +32,7 @@ def parse_arguments():
     parser.add_argument('--p_mon',
                         metavar='<new trace path>',
                         help='defended dataset')
-    parser.add_argument('-p_unmon',
+    parser.add_argument('--p_unmon',
                         default=None,
                         metavar='<new trace path>',
                         help='defended dataset')
@@ -76,13 +76,13 @@ def calc_single_ovhd(ff):
     n_dummy = n_total - n_real
     # compute time overhead
     index_99 = int(0.99 * len(ot))
-    old_time = ot[index_99, 0]
+    old_time = ot[-1, 0]
     index_99 = int(0.99 * len(new_real_trace))
-    new_time = new_real_trace[index_99, 0]
+    new_time = new_real_trace[-1, 0]
     return n_dummy, n_real, old_time, new_time
 
 
-def parallel(flist, n_jobs=40):
+def parallel(flist, n_jobs=70):
     pool = mp.Pool(n_jobs)
     ovhds = pool.map(calc_single_ovhd, flist)
     return ovhds
@@ -105,7 +105,7 @@ if __name__ == '__main__':
         if os.path.exists(os.path.join(undefended_unmon_dir, str(i) + args.format)) and \
                 os.path.exists(os.path.join(defended_unmon_dir, str(i) + args.format)):
             flist.append(str(i) + args.format)
-    logger.debug("In total {} files".format(len(flist)))
+    logger.info("In total {} files".format(len(flist)))
     # flist = glob.glob(os.path.join(args.dir,'*'+args.format))
     # ovhds = []
     # for f in flist:
