@@ -15,7 +15,7 @@ NUM_MONITORED = 100
 NUM_INST = 100
 NUM_UNMONITORED = 50000
 
-logger = utils.config_logger('ovhd')
+logger = utils.config_logger(None)
 
 
 def parse_arguments():
