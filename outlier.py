@@ -84,7 +84,7 @@ def detect_outliers(flist):
     return list(outliers)
 
 
-def parallel(flist, n_workers=20):
+def parallel(flist, n_workers=80):
     with multiprocessing.Pool(n_workers) as p:
         res = p.map(detect_outliers, flist)
     return res

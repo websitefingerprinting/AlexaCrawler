@@ -47,7 +47,7 @@ def parse_arguments():
     parser.add_argument('--proc_num',
                         type=int,
                         metavar='<process num>',
-                        default=20,
+                        default=80,
                         help='The num of parallel workers')
     # Parse arguments
     args = parser.parse_args()
