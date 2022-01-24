@@ -225,7 +225,9 @@ class WFCrawler:
 
     def crawl_mon(self):
         """This method corresponds to one crawl task over all the monitored websites"""
-        # crawl monitored webpages, round-robin fashion
+        # crawl monitored webpages, randomly pick one filename each time
+        # to avoid congestion itself becomes a feature
+        flist = []
         for bb in range(self.batch):
             for wid, website in enumerate(self.wlist):
                 wid = wid + self.start
@@ -233,11 +235,13 @@ class WFCrawler:
                     continue
                 for mm in range(self.m):
                     i = bb * self.m + mm
-                    filename = join(self.outputdir, str(wid) + '-' + str(i))
-                    logger.info("{:d}-{:d}: {}".format(wid, i, website))
-                    self.crawl(website, filename)
-            logger.info("Finish batch #{}, sleep {}s.".format(bb + 1, GAP_BETWEEN_BATCHES))
-            time.sleep(GAP_BETWEEN_BATCHES)
+                    flist.append((wid, i, website))
+
+        np.random.shuffle(flist)
+        for k, (wid, i, website) in enumerate(flist):
+            logger.info("Crawl [{:d}/{:d}] {:d}-{:d}: {}".format(k, len(flist), wid, i, website))
+            filename = join(self.outputdir, str(wid) + '-' + str(i))
+            self.crawl(website, filename)
 
     def crawl_unmon(self):
         """This method corresponds to one crawl task over all the unmonitored websites"""
