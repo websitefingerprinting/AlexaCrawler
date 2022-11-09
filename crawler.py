@@ -155,7 +155,7 @@ class WFCrawler:
         err = None
         try:
             with ut.timeout(110):
-                tb = os.path.join(self.tbbdir, "Browser", "firefox")
+                tb = os.path.join(self.tbbdir, "Browser", "start-tor-browser")
                 if self.headless:
                     cmd = f"timeout -k 2 {str(timeout)} {tb} --headless {url}"
                 else:
