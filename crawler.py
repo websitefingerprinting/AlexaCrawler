@@ -190,7 +190,7 @@ class WFCrawler:
                 logger.info("Start capturing.")
                 self.last_crawl_time = time.time()
                 if self.headless:
-                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb_firefox} --headless --verbose {url}"
+                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb_firefox} --verbose --headless {url}"
                 else:
                     cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb_firefox} --verbose {url}"
                 if self.tbblog:
