@@ -184,7 +184,7 @@ class WFCrawler:
                 #     self.gRPCClient.sendRequest(turn_on=False, file_path='')
                 #     return err
                 # time.sleep(1)
-                tb_firefox = os.path.join(tb, "Browser", "firefox")
+                tb_firefox = os.path.join(tb, "Browser", "start-tor-browser")
                 url = url.replace("'", "\\'")
                 url = url.replace(";", "\;")
                 logger.info("Start capturing.")
