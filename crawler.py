@@ -321,6 +321,8 @@ def main():
     wfcrawler = None
     try:
         outputdir = utils.init_directories(args.mode, args.u)
+        # Fix the privilege issue for docker users
+        subprocess.call("chmod -R 777 {}".format(outputdir), shell=True)
         gRPCClient = client.GRPCClient(cm.gRPCAddr)
         wfcrawler = WFCrawler(args, websites, gRPCClient, outputdir, picked_inds=l_inds)
         logger.info(args)

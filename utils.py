@@ -24,7 +24,8 @@ def make_tb_copy(tmpdir, src):
     ''.join(random.choices(string.ascii_uppercase + string.digits, k=24)))
 
     # ibus breaks on multiple copies that move location, need to ignore
-    shutil.copytree(src, dst, ignore=shutil.ignore_patterns('ibus'))
+    # TBB 11 has a symlink issue, should set symlinks=True
+    shutil.copytree(src, dst, symlinks=True, ignore=shutil.ignore_patterns('ibus'))
     return dst
 
 
