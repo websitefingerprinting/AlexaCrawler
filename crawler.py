@@ -157,9 +157,9 @@ class WFCrawler:
             with ut.timeout(110):
                 tb = os.path.join(self.tbbdir, "Browser", "start-tor-browser")
                 if self.headless:
-                    cmd = f"timeout -k 2 {str(timeout)} {tb} --headless {url}"
+                    cmd = f"timeout -k 2 {str(timeout)} {tb}  --verbose --headless {url}"
                 else:
-                    cmd = f"timeout -k 2 {str(timeout)} {tb} {url}"
+                    cmd = f"timeout -k 2 {str(timeout)} {tb}  --verbose {url}"
                 if self.tbblog:
                     cmd += " >> {}".format(self.tbblog)
                 logger.info(f"{cmd}")
@@ -190,9 +190,9 @@ class WFCrawler:
                 logger.info("Start capturing.")
                 self.last_crawl_time = time.time()
                 if self.headless:
-                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb_firefox} --headless {url}"
+                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb_firefox} --headless --verbose {url}"
                 else:
-                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb_firefox} {url}"
+                    cmd = f"timeout -k 2 {str(cm.SOFT_VISIT_TIMEOUT)} {tb_firefox} --verbose {url}"
                 if self.tbblog:
                     cmd += " >> {}".format(self.tbblog)
                 logger.info(f"{cmd}")
