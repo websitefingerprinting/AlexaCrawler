@@ -3,8 +3,6 @@ import subprocess
 import sys
 
 import common
-
-sys.path.append('./gRPC')
 import argparse
 import tempfile
 import numpy as np
@@ -12,7 +10,6 @@ import utils as ut
 from common import *
 from torcontroller import *
 import datetime
-from gRPC import client
 from common import ConnError, HasCaptcha, Timeout, OtherError
 import utils
 
@@ -90,6 +87,10 @@ def parse_arguments():
                         action='store_false',
                         default=True,
                         help='Whether to use xvfb, false by default. (Make sure use customed headless tbb if true)')
+    parser.add_argument('--randomize',
+                        action='store_true',
+                        default=False,
+                        help='Whether to randomize the order of web list.')
     parser.add_argument('--who',
                         type=str,
                         metavar='<email sender>',
@@ -101,19 +102,19 @@ def parse_arguments():
 
 
 class WFCrawler:
-    def __init__(self, args, wlist, gRPCClient, outputdir, picked_inds=None):
+    def __init__(self, args, wlist, outputdir, picked_inds=None):
         self.batch = args.batch
         self.m = args.m
         self.offset = args.offset
         self.start = args.start
         self.end = args.end
         self.headless = args.headless
+        self.randomize = args.randomize
         self.driver = None
         self.outputdir = outputdir
         self.wlist = wlist
         self.s = args.s
         self.picked_inds = picked_inds
-        self.gRPCClient = gRPCClient
         self.tbblog = args.tbblog
         self.last_crawl_time = time.time()
 
@@ -177,13 +178,6 @@ class WFCrawler:
         tb = utils.make_tb_copy(self.tmpdir, self.tbbdir)
         try:
             with ut.timeout(HARD_VISIT_TIMEOUT):
-                # err = self.gRPCClient.sendRequest(turn_on=True, file_path='{}.cell'.format(filename))
-                # if err is not None:
-                #     logger.error(err)
-                #     # send a stop record request anyway
-                #     self.gRPCClient.sendRequest(turn_on=False, file_path='')
-                #     return err
-                # time.sleep(1)
                 tb_firefox = os.path.join(tb, "Browser", "start-tor-browser")
                 url = url.replace("'", "\\'")
                 url = url.replace(";", "\;")
@@ -209,7 +203,7 @@ class WFCrawler:
             self.write_to_badlist(filename + '.cell', url, "OtherError")
         finally:
             t = time.time() - self.last_crawl_time
-            # self.gRPCClient.sendRequest(turn_on=False, file_path='')
+
             logger.info("Stop capturing {}, save to {}.cell.".format(url, filename))
             logger.info("Loaded {:.2f}s".format(t))
 
@@ -236,8 +230,9 @@ class WFCrawler:
                 for mm in range(self.m):
                     i = bb * self.m + mm
                     flist.append((wid, i, website))
-
-        np.random.shuffle(flist)
+        if self.randomize:
+            logger.info("Shuffle the list")
+            np.random.shuffle(flist)
         for k, (wid, i, website) in enumerate(flist):
             logger.info("Crawl [{:d}/{:d}] {:d}-{:d}: {}".format(k, len(flist), wid, i, website))
             filename = join(self.outputdir, str(wid) + '-' + str(i))
@@ -323,8 +318,7 @@ def main():
         outputdir = utils.init_directories(args.mode, args.u)
         # Fix the privilege issue for docker users
         subprocess.call("chmod -R 777 {}".format(outputdir), shell=True)
-        gRPCClient = client.GRPCClient(cm.gRPCAddr)
-        wfcrawler = WFCrawler(args, websites, gRPCClient, outputdir, picked_inds=l_inds)
+        wfcrawler = WFCrawler(args, websites, outputdir, picked_inds=l_inds)
         logger.info(args)
         # give bridge some time since several dockers launch at nearly the same time.
         time.sleep(common.GAP_AFTER_LAUNCH)
