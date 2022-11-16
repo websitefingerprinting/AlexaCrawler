@@ -84,8 +84,8 @@ def parse_arguments():
                         default=None,
                         help='path to the tbb log file. It will print to stdout by default.')
     parser.add_argument('--headless',
-                        action='store_false',
-                        default=True,
+                        action='store_true',
+                        default=False,
                         help='Whether to use xvfb, false by default. (Make sure use customed headless tbb if true)')
     parser.add_argument('--randomize',
                         action='store_true',
