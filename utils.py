@@ -157,9 +157,6 @@ def init_directories(mode, u):
     if not os.path.exists(DumpDir):
         makedirs(DumpDir)
 
-    # Fix the privilege issue for docker users
-    subprocess.call("chmod -R 777 {}".format(DumpDir), shell=True)
-
     # Define output directory
     timestamp = datetime.datetime.now().strftime('%m%d_%H%M_%S%f')[:]
     if u:
