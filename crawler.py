@@ -205,9 +205,9 @@ class WFCrawler:
             subprocess.call("chmod -R 777 {}.cell".format(filename), shell=True)
 
             # clean our TB copy
-            shutil.rmtree(tb)
             time.sleep(np.random.uniform(0, GAP_BETWEEN_SITES_MAX))
             time.sleep(CRAWLER_DWELL_TIME)
+            shutil.rmtree(tb, ignore_errors=True)
 
     def crawl_mon(self):
         """This method corresponds to one crawl task over all the monitored websites"""
