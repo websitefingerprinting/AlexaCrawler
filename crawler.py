@@ -48,10 +48,6 @@ def parse_arguments():
                         type=int,
                         default=200,
                         help='Index of first unmonsite in the crawllist, before that is monsites.')
-    # parser.add_argument('--torrc',
-    #                     type=str,
-    #                     default=None,
-    #                     help='Torrc file path.')
     parser.add_argument('--mode',
                         type=str,
                         required=True,
@@ -65,10 +61,6 @@ def parse_arguments():
                         type=str,
                         default=None,
                         help='Self provided web list.')
-    parser.add_argument('-u',
-                        action='store_true',
-                        default=False,
-                        help='If crawl mon or umon sites (default is mon)')
     parser.add_argument('-l',
                         type=str,
                         default=None,
@@ -292,7 +284,7 @@ def main():
     logger = utils.config_logger(args.crawllog)
     assert args.end > args.start
 
-    if args.u:
+    if args.open:
         web_list_dir = unmon_list
     else:
         web_list_dir = mon_list
@@ -315,7 +307,7 @@ def main():
 
     wfcrawler = None
     try:
-        outputdir = utils.init_directories(args.mode, args.u)
+        outputdir = utils.init_directories(args.mode, args.open)
         # Fix the privilege issue for docker users
         subprocess.call("chmod -R 777 {}".format(outputdir), shell=True)
         wfcrawler = WFCrawler(args, websites, outputdir, picked_inds=l_inds)
