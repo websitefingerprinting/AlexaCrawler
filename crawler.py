@@ -250,6 +250,7 @@ class WFCrawler:
 
         bad_list = set()
         if os.path.exists(join(self.outputdir, 'bad.list')):
+            subprocess.call("chmod 777 {}".format(join(self.outputdir, 'bad.list')), shell=True)
             with open(join(self.outputdir, 'bad.list'), 'r') as f:
                 tmp = f.readlines()
                 for entry in tmp:
