@@ -14,7 +14,7 @@ from common import ConnError, HasCaptcha, Timeout, OtherError
 import utils
 
 # do remember to change this when use host or docker container to crawl
-TBB_PATH = '/home/docker/tor-browser_en-US/'
+TBB_PATH = '/home/docker/tor-browser/'
 
 
 def parse_arguments():

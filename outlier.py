@@ -131,6 +131,7 @@ if __name__ == '__main__':
             subprocess.call('cp ' + fdir + ' ' + dst_fdir, shell=True)
             cnt += 1
         if cls_id_int != -1 and cnt < args.m:
+            # have this class of file but not enough, copy some from the same class
             print("[Warning] {:-2d}:{:-3d}, pad {} outliers.".format(cls_id_int, cnt, args.m - cnt))
             res_cls = res[cls_id_int - args.start].copy()
             np.random.shuffle(res_cls)
